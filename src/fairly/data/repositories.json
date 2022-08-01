@@ -1,0 +1,20 @@
+{
+	"4tu": {
+		"client_id": "figshare",
+		"name": "4TU.ResearchData",
+		"url": "https://data.4tu.nl/",
+		"api_url": "https://api.figshare.com/v2/"
+	},
+	"figshare": {
+		"client_id": "figshare",
+		"name": "Figshare",
+		"url": "https://figshare.com/",
+		"api_url": "https://api.figshare.com/v2/"
+	},
+	"zenodo": {
+		"client_id": "zenodo",
+		"name": "Zenodo",
+		"url": "https://zenodo.org/",
+		"api_url": "https://zenodo.org/api/"
+	}
+}
