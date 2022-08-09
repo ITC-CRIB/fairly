@@ -3,7 +3,6 @@ fairly
 """
 from typing import Dict, List
 
-import re
 import os
 import json
 import pkgutil
