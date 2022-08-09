@@ -14,8 +14,13 @@ from .dataset.local import LocalDataset
 _clients = None
 _repositories = None
 
+
+# TODO: complete docstrings for these functions.
+
 def get_config(prefix: str) -> Dict:
     """
+    Params:
+        prefix: ?????
 
     Returns:
       Dictionary of configuration attributes for the specified prefix
