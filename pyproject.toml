@@ -19,9 +19,19 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
 ]
+packages = [
+  "find"
+]
 dependencies = [
   "requests",
 	"pyyaml",
+  "python-dotenv",    # We need this to configure our tokens for dev
+  "requests_toolbelt" # This dependency was missing,
+]
+
+[project.optional-dependecies]
+dev = [
+  "pytest"
 ]
 
 [project.urls]
