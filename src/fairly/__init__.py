@@ -17,10 +17,10 @@ _repositories = None
 
 def get_config(prefix: str) -> Dict:
     """
-
     Returns:
       Dictionary of configuration attributes for the specified prefix
-
+    >>> fairly.get_config("figshare")
+    {'token': '1234567890'}
     """
     config = {}
     # Get configuration from the configuration file
@@ -40,7 +40,6 @@ def get_config(prefix: str) -> Dict:
         key = key[start:].lower()
         config[key] = val
     return config
-
 
 def get_clients() -> Dict:
     """
@@ -67,7 +66,6 @@ def get_clients() -> Dict:
     _clients = clients
     # TODO: Return a deep copy to prevent modification
     return _clients
-
 
 def get_repositories() -> List:
     global _repositories
@@ -107,7 +105,6 @@ def get_repositories() -> List:
     # TODO: Return a deep copy to prevent modification
     return _repositories
 
-
 def get_repository(id: str) -> Dict:
     repositories = get_repositories()
     if id in repositories:
@@ -117,8 +114,30 @@ def get_repository(id: str) -> Dict:
             return repository
     return None
 
+def write_default_config(repositories: list) -> None:
+    """
+    Write the default configuration file
+    >>> fairly.write_default_config()
+    """
+    # For each client generate a default configuration
+    config = {}
+    # Add repositories list to config
+    config["repositories"] = []
+    for id, repository in repositories.items():
+        platform = { "platform": repository['client_id'], "token": "" }
+        exists = platform in config["repositories"]
+        if not exists:
+            config["repositories"].append(platform)
+
+    # Write the default configuration
+    with open(os.path.expanduser("~/.fairly/config.json"), "w") as file:
+        json.dump(config, file, indent=4)
 
 def client(id: str, **kwargs) -> Client:
+    """
+    TODO: Explain how this is related to a configuration file
+
+    """
     clients = get_clients()
     repository = get_repository(id)
     if repository:
@@ -128,10 +147,29 @@ def client(id: str, **kwargs) -> Client:
         raise ValueError("Invalid client id")
     return clients[id](**kwargs)
 
-
 def get_local_dataset(path: str) -> LocalDataset:
     return LocalDataset(path)
+
+
+def set_fairly_default_config():
+    """
+    Check if the ~/.fairly/config.json exists, if not create it
+    """
+    config_dir = os.path.expanduser("~/.fairly/")
+    config_file = os.path.join(config_dir, "config.json")
     
+    if not os.path.exists(config_dir):
+        os.mkdir(config_dir)
+
+    if not os.path.exists(config_file):
+        write_default_config(get_repositories())
+
+    print("Config file created at ~/.fairly/config.json")
+    print("Add your authentication tokens to the config file to interact with the different repository platforms")
+
+# We run this function to create the default config file
+set_fairly_default_config()
+
     
 if __name__ == "__main__":
     # TODO: CLI implementation

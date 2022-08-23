@@ -80,6 +80,15 @@ class Client(ABC):
 
     @classmethod
     def get_config(cls, **kwargs) -> Dict:
+        """ Returns current client configuration
+        >>> client = fairly.client("zenodo")
+        >>> client.get_config()
+        {   
+            "name": "Zenodo",
+            "api_url": "https://zenodo.org/api",
+            "token": "1234567890"
+        }
+        """
         config = {}
         for key, val in kwargs.items():
             if key == "name":
@@ -141,6 +150,12 @@ class Client(ABC):
 
 
     def create_dataset(self, metadata=None) -> RemoteDataset:
+        ''' Keyword arguments:
+                metadata -- json metadata
+        >>> client = fairly.client("figshare")
+        >>> dataset = client.create_dataset({"title": "My new dataset title"})
+        Returns a new dataset object
+        '''
         if metadata is None:
             metadata = Metadata()
         elif isinstance(metadata, dict):
