@@ -114,16 +114,21 @@ def get_repository(id: str) -> Dict:
             return repository
     return None
 
-def write_default_config() -> None:
+def write_default_config(repositories: list) -> None:
     """
     Write the default configuration file
+    >>> fairly.write_default_config()
     """
     # For each client generate a default configuration
-    repositories = _repositories
     config = {}
     # Add repositories list to config
     config["repositories"] = []
-    pass
+    for id, repository in repositories.items():
+        platform = { "platform": repository['client_id'], "token": "" }
+        exists = platform in config["repositories"]
+        if not exists:
+            config["repositories"].append(platform)
+
     # Write the default configuration
     with open(os.path.expanduser("~/.fairly/config.json"), "w") as file:
         json.dump(config, file, indent=4)
@@ -144,6 +149,35 @@ def client(id: str, **kwargs) -> Client:
 
 def get_local_dataset(path: str) -> LocalDataset:
     return LocalDataset(path)
+
+
+def set_fairly_default_config():
+    """
+    Check if the ~/.fairly/config.json exists, if not create it
+    """
+    config_dir = os.path.expanduser("~/.fairly/")
+    config_file = os.path.join(config_dir, "config.json")
+
+    if not os.path.exists(config_dir):
+        # Get the list of clients
+        os.mkdir(config_dir)
+        print("Created ~/.fairly directory")
+    else:
+        print("~/.fairly directory already exists")
+
+    if not os.path.exists(config_file):
+        print("Creating default config file")
+        write_default_config(get_repositories())
+    
+    else:
+        print("fairly config file already exists")
+
+    print("Config file created at ~/.fairly/config.json")
+    print("Consider adding your authentication tokens to the config file for the different repository platforms")
+
+# We run this function to create the default config file
+set_fairly_default_config()
+
     
 if __name__ == "__main__":
     # TODO: CLI implementation
