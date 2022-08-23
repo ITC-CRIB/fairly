@@ -157,23 +157,15 @@ def set_fairly_default_config():
     """
     config_dir = os.path.expanduser("~/.fairly/")
     config_file = os.path.join(config_dir, "config.json")
-
+    
     if not os.path.exists(config_dir):
-        # Get the list of clients
         os.mkdir(config_dir)
-        print("Created ~/.fairly directory")
-    else:
-        print("~/.fairly directory already exists")
 
     if not os.path.exists(config_file):
-        print("Creating default config file")
         write_default_config(get_repositories())
-    
-    else:
-        print("fairly config file already exists")
 
     print("Config file created at ~/.fairly/config.json")
-    print("Consider adding your authentication tokens to the config file for the different repository platforms")
+    print("Add your authentication tokens to the config file to interact with the different repository platforms")
 
 # We run this function to create the default config file
 set_fairly_default_config()
