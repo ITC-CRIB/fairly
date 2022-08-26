@@ -1,4 +1,5 @@
 # Fairly
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A package to create, publish, and download research datasets
 
@@ -30,23 +31,23 @@ pip install fairly
     pip install .
     ```
 
-## Using the 
+## Usage
 
-```shell
+```python
+import fairly
 ```
+For more details and examples consult the [package documentation](https://jupyterfair.readthedocs.io/en/latest/package/installation.html).
 
-```shell
-```
-
-# Contributions
+## Contributions
 
 Read the contribution guideline to know how you can be part of this opensource project.
 
-# Citation
+## Citation
 
+Grigin, S., Garcia Alvarez, M., & Urra Llanusa, J. Fairly [Computer software]
 
-# Acknoledgements
+## Acknoledgements
 
-1. [NWO Open Science Fund](https://www.nwo.nl/en/researchprogrammes/open-science/open-science-fund)
-2. [Digital Competence Centre, TU Delft](https://dcc.tudelft.nl/)
-3. [4TU.ResearchDAata](https://data.4tu.nl/)
+- [NWO Open Science Fund](https://www.nwo.nl/en/researchprogrammes/open-science/open-science-fund)
+- [Digital Competence Centre, TU Delft](https://dcc.tudelft.nl/)
+- [4TU.ResearchDAata](https://data.4tu.nl/)
