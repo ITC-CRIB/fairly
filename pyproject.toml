@@ -1,11 +1,10 @@
 [project]
 name = "fairly"
-version = "0.1.0-beta.2"
+version = "0.1.0-beta.3"
 authors = [
   { name="Serkan Girgin", email="s.girgin@utwente.nl" },
   { name="Manuel Garcia Alvarez", email="m.g.garciaalvarez@tudelft.nl" },
-  { name="Jose Urra Llanusa", email="j.c.urrallanusa@tudelft.nl" },
-]
+  { name="Jose Urra Llanusa", email="j.c.urrallanusa@tudelft.nl" }, ]
 description = "A package to create, publish, and download research datasets"
 readme = "README.md"
 license = { file="LICENSE" }
@@ -13,19 +12,16 @@ requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
+    "Operating System :: OS Independent", ]
 dependencies = [
     "PyYAML",
-    "requests_toolbelt",
-]
+    "requests_toolbelt", ]
 keywords = ["fairly", "open science", "research data", "data management"]
 
 [project.optional-dependencies]
 dev = [
     "pytest",
-    "ipython",
-]
+    "ipython", ]
 
 [project.urls]
 "Homepage" = "https://github.com/ITC-CRIB/fairly"
