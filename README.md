@@ -52,4 +52,4 @@ Please cite this software using as follows:
 
 - [NWO Open Science Fund](https://www.nwo.nl/en/researchprogrammes/open-science/open-science-fund)
 - [Digital Competence Centre, TU Delft](https://dcc.tudelft.nl/)
-- [4TU.ResearchDAata](https://data.4tu.nl/)
+- [4TU.ResearchData](https://data.4tu.nl/)
