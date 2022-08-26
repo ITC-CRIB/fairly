@@ -41,7 +41,7 @@ Currently, the package only supports the [Zenodo](https://zenodo.org/) and [4TU.
 
 ## Contributions
 
-Read the contribution guideline to know how you can be part of this open source project.
+Read the [guidelines](CONTRIBUTING.md) to know how you can be part of this open source project.
 
 ## Citation
 Please cite this software using as follows:
