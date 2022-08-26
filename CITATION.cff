@@ -1,0 +1,23 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Fairly
+message: Please cite this software using these metadata.
+type: software
+authors:
+  - given-names: Serkan
+    family-names: Grigin
+    email: s.girgin@utwente.nl
+    affiliation: University of Twente
+    orcid: 'https://orcid.org/0000-0002-0156-185X'
+  - given-names: Manuel
+    family-names: Garcia Alvarez
+    email: m.g.garciaalvarez@tudelft.nl
+    affiliation: Delft University of Technology
+    orcid: 'https://orcid.org/0000-0003-1579-9989'
+  - given-names: Jose
+    family-names: Urra Llanusa
+    email: j.c.urrallanusa@tudelft.nl
+    affiliation: Delft University of Technology
+    orcid: 'https://orcid.org/0000-0002-9334-3998'
