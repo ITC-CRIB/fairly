@@ -1,11 +1,11 @@
 # Fairly
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A package to create, publish and download research datasets.
+A package to create, publish, and download research datasets
 
 ## Installation
 
-*Fairly* requires Python 3.8 or later, and it can be installed directly using PIP.
+Fairly requires Python 3.8 or later and it can be installed directly using PIP.
 
 ```shell
 pip install fairly
@@ -36,19 +36,17 @@ pip install fairly
 ```python
 import fairly
 ```
-
-Currently, the package only supports the [Zenodo](https://zenodo.org/) and [4TU.ResearchDAata](https://data.4tu.nl/) repositories. For more details and examples, consult the [package documentation](https://jupyterfair.readthedocs.io/en/latest/package/installation.html).
+For more details and examples consult the [package documentation](https://jupyterfair.readthedocs.io/en/latest/package/installation.html).
 
 ## Contributions
 
-Read the contribution guideline to know how you can be part of this open source project.
+Read the contribution guideline to know how you can be part of this opensource project.
 
 ## Citation
-Please cite this software using as follows:
 
-*Grigin, S., Garcia Alvarez, M., & Urra Llanusa, J. Fairly [Computer software]*
+Grigin, S., Garcia Alvarez, M., & Urra Llanusa, J. Fairly [Computer software]
 
-## Acknowledgements
+## Acknoledgements
 
 - [NWO Open Science Fund](https://www.nwo.nl/en/researchprogrammes/open-science/open-science-fund)
 - [Digital Competence Centre, TU Delft](https://dcc.tudelft.nl/)
