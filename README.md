@@ -1,8 +1,7 @@
 # Fairly
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
 A package to create, publish and download research datasets.
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ## Installation
 
 *Fairly* requires Python 3.8 or later, and it can be installed directly using PIP.
