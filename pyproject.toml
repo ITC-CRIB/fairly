@@ -1,3 +1,8 @@
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[project.urls]
+"Homepage" = "https://github.com/ITC-CRIB/fairly"
+"Bug Tracker" = "https://github.com/ITC-CRIB/fairly/issues"
+"Documentation" = "https://jupyterfair.readthedocs.io/en/latest/"
