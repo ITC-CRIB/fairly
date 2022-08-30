@@ -22,9 +22,11 @@ class Client(ABC):
     """
 
     Attributes:
-      config (dict)         : Configuration options
-      _session (Session)    : HTTP session object
-      _datasets (List)      :
+        config (dict) : Configuration options
+        _session (Session) : HTTP session object
+        _datasets (dict) : Public dataset cache
+        _account_datasets (dict) : Account dataset cache
+        _licenses (List) : Licenses cache
 
     """
 
@@ -65,6 +67,7 @@ class Client(ABC):
         self._session = None
         self._datasets = {}
         self._account_datasets = None
+        self._licenses = None
 
 
 
@@ -161,7 +164,7 @@ class Client(ABC):
           Returned content and response
 
         """
-        
+
         # Patch HTTPConnection block size to improve connection speed
         # ref: https://stackoverflow.com/questions/72977722/python-requests-post-very-slow
         http.client.HTTPConnection.__init__.__defaults__ = tuple(
@@ -192,7 +195,7 @@ class Client(ABC):
         _headers = headers.copy() if headers else {}
         if format == "json":
             _headers["Accept"] = "application/json"
-        
+
         response = self._session.request(method, url, headers=_headers, data=data)
         response.raise_for_status()
 
@@ -212,19 +215,15 @@ class Client(ABC):
         raise NotImplementedError
 
 
+    def get_licenses(self, refresh: bool=False) -> List[Dict]:
+        if self._licenses is None or refresh:
+            self._licenses = self._get_licenses()
+
+        return self._licenses
+
     @property
     def licenses(self) -> Dict:
-        if not hasattr(self, "_licenses"):
-            items = self._get_licenses()
-            self._licenses = {}
-            for item in items:
-                license = {}
-                if not item["name"]:
-                    raise ValueError("No license name")
-                license["id"] = None if "id" not in item else item["id"]
-                license["url"] = None if "url" not in item else item["url"]
-                self._licenses[item["name"]] = license
-        return self._licenses
+        return self.get_licenses()
 
 
     @abstractmethod
@@ -326,6 +325,16 @@ class Client(ABC):
 
     @abstractmethod
     def validate_metadata(self, metadata: Metadata) -> Dict:
+        """Validates metadata
+
+        Arguments:
+            metadata (Metadata): Metadata to be validated
+
+        Returns:
+            Dictionary of invalid metadata fields and related error messages,
+            if any.
+
+        """
         raise NotImplementedError
 
 
@@ -333,7 +342,7 @@ class Client(ABC):
     def get_files(self, id: Dict) -> List[RemoteFile]:
         raise NotImplementedError
 
-    
+
     def download_file(self, file: RemoteFile, path: str=None, name: str=None, notify: Callable=None) -> LocalFile:
         if not file.url:
             raise ValueError("No URL address")
@@ -378,15 +387,15 @@ class Client(ABC):
     def upload_file(self, dataset, file, notify: Callable=None) -> RemoteFile:
         if not isinstance(dataset, RemoteDataset):
             dataset = self.get_dataset(dataset)
-        
+
         if not isinstance(file, LocalFile):
             file = LocalFile(file)
-            
+
         remote_file = self._upload_file(dataset.id, file, notify)
-        
+
         # TODO: Do not refresh the complete file list
         dataset.get_files(refresh=True)
-        
+
         return remote_file
 
 
@@ -398,14 +407,13 @@ class Client(ABC):
     def delete_file(self, dataset, file) -> None:
         if not isinstance(dataset, RemoteDataset):
             dataset = self.get_dataset(dataset)
-        
+
         if not isinstance(file, RemoteFile):
             file = dataset.get_file(file)
             if not file:
                 raise ValueError("Invalid file identifier")
-        
+
         self._delete_file(dataset.id, file)
-        
+
         # TODO: Do not refresh the complete file list
         dataset.get_files(refresh=True)
-        

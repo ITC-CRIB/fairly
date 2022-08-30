@@ -6,8 +6,6 @@ from ..metadata import Metadata
 from ..file import File
 from ..diff import Diff
 
-import re
-
 
 class Dataset(ABC):
     """
@@ -25,10 +23,23 @@ class Dataset(ABC):
 
     @abstractmethod
     def _get_metadata(self) -> Metadata:
+        """Retrieves metadata of the dataset
+
+        Returns:
+            Metadata of the dataset
+        """
         raise NotImplementedError
 
 
     def get_metadata(self, refresh: bool=False) -> Metadata:
+        """Returns metadata of the dataset
+
+        Arguments:
+            refresh (bool): Set True to enforce metadata retrieval
+
+        Returns:
+            Metadata of the dataset
+        """
         if self._metadata is None or refresh:
             self._metadata = self._get_metadata()
         return self._metadata
@@ -36,6 +47,7 @@ class Dataset(ABC):
 
     @property
     def metadata(self) -> Metadata:
+        """Metadata of the dataset"""
         return self.get_metadata()
 
 
@@ -59,6 +71,14 @@ class Dataset(ABC):
 
 
     def get_files(self, refresh: bool=False) -> Dict[str, File]:
+        """Returns list of files of the dataset
+
+        Arguments:
+            refresh (bool): Set True to enforce file list retrieval
+
+        Returns:
+            List of files of the dataset
+        """
         if self._files is None or refresh:
             files = {}
             for file in self._get_files():
@@ -69,6 +89,7 @@ class Dataset(ABC):
 
     @property
     def files(self) -> List[File]:
+        """List of files of the dataset"""
         return self.get_files()
 
 
@@ -77,10 +98,10 @@ class Dataset(ABC):
         for key, file in self.get_files(refresh).items():
             if file.match(val):
                 return file
-        
+
         return None
-    
-    
+
+
     @property
     def file(self, val: str) -> File:
         return self.get_file(val)

@@ -1,17 +1,17 @@
 upload_type: ""
     # Required.
-    # 
+    #
     # Controlled vocabulary:
-    # 
-    # - publication: Publication
-    # - poster: Poster
-    # - presentation: Presentation
+    #
     # - dataset: Dataset
     # - image: Image
-    # - video: Video/Audio
-    # - software: Software
     # - lesson: Lesson
     # - physicalobject: Physical object
+    # - poster: Poster
+    # - presentation: Presentation
+    # - publication: Publication
+    # - software: Software
+    # - video: Video/Audio
     # - other: Other
 
 publication_type: ""
@@ -20,17 +20,17 @@ publication_type: ""
     # Controlled vocabulary:
     #
     # - annotationcollection: Annotation collection
+    # - article: Journal article
     # - book: Book
-    # - section: Book section
     # - conferencepaper: Conference paper
     # - datamanagementplan: Data management plan
-    # - article: Journal article
-    # - patent: Patent
-    # - preprint: Preprint
     # - deliverable: Project deliverable
     # - milestone: Project milestone
+    # - patent: Patent
+    # - preprint: Preprint
     # - proposal: Proposal
     # - report: Report
+    # - section: Book section
     # - softwaredocumentation: Software documentation
     # - taxonomictreatment: Taxonomic treatment
     # - technicalnote: Technical note
@@ -43,11 +43,11 @@ image_type: ""
     #
     # Controlled vocabulary:
     #
-    # - figure: Figure
-    # - plot: Plot
-    # - drawing: Drawing
     # - diagram: Diagram
+    # - drawing: Drawing
+    # - figure: Figure
     # - photo: Photo
+    # - plot: Plot
     # - other: Other
 
 publication_date: ""
@@ -77,7 +77,7 @@ creators: []
     # Example:
     #
     # [{'name':'Doe, John', 'affiliation': 'Zenodo'}, {'name':'Smith, Jane',
-    # 'affiliation': 'Zenodo', 'orcid': '0000-0002-1694-233X'}, {'name': 
+    # 'affiliation': 'Zenodo', 'orcid': '0000-0002-1694-233X'}, {'name':
     # 'Kowalski, Jack', 'affiliation': 'Zenodo', 'gnd': '170118215'}]
 
 
@@ -105,13 +105,13 @@ license: ""
     #
     # The selected license applies to all files in this deposition, but not
     # to the metadata which is licensed under Creative Commons Zero.
-    # 
+    #
     # Controlled vocabulary is available at /api/licenses endpoint.
     #
     # Defaults to 'cc-zero' for datasets and 'cc-by' for everything else.
 
 embargo_date: ""
-    # When the deposited files will be made automatically made publicly 
+    # When the deposited files will be made automatically made publicly
     # available by the system.
     #
     # Required if 'access_right' is 'embargoed'.
@@ -119,11 +119,11 @@ embargo_date: ""
     # Defaults to current date.
 
 access_conditions: ""
-    # Conditions under which you grant users access to the files in your 
+    # Conditions under which you grant users access to the files in your
     # upload.
     #
-    # User requesting access will be asked to justify how they fulfil the 
-    # conditions. Based on the justification, you decide who to grant/deny 
+    # User requesting access will be asked to justify how they fulfil the
+    # conditions. Based on the justification, you decide who to grant/deny
     # access.
     #
     # Required if 'access_right' is 'restricted'.
@@ -137,7 +137,7 @@ doi: ""
 prereserve_doi:
     # Set 'true' to reserve a DOI.
     #
-    # Reserved DOI cannot be changed. Reserved DOI is not registered with 
+    # Reserved DOI cannot be changed. Reserved DOI is not registered with
     # DataCite until you publish, and thus cannot be used before then.
     # Reserving a DOI is useful, if you need to include it in the files you
     # upload, or if you need to provide a dataset DOI to your publisher but
@@ -198,11 +198,11 @@ related_identifiers: []
     #   - isRequiredBy
     #   - isObsoletedBy
     #   - obsoletes
-    # - resource_type: Type of the related resource (based on the 
+    # - resource_type: Type of the related resource (based on the
     #   upload_type, publication_type, and image_type fields).
     #
     # The identifier type (e.g. DOI) is automatically detected, and used to
-    # validate and normalize the identifier into a standard form. 
+    # validate and normalize the identifier into a standard form.
     #
     # Example:
     #
@@ -250,7 +250,7 @@ references: []
     # List of references.
     #
     # Example:
-    # ["Doe J (2014). Title. Publisher. DOI", "Smith J (2014). Title. 
+    # ["Doe J (2014). Title. Publisher. DOI", "Smith J (2014). Title.
     # Publisher. DOI"]
 
 communities: []

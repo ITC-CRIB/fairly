@@ -57,21 +57,18 @@ custom_fields: {}
 defined_type: ""
     # Controlled vocabulary:
     # 
-    # - figure 
-    # - online
-    # - resource
-    # - preprint
     # - book
-    # - conference
-    # - contribution
-    # - media
+    # - conference contribution
     # - dataset
+    # - figure
+    # - journal contribution
+    # - media
+    # - online resource
     # - poster
-    # - journal
-    # - contribution
+    # - preprint
     # - presentation
-    # - thesis
     # - software
+    # - thesis
 
 funding: ""
     # Grant number or funding authority.

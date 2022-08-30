@@ -22,6 +22,13 @@ class RemoteDataset(Dataset):
     """
 
     def __init__(self, client, id=None, **kwargs):
+        """Initializes RemoteDataset object
+
+        Arguments:
+            client (Client): Client of the dataset
+            id: Dataset identifier
+
+        """
         # Call parent method
         super().__init__()
         # Set client
@@ -32,11 +39,13 @@ class RemoteDataset(Dataset):
 
     @property
     def client(self) -> Client:
+        """Client of the dataset"""
         return self._client
 
 
     @property
     def id(self) -> Dict:
+        """Identifier of the dataset"""
         return self._id
 
 
@@ -81,7 +90,7 @@ class RemoteDataset(Dataset):
         includes = dataset.includes
         for name, file in self.files.items():
             local_file = self._download_file(file, path, notify=notify)
-            if file.is_simple() and file.type in file.archive_types and extract:
+            if extract and file.is_archive() and file.is_simple():
                 print(f"Extract: {file.name}")
             else:
                 includes.add(file.path)

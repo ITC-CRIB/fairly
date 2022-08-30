@@ -17,12 +17,17 @@ class LocalDataset(Dataset):
       _manifest_path (str) : Path of the dataset manifest
       _manifest            : Dataset manifest
       _md5s (dict)         : Cached MD5 hashes of the files
+      _regexps (dict)      : Regular expression cache for the file rules
     """
 
     _regexps: Dict = {}
 
     def __init__(self, path: str, manifest_file: str="manifest.yaml"):
         """
+
+        Arguments:
+            path (str) : Path of the dataset
+            manifest_file (str) : Name of the dataset manifest file (optional)
 
         Raises:
           NotADirectoryError: Invalid dataset path

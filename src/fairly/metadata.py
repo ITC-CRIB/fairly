@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Any, Dict, Union
 from collections.abc import MutableMapping
 
-from .author import Author
+from .person import Person
 
 import re
 
@@ -66,10 +66,12 @@ class Metadata(MutableMapping):
             if val.startswith("doi:"):
                 val = val[:4]
             if not re.match(self.REGEXP_DOI, val):
-                raise ValueError(f"Invalid DOI {val}")
+                raise ValueError
+
         elif key == "date":
             # TODO: Standardize date
             pass
+
         elif key == "keywords":
             if isinstance(val, str):
                 val = re.split(r"[,;\n]", val)
@@ -77,13 +79,10 @@ class Metadata(MutableMapping):
                 val = [keyword.strip() for keyword in iter(val)]
             except TypeError:
                 raise ValueError
+
         elif key == "authors":
-            if isinstance(val, str):
-                val = re.split(r"[;\n]", val)
-            try:
-                val = [Author(**author) for author in iter(val)]
-            except TypeError:
-                raise ValueError
+            val = Person.get_people(val)
+
         return val
 
 

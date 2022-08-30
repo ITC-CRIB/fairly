@@ -1,17 +1,52 @@
 title: ""
-    # Title of the dataset.
+    # Title of the deposit.
     #
     # Required.
 
 description: ""
-    # Description of the dataset.
+    # Description of the deposit.
+
+authors: []
+    # List of authors to be associated with the deposit.
+    #
+    # The list can contain the following fields:
+    # - name
+    # - surname
+    # - email
+    # - institution
+    # - orcid_id
 
 keywords: []
-    # List of keywords associated with the dataset.
+    # List of keywords associated with the deposit.
     #
     # Example:
     #
     # ["Keyword 1", "Keyword 2"]
+
+doi: ""
+    # Digital Object Identifier of the deposit.
+
+license: ""
+    # License of the deposit.
+
+type: ""
+    # Type of the deposit.
+    #
+    # Controlled vocabulary:
+    #
+    # - book
+    # - conference contribution
+    # - dataset
+    # - figure
+    # - journal contribution
+    # - media
+    # - online resource
+    # - poster
+    # - preprint
+    # - presentation
+    # - software
+    # - thesis
+    # - other
 
 references: []
     # List of links to be associated with the article.
@@ -20,73 +55,12 @@ references: []
     #
     # ["http://link1", "http://link2", "http://link3"]
 
-categories: []
-    # List of category ids to be associated with the article.
-    #
-    # Example:
-    # [1, 23, 33, 66]
-    #
-    # Development Notes:
-    #
-    # Superseded by 'categories_by_source_id'.
-
-authors: []
-    # List of authors to be associated with the article.
-    #
-    # The list can contain the following fields:
-    # - id
-    # - name
-    # - first_name
-    # - last_name
-    # - email
-    # - orcid_id
-    #
-    # If an id is supplied, it will take priority and everything else will 
-    # be ignored. No more than 10 authors. For adding more authors use the
-    # specific authors endpoint.
-    
-defined_type: ""
-    # Controlled vocabulary:
-    # 
-    # - figure 
-    # - online
-    # - resource
-    # - preprint
-    # - book
-    # - conference
-    # - contribution
-    # - media
-    # - dataset
-    # - poster
-    # - journal
-    # - contribution
-    # - presentation
-    # - thesis
-    # - software
-
 funding: ""
     # Grant number or funding authority.
 
-funding_list: []
-    # Funding creation / update items
-    #
-    # - id (integer): ID as returned by the Funding Search endpoint
-    # - title (string): The title of the new user created funding
-
-license: ""
-    # License id for this article.
-
-doi: ""
-    # Digital Object Identifier.
-    #
-    # Development Notes:
-    #
-    # Not applicable for regular users. Figshare does not allow to indicate
-    # a custom DOI.
-
-timeline: 
+timeline:
     # Various timeline dates
-    
+
     firstOnline: ""
     # Online posted date
 
@@ -94,24 +68,31 @@ timeline:
     # Publish date
 
     publisherAcceptance: ""
-    # Date when the item was accepted for publication        
+    # Date when the item was accepted for publication
 
-is_embargoed:
-    # Embargo status (boolean)
-    #
-    # Example:
-    #
-    # true
+access:
+    type:
+        # Access type of the deposit
+        #
+        # Controlled vocabulary:
+        #
+        # - open
+        # - embargoed
+        # - restricted
+        # - closed
 
-embargo_date: ""
-    # Date when the embargo expires and the article gets published.
-    #
-    # '0' value will set up permanent embargo.
-    #
-    # Example:
-    #
-    # 2018-05-22T04:04:04
-    
+    embargo_date: ""
+        # Date when the embargo expires and the article gets published.
+        #
+        # '0' value will set up permanent embargo.
+        #
+        # Example:
+        #
+        # 2018-05-22T04:04:04
+
+    embargo_reason: ""
+        # Reason for setting embargo
+
 embargo_type: ""
     # Embargo can be enabled at the article or the file level.
     #
@@ -130,20 +111,3 @@ embargo_title: ""
     # Example:
     #
     # File(s) under embargo
-    
-embargo_reason: ""
-    # Reason for setting embargo
-    
-embargo_options: []
-    # List of embargo permissions to be associated with the article.
-    #
-    # The list must contain 'id' and can also contain 'group_ids' (a field 
-    # that only applies to 'logged_in' permissions). The new list replaces 
-    # old options in the database, and an empty list removes all 
-    # permissions for this article. Administration permission has to be set 
-    # up alone but logged in and IP range permissions can be set up 
-    # together.
-    #
-    # Example:
-    #
-    # [{"id": 1321}, {"id": 3345}, {"id": 54621, "group_ids": [4332, 5433]}]

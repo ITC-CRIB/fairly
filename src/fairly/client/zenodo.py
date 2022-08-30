@@ -2,6 +2,7 @@ from typing import Dict, List, Callable
 
 from . import Client
 from ..metadata import Metadata
+from ..person import Person
 from ..dataset.remote import RemoteDataset
 from ..file.local import LocalFile
 from ..file.remote import RemoteFile
@@ -16,49 +17,47 @@ CLASS_NAME = "ZenodoClient"
 
 class ZenodoClient(Client):
 
-    PAGE_SIZE = 25
+    PAGE_SIZE = 100
 
     upload_types = {
-        "publication": "Publication",
-        "poster": "Poster",
-        "presentation": "Presentation",
         "dataset": "Dataset",
         "image": "Image",
-        "video": "Video/Audio",
-        "software": "Software",
         "lesson": "Lesson",
         "physicalobject": "Physical object",
+        "poster": "Poster",
+        "presentation": "Presentation",
+        "publication": "Publication",
+        "software": "Software",
+        "video": "Video/Audio",
         "other": "Other",
     }
 
     publication_types = {
         "annotationcollection": "Annotation collection",
+        "article": "Journal article",
         "book": "Book",
-        "section": "Book section",
         "conferencepaper": "Conference paper",
         "datamanagementplan": "Data management plan",
-        "article": "Journal article",
-        "patent": "Patent",
-        "preprint": "Preprint",
         "deliverable": "Project deliverable",
         "milestone": "Project milestone",
+        "patent": "Patent",
+        "preprint": "Preprint",
         "proposal": "Proposal",
         "report": "Report",
+        "section": "Book section",
         "softwaredocumentation": "Software documentation",
         "taxonomictreatment": "Taxonomic treatment",
         "technicalnote": "Technical note",
         "thesis": "Thesis",
         "workingpaper": "Working paper",
-        "other": "Other",
     }
 
     image_types = {
-        "figure": "Figure",
-        "plot": "Plot",
-        "drawing": "Drawing",
         "diagram": "Diagram",
+        "drawing": "Drawing",
+        "figure": "Figure",
         "photo": "Photo",
-        "other": "Other",
+        "plot": "Plot",
     }
 
     access_rights = {
@@ -86,6 +85,42 @@ class ZenodoClient(Client):
         "10.13039/501100001711": "Schweizerischer Nationalfonds zur Förderung der wissenschaftlichen Forschung",
         "10.13039/501100001602": "Science Foundation Ireland",
         "10.13039/100004440": "Wellcome Trust",
+    }
+
+    # REMARK: Some of the relations are the same as Dublin Core properties
+    relations: {
+        "isCitedBy": "is cited by",
+        "cites": "cites",
+        "isSupplementTo": "is supplement to",
+        "isSupplementedBy": "is supplemented by",
+        "isContinuedBy": "is continued by",
+        "continues": "continues",
+        "isDescribedBy": "is described by",
+        "describes": "describes",
+        "hasMetadata": "has metadata",
+        "isMetadataFor": "is metadata for",
+        "isNewVersionOf": "is new version of",
+        "isPreviousVersionOf": "is previous version of",
+        "isPartOf": "is part of",
+        "hasPart": "has part",
+        "isReferencedBy": "is referenced by",
+        "references": "references",
+        "isDocumentedBy": "is documented by",
+        "documents": "documents",
+        "isCompiledBy": "is compiled by",
+        "compiles": "compiles",
+        "isVariantFormOf": "is variant form of",
+        "isOriginalFormof": "is original form of",
+        "isIdenticalTo": "is identical to",
+        "isAlternateIdentifier": "is alternative identifier",
+        "isReviewedBy": "is reviewed by",
+        "reviews": "reviews",
+        "isDerivedFrom": "is derived from",
+        "isSourceOf": "is source of",
+        "requires": "requires",
+        "isRequiredBy": "is required by",
+        "isObsoletedBy": "is obsoleted by",
+        "obsoletes": "obsoletes",
     }
 
     def __init__(self, repository_id: str=None, **kwargs):
@@ -152,6 +187,65 @@ class ZenodoClient(Client):
         raise NotImplementedError
 
 
+    def _get_entities(self, endpoint: str, page_size: int=None, process: Callable=None):
+        """Retrieves all entities available at the specified endpoint
+
+        Arguments:
+            endpoint (str) : Path of the endpoint
+
+            page_size (int) : Page size for each retrieval step. Default page
+                size is used if set to None. Page size is set to the number of
+                records if set to 0 (zero).
+
+            process (Callable): Callback function to process each entity.
+                Retrieved entity is provided as the argument and returned value
+                is stored as the entity. Retrieval is terminated if returned
+                value is False.
+
+        """
+        # Set default page size if required
+        if page_size is None or page_size < 0:
+            page_size = self.PAGE_SIZE
+
+        # Set page size to retrieve all records at once if required
+        if page_size == 0:
+            content, _ = self._request(f"{endpoint}?page=1&size=1")
+            if not content or not content["hits"]:
+                raise ValueError("Invalid endpoint")
+            page_size = content["hits"]["total"]
+
+        page = 1
+        entities = []
+
+        while True:
+
+            try:
+                content, _ = self._request(f"{endpoint}?page={page}&size={page_size}")
+
+            except HTTPError as err:
+                if page > 1 and err.response.status_code in [400, 403, 404]:
+                    break
+                raise
+
+            if not content or not content["hits"] or not content["hits"]["hits"]:
+                break
+
+            for item in content["hits"]["hits"]:
+                if process:
+                    entity = process(item)
+                    if item is False:
+                        break
+                else:
+                    entity = item
+                entities.append(entity)
+            else:
+                page += 1
+                continue
+            break
+
+        return entities
+
+
     def _get_account_datasets(self) -> List[RemoteDataset]:
         if "token" not in self.config:
             return []
@@ -191,24 +285,76 @@ class ZenodoClient(Client):
         return details
 
 
-    def _get_licenses(self) -> List:
-        licenses = []
-        page = 1
-        while True:
-            # REMARK: Page size is set to a high number to retrieve all licenses at once, if possible
-            # TODO: It looks like license names are not unique, check what we are missing
-            items, _ = self._request(f"licenses?page={page}&size=1000")
-            if not items or not items["hits"]["hits"]:
-                break
-            for item in items["hits"]["hits"]:
-                licenses.append({
-                    "name": item["metadata"]["title"],
-                    "id": item["metadata"]["id"],
-                    "url": item["metadata"]["url"],
-                })
-            page += 1
-        return licenses
+    def _get_licenses(self) -> List[Dict]:
+        """Retrieves the list of available licenses
 
+        License dictionary:
+            - id (str) : Unique id
+            - name (str) : Name of the license
+            - url (str) : URL address of the license (optional)
+
+        For the complete list of data fields check the JSON schema available at:
+        http://zenodo.org/schemas/licenses/license-v1.0.0.json
+
+        Returns:
+            List of license dictionaries
+
+        Raises:
+            None
+        """
+        # REMARK: It looks like license names are not unique
+        return self._get_entities("licenses", page_size = 0, process=lambda item : {
+            "id": item["metadata"]["id"],
+            "name": item["metadata"]["title"],
+            "url": item["metadata"]["url"],
+        })
+
+
+    def get_communities(self) -> List[Dict]:
+        """Retrieves the list of available communities
+
+        WARNING: This is a slow function due to downloads
+
+        Community dictionary:
+            - id (str) : Unique id
+            - name (str) : Name of the community
+            - url (str) : URL address of the community page at Zenodo
+            - logo_url (str) : URL address of the community logo
+            - created (str) : Creation date of the community
+            - last_record_accepted (str) : Date of the last record accepted
+            - description (str) : Short description of the community
+            - about (str) : Long description of the community
+            - curation_policy (str) : Curation policy of the community
+
+        Returns:
+            List of community dictionaries
+
+        Raises:
+            None
+        """
+        return self._get_entities("communities", page_size=2000, process=lambda item : {
+            "id": item["id"],
+            "name": item["title"],
+            "url": item["links"]["html"],
+            "logo_url": item["logo_url"],
+            "created": item["created"],
+            "last_record_accepted": item["last_record_accepted"],
+            "description": item["description"],
+            "about": item["page"],
+            "curation_policy": item["curation_policy"],
+        })
+
+
+    def get_funders(self) -> List[Dict]:
+        return self._get_entities("funders", page_size=2000, process=lambda item : {
+            # REMARK: Zenodo uses DOI to identify funders
+            "id": item["metadata"]["doi"],
+            "name": item["metadata"]["name"],
+            "type": item["metadata"]["type"],
+            "subtype": item["metadata"]["subtype"],
+            "country": item["metadata"]["country"],
+            "acronyms": item["metadata"]["acronyms"],
+        })
 
     def _get_categories(self) -> List:
         # REMARK: Zenodo does not have an endpoint to list recognized categories
@@ -243,10 +389,145 @@ class ZenodoClient(Client):
     def get_metadata(self, id: Dict) -> Metadata:
         details = self._get_dataset_details(id)
 
-        # TODO: Filter raw metadata
-        metadata = details["metadata"]
+        _metadata = details["metadata"]
+
+        # Set standard metadata fields
+        metadata = {
+        }
+
+        # Set repository-specific metadata fields
+        metadata["zenodo"] = {
+            "prereserve_doi": _metadata["prereserve_doi"],
+            "notes": _metadata["notes"],
+            "related_identifiers": _metadata["related_identifiers"],
+            "contributors": _metadata["contributors"],
+        }
+
+        # Set thesis metadata fields if required
+        if _metadata["publication_type"] == "thesis":
+            metadata["zenodo"]["thesis"] = {
+                "supervisors": _metadata["thesis_supervisors"],
+                "university": _metadata["thesis_university"],
+            }
 
         return Metadata(**metadata)
+
+
+    def _serialize_persons(self, persons: List[Person]) -> List[Dict]:
+        out = []
+
+        for person in persons:
+            item = {}
+
+            if person.name:
+                if person.surname:
+                    item["name"] = f"{person.surname}, {person.name}"
+                else:
+                    item["name"] = person.name
+            elif person.surname:
+                item["name"] = person.surname
+            else:
+                item["name"] = person.fullname
+
+            if person.institution:
+                item["affiliation"] = person.institution
+
+            if person.orcid_id:
+                item["orcid"] = person.orcid_id
+
+            out.append(item)
+
+        return out
+
+    def _serialize_metadata(self, metadata: Metadata) -> Dict:
+        out = {}
+
+        def _serialize(key: str, default: None):
+            if key in metadata:
+                out[key] = metadata[key]
+            elif default is not None:
+                out[key] = default
+
+        _serialize("title", "")
+
+        _serialize("description", "")
+
+        out["authors"] = self._serialize_persons(metadata.get("authors", []))
+
+        out["contributors"] = self._serialize_persons(metadata.get("contributors", []))
+
+        type = metadata.get("type")
+
+        if type in self.image_types:
+            out["upload_type"] = "image"
+            out["image_type"] = type
+
+        elif type in self.publication_types:
+            out["upload_type"] = "publication"
+            out["publication_type"] = type
+
+        else:
+            out["upload_type"] = type
+            if type == "image":
+                out["image_type"] = "other"
+            elif type == "publication":
+                out["publication_type"] = "other"
+
+        _serialize("doi")
+        # TODO: Serialize "prereserve_doi"
+
+        _serialize("publication_date")
+
+        # REMARK: Version is part of Zenodo metadata
+        _serialize("version")
+
+        _serialize("language")
+
+        _serialize("keywords", [])
+
+        # TODO: Serialize "subjects"
+
+        _serialize("references")
+
+        _serialize("notes")
+
+        # TODO: Serialize "communities"
+        # TODO: Serialize "grants"
+        # TODO: Serialize "related_identifiers"
+        # TODO: Serialize "locations"
+        # TODO: Serialize "dates"
+
+        _serialize("method")
+
+        if type in {"book", "report", "section"}:
+            _serialize("imprint_publisher")
+            _serialize("imprint_place")
+            _serialize("imprint_isbn")
+
+        if type == "section":
+            _serialize("partof_title")
+            _serialize("partof_pages")
+
+        if type == "conferencepaper":
+            _serialize("conference_title")
+            _serialize("conference_acronym")
+            _serialize("conference_dates")
+            _serialize("conference_place")
+            _serialize("conference_url")
+            _serialize("conference_session")
+            _serialize("conference_session_part")
+
+        if type == "article":
+            _serialize("journal_title")
+            _serialize("journal_volume")
+            _serialize("journal_issue")
+            _serialize("journal_pages")
+
+        if type == "thesis":
+            _serialize("thesis_university")
+            out["thesis_supervisors"] = self._serialize_persons(metadata.get("thesis_supervisors", []))
+
+        return out
 
 
     def set_metadata(self, id: Dict, metadata: Metadata) -> None:
@@ -254,7 +535,28 @@ class ZenodoClient(Client):
 
 
     def validate_metadata(self, metadata: Metadata) -> Dict:
-        raise NotImplementedError
+        result = {}
+
+        if not metadata.get("title"):
+            result["title"] = "Title is required."
+
+        if not metadata.get("authors"):
+            result["authors"] = "At least one author is required."
+
+        if not metadata.get("description"):
+            results["description"] = "Description is required."
+
+        if not metadata.get("access_type"):
+            results["access_type"] = "Access type is required."
+
+        if not metadata.get("license"):
+            if metadata["access_type"] in ["open", "embargoed"]:
+                results["license"] = "License if required."
+        else:
+            # TODO: Validate license
+            pass
+
+        return result
 
 
     def get_files(self, id: Dict) -> List[RemoteFile]:
@@ -287,11 +589,11 @@ class ZenodoClient(Client):
         # REMARK: requests_toolbelt MultipartEncoder is used to stream data
         # ref: https://stackoverflow.com/questions/22915295/python-requests-post-and-big-content
         # ref: https://stackoverflow.com/questions/12385179/how-to-send-a-multipart-form-data-with-requests-in-python
-        
+
         def _notify(monitor):
             if notify:
                 notify(file, monitor.bytes_read)
-            
+
         encoder = MultipartEncoderMonitor.from_fields(
             fields={
                 'file': (file.path, open(file.fullpath, 'rb'), file.type),

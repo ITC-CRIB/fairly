@@ -21,7 +21,7 @@ class FigshareClient(Client):
 
     LOCKED_SLEEP = 5
     LOCKED_TRIES = 5
-    
+
 
     def __init__(self, repository_id: str=None, **kwargs):
         # Call parent method
@@ -140,8 +140,8 @@ class FigshareClient(Client):
         licenses = []
         for item, _ in self._request(endpoint):
             licenses.append({
-                "name": item["name"],
                 "id": item["value"],
+                "name": item["name"],
                 "url": item["url"],
             })
         return licenses
@@ -278,54 +278,54 @@ class FigshareClient(Client):
         file_id = result["location"].split("/")[-1]
         if not file_id.isnumeric():
             raise ValueError("Invalid file id")
-        
+
         # Get upload token and URL
         result, _ = self._request(f"account/articles/{id['id']}/files/{file_id}")
-        
+
         # REMARK: Upload URL includes the upload token
         upload_url = result["upload_url"]
-        
+
         with open(file.fullpath, "rb") as stream:
-        
+
             tries = 0
             total_size = 0
-            
+
             while True:
                 # Get upload information
                 response = requests.get(upload_url)
                 response.raise_for_status()
-                
+
                 info = response.json()
-                
+
                 done = True
                 locked = False
-                
+
                 for part in info["parts"]:
-                    
+
                     if part["status"] == "COMPLETE":
                         continue
-                    
+
                     if part["locked"]:
                         done = False
                         locked = True
                         continue
-                        
+
                     part_size = part["endOffset"] - part["startOffset"] + 1
-                    
+
                     stream.seek(part["startOffset"])
                     data = stream.read(part_size)
 
                     response = requests.put(f"{upload_url}/{part['partNo']}", data=data)
                     response.raise_for_status()
-                    
+
                     total_size += part_size
-                    
+
                     if notify:
                         notify(file, total_size)
-                
+
                 if done:
                     break
-                
+
                 if locked:
                     time.sleep(self.LOCKED_SLEEP)
                     tries += 1
@@ -337,9 +337,9 @@ class FigshareClient(Client):
         result, response = self._request(f"account/articles/{id['id']}/files/{file_id}", "POST", format="raw")
         if response.status_code != 202:
             raise IOError("File upload cannot be completed")
-        
+
         result, _ = self._request(f"account/articles/{id['id']}/files/{file_id}")
-        
+
         remote_file = RemoteFile(
             url=result["download_url"],
             id=result["id"],
@@ -349,8 +349,8 @@ class FigshareClient(Client):
         )
 
         return remote_file
-            
-            
+
+
     def _delete_file(self, id: Dict, file: RemoteFile) -> None:
         # REMARK: Figshare does not have a versioned endpoint
         if id["version"]:
@@ -358,5 +358,5 @@ class FigshareClient(Client):
 
         if not file.id:
             raise ValueError("No file id")
-            
+
         result, response = self._request(f"account/articles/{id['id']}/files/{file.id}", "DELETE")
