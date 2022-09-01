@@ -9,6 +9,7 @@ import pkgutil
 import importlib
 
 from .client import Client
+from .dataset import Dataset
 from .dataset.local import LocalDataset
 
 _clients = None
@@ -48,8 +49,8 @@ def get_config(prefix: str) -> Dict:
 
 def get_clients() -> Dict:
     """
-    Returns a dictionary clients supported by the package.
-    Keys of the dictionary are unique client identifiers (string).
+    Returns a dictionary of clients supported by the package.
+    Keys of the dictionary are unique client identifiers (str).
     Values of the dictionary are client classes (Client).
     """
     global _clients
@@ -73,7 +74,7 @@ def get_clients() -> Dict:
     return _clients
 
 
-def get_repositories() -> List:
+def get_repositories() -> Dict:
     global _repositories
     # Return if repositories are available
     if _repositories is not None:
@@ -133,10 +134,31 @@ def client(id: str, **kwargs) -> Client:
     return clients[id](**kwargs)
 
 
-def get_local_dataset(path: str) -> LocalDataset:
-    return LocalDataset(path)
-    
-    
+def dataset(id: str) -> Dataset:
+    key, val = Client.parse_id(id)
+
+    if key == "url":
+        for repository_id, repository in get_repositories().items():
+            url = repository.get("url")
+            if url and val.startswith(url):
+                return client(repository_id).get_dataset(id)
+
+    elif key == "doi":
+        for repository_id, repository in get_repositories().items():
+            for prefix in repository.get("doi_prefixes", []):
+                if prefix and val.startswith(prefix):
+                    return client(repository_id).get_dataset(id)
+
+    else:
+        return LocalDataset(id)
+
+    raise ValueError("Unknown dataset identifier")
+
+
+def notify(file, total_size) -> None:
+    print(f"{file.path}, {file.size}/{total_size}")
+
+
 if __name__ == "__main__":
     # TODO: CLI implementation
     raise NotImplementedError

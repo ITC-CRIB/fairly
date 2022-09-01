@@ -66,7 +66,7 @@ class LocalFile(File):
         """
         Extracts archive file contents to a specified directory
 
-        Arguments:
+        Args:
 
             - path (str): Path of the directory to extract to. Default is the
                 current working directory.

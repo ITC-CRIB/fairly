@@ -1,21 +1,25 @@
 from __future__ import annotations
 from typing import List, Dict
-from collections.abc import Iterable
+from collections.abc import Iterable, MutableMapping
 
 import fairly
 
 import re
 import requests
 import copy
-import textwrap
 
-class Person:
+class Person(MutableMapping):
+    """Class to handle personal information, e.g. for authors, contributors, etc.
+
+    Attributes:
+        REGEXP_ORCID_ID: Regular expression to validate ORCID identifier
+    """
 
     # TODO: Check the checksum digit
     # https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier
     REGEXP_ORCID_ID = re.compile(r"^(\d{4}-){3}\d{3}(\d|X)$")
 
-    def __init__(self, name: str=None, surname: str=None, fullname: str=None, email: str=None, institution: str=None, orcid_id: str=None):
+    def __init__(self, **kwargs):
         """Initializes Person object.
 
         Full name is obtained from name and surname, if required.
@@ -23,7 +27,7 @@ class Person:
         Name and surname are obtained from full name, if required.
         (see parse_fullname() method for details).
 
-        Arguments:
+        Standard attributes:
             name (string): Name of the person
             surname (string): Surname of the person
             fullname (string): Full name of the person
@@ -31,83 +35,53 @@ class Person:
             institution (string): Institution of the person
             orcid_id (string): ORCID identifier of the person
 
+        Args:
+            **kwargs: Person attributes
         """
-        if fullname:
-            attrs = Person.parse_fullname(fullname)
-            if not name:
-                name = attrs.get("name")
-            if not surname:
-                surname = attrs.get("surname")
+        if "fullname" in kwargs:
+            attrs = Person.parse_fullname(kwargs["fullname"])
+            if attrs.get("name"):
+                kwargs["name"] = attrs.get("name")
+            if attrs.get("surname"):
+                kwargs["surname"] = attrs.get("surname")
 
-        elif name and surname:
-            fullname = (name + " " + surname).strip()
+        elif "name" in kwargs and "surname" in kwargs:
+            kwargs["fullname"] = (kwargs["name"] + " " + kwargs["surname"]).strip()
 
-        self._name = name
-        self._surname = surname
-        self._fullname = fullname
-        self._email = email
-        self._institution = institution
-        self._orcid_id = orcid_id
+        for key, val in kwargs.items():
+            if bool(val) or isinstance(val, (bool, int, float)):
+                self.__dict__[key] = val
+
+
+    def __setitem__(self, key, val):
+        if bool(val) or isinstance(val, (bool, int, float)):
+            self.__dict__[key] = self._normalize(key, val)
+        elif hasattr(self.__dict__, key):
+            del self.__dict__[key]
+
+
+    def __getitem__(self, key):
+        return self.__dict__[key]
+
+
+    def __delitem__(self, key):
+        del self.__dict__[key]
+
+
+    def __iter__(self):
+        return iter(self.__dict__)
+
+
+    def __len__(self):
+        return len(self.__dict__)
+
+
+    def __str__(self):
+        return str(self.__dict__)
 
 
     def __repr__(self):
-        attrs = {}
-        for key in ["name", "surname", "fullname", "email", "institution", "orcid_id"]:
-            val = getattr(self, key)
-            if val:
-                attrs[key] = val
-
-        attrs = ", ".join(f"{key}={val!r}" for key, val in attrs.items())
-
-        return f"Person({attrs})"
-
-
-    @property
-    def name(self) -> str:
-        """
-        Name of the person.
-        """
-        return self._name
-
-
-    @property
-    def surname(self) -> str:
-        """
-        Surname of the person.
-        """
-        return self._surname
-
-
-    @property
-    def fullname(self) -> str:
-        """
-        Full name of the person.
-        """
-        return self._fullname
-
-
-    @property
-    def email(self) -> str:
-        """
-        E-mail address of the person.
-        """
-        return self._email
-
-
-    @property
-    def institution(self) -> str:
-        """
-        Institution of the person.
-        """
-        return self._institution
-
-
-    @property
-    def orcid_id(self) -> str:
-        """
-        ORCID identifier of the person.
-        """
-        return self._orcid_id
+        return f"Person({self.__dict__})"
 
 
     @classmethod
@@ -119,7 +93,7 @@ class Person:
             - surname
             - fullname
 
-        Arguments:
+        Args:
             fullname: Full name of the person
 
         Returns:
@@ -154,7 +128,7 @@ class Person:
 
 
     @staticmethod
-    def get_from_orcid_id(orcid_id: str, access_token: str=None) -> Dict:
+    def get_from_orcid_id(orcid_id: str, access_token: str=None) -> Person:
         # Get default access token if required
         if not access_token:
             config = fairly.get_config("orcid")
@@ -190,6 +164,25 @@ class Person:
 
     @staticmethod
     def get_people(people) -> List[Person]:
+        """Returns standard person list from custom people input
+
+        A string or an iterable are accepted as input. If input is a string,
+        it is split using semicolon and line feed as separators. For the items
+        of the iterable, the following are performed:
+
+            - If it is a Person object, a copy is created
+            - If it is a string, it is parsed to a dictionary using parse_fullname()
+            - If is is a dictionary, Person object is created
+
+        Args:
+            people: Custom people input
+
+        Returns:
+            List of person objects
+
+        Raises:
+            ValueError
+        """
         if not people:
             return []
 
@@ -201,8 +194,13 @@ class Person:
 
         persons = []
         for item in people:
+
+            if not item:
+                continue
+
             if isinstance(item, Person):
                 person = copy.copy(item)
+
             else:
                 if isinstance(item, str):
                     item = Person.parse_fullname(item)

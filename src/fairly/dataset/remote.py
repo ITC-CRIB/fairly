@@ -16,15 +16,15 @@ class RemoteDataset(Dataset):
     """
 
     Attributes:
-      _client  (Client): Client object
-      _id      (str)   : Dataset identifier
+        _client (Client): Client object
+        _id (str): Dataset identifier
 
     """
 
     def __init__(self, client, id=None, **kwargs):
-        """Initializes RemoteDataset object
+        """Initializes RemoteDataset object.
 
-        Arguments:
+        Args:
             client (Client): Client of the dataset
             id: Dataset identifier
 
@@ -53,8 +53,8 @@ class RemoteDataset(Dataset):
         return self.client.get_metadata(self.id)
 
 
-    def _set_metadata(self, metadata: Metadata) -> None:
-        self.client.set_metadata(self.id, metadata)
+    def save_metadata(self) -> None:
+        return self.client.save_metadata(self.id, self.metadata)
 
 
     def _get_files(self) -> List[RemoteFile]:
@@ -65,16 +65,6 @@ class RemoteDataset(Dataset):
         return self.client.get_versions(self.id)
 
 
-    def serialize(self) -> Dict:
-        out = super().serialize()
-
-        out.update(self.id)
-        out["client_id"] = self.client.client_id
-        out["repository_id"] = self.client.repository_id
-
-        return out
-
-
     def _download_file(self, file: RemoteFile, path: str=None, name: str=None, notify: Callable=None) -> LocalFile:
         return self.client.download_file(file, path, name, notify)
 
@@ -83,16 +73,20 @@ class RemoteDataset(Dataset):
         os.makedirs(path, exist_ok=True)
         if os.listdir(path):
             raise ValueError("Directory is not empty.")
+
         dataset = LocalDataset(path)
+
         # TODO: Set metadata directly without serialization
-        dataset.set_metadata(**self.metadata.serialize())
+        dataset.set_metadata(**self.metadata)
+        dataset.save_metadata()
 
         includes = dataset.includes
         for name, file in self.files.items():
             local_file = self._download_file(file, path, notify=notify)
-            if extract and file.is_archive() and file.is_simple():
-                print(f"Extract: {file.name}")
+            if extract and local_file.is_archive() and local_file.is_simple():
+                local_file.extract(path)
             else:
-                includes.add(file.path)
+                includes.append(file.path)
+        dataset.save_files()
 
         return dataset

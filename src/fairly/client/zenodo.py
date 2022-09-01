@@ -19,7 +19,7 @@ class ZenodoClient(Client):
 
     PAGE_SIZE = 100
 
-    upload_types = {
+    record_types = {
         "dataset": "Dataset",
         "image": "Image",
         "lesson": "Lesson",
@@ -67,7 +67,7 @@ class ZenodoClient(Client):
         "closed": "Closed Access",
     }
 
-    grant_doi_prefixes: {
+    grant_dois: {
         "10.13039/501100000923": "Australian Research Council",
         "10.13039/501100002428": "Austrian Science Fund",
         "10.13039/501100000780": "European Commission",
@@ -122,6 +122,7 @@ class ZenodoClient(Client):
         "isObsoletedBy": "is obsoleted by",
         "obsoletes": "obsoletes",
     }
+
 
     def __init__(self, repository_id: str=None, **kwargs):
         super().__init__(repository_id, **kwargs)
@@ -180,20 +181,62 @@ class ZenodoClient(Client):
 
 
     def _get_dataset_hash(self, id: Dict) -> str:
+        """Returns hash of the standard dataset identifier
+
+        Args:
+            id (Dict): Standard dataset identifier
+
+        Returns:
+            Hash string of the dataset identifier
+        """
         return id["id"]
 
 
-    def _create_dataset(self, metadata: Metadata) -> RemoteDataset:
-        raise NotImplementedError
+    def _create_dataset(self, metadata: Metadata) -> Dict:
+        """Creates a dataset with the specified standard metadata
+
+        Args:
+            metadata (Metadata): Standard metadata
+
+        Returns:
+            Standard identifier of the dataset
+
+        Raises:
+            ValueError("No access token")
+        """
+        # Raise exception if no access token
+        if not self.config.get("token"):
+            raise ValueError("No access token")
+
+        # Create empty dataset
+        try:
+            result, _ = self._request("deposit/depositions", "POST", data={})
+
+        except HTTPError as err:
+            # TODO: Add error handling
+            raise
+
+        # Get dataset id
+        id = self.get_dataset_id(result["id"])
+
+        # Save metadata
+        try:
+            self.save_metadata(id, metadata)
+
+        except:
+            self.delete_dataset(id)
+            raise
+
+        return id
 
 
-    def _get_entities(self, endpoint: str, page_size: int=None, process: Callable=None):
+    def _get_entities(self, endpoint: str, page_size: int=None, key: str=None, process: Callable=None):
         """Retrieves all entities available at the specified endpoint
 
-        Arguments:
-            endpoint (str) : Path of the endpoint
+        Args:
+            endpoint (str): Path of the endpoint
 
-            page_size (int) : Page size for each retrieval step. Default page
+            page_size (int): Page size for each retrieval step. Default page
                 size is used if set to None. Page size is set to the number of
                 records if set to 0 (zero).
 
@@ -203,19 +246,22 @@ class ZenodoClient(Client):
                 value is False.
 
         """
+        # Get the total number of entities
+        content, _ = self._request(f"{endpoint}?page=1&size=1")
+        if not content or not content["hits"]:
+            raise ValueError("Invalid endpoint")
+        total = content["hits"]["total"]
+
         # Set default page size if required
         if page_size is None or page_size < 0:
             page_size = self.PAGE_SIZE
 
         # Set page size to retrieve all records at once if required
-        if page_size == 0:
-            content, _ = self._request(f"{endpoint}?page=1&size=1")
-            if not content or not content["hits"]:
-                raise ValueError("Invalid endpoint")
-            page_size = content["hits"]["total"]
+        elif page_size == 0:
+            page_size = total
 
         page = 1
-        entities = []
+        entities = {} if key else []
 
         while True:
 
@@ -237,8 +283,15 @@ class ZenodoClient(Client):
                         break
                 else:
                     entity = item
-                entities.append(entity)
+
+                if key:
+                    entities[entity[key]] = entity
+                else:
+                    entities.append(entity)
             else:
+                if len(entities) == total:
+                    break
+
                 page += 1
                 continue
             break
@@ -285,25 +338,25 @@ class ZenodoClient(Client):
         return details
 
 
-    def _get_licenses(self) -> List[Dict]:
+    def _get_licenses(self) -> Dict:
         """Retrieves the list of available licenses
 
         License dictionary:
-            - id (str) : Unique id
-            - name (str) : Name of the license
-            - url (str) : URL address of the license (optional)
+            - id (str): Unique id
+            - name (str): Name of the license
+            - url (str): URL address of the license (optional)
 
         For the complete list of data fields check the JSON schema available at:
         http://zenodo.org/schemas/licenses/license-v1.0.0.json
 
         Returns:
-            List of license dictionaries
+            Dictionary of available licenses
 
         Raises:
             None
         """
         # REMARK: It looks like license names are not unique
-        return self._get_entities("licenses", page_size = 0, process=lambda item : {
+        return self._get_entities("licenses", page_size = 0, key = "id", process=lambda item: {
             "id": item["metadata"]["id"],
             "name": item["metadata"]["title"],
             "url": item["metadata"]["url"],
@@ -316,15 +369,15 @@ class ZenodoClient(Client):
         WARNING: This is a slow function due to downloads
 
         Community dictionary:
-            - id (str) : Unique id
-            - name (str) : Name of the community
-            - url (str) : URL address of the community page at Zenodo
-            - logo_url (str) : URL address of the community logo
-            - created (str) : Creation date of the community
-            - last_record_accepted (str) : Date of the last record accepted
-            - description (str) : Short description of the community
-            - about (str) : Long description of the community
-            - curation_policy (str) : Curation policy of the community
+            - id (str): Unique id
+            - name (str): Name of the community
+            - url (str): URL address of the community page at Zenodo
+            - logo_url (str): URL address of the community logo
+            - created (str): Creation date of the community
+            - last_record_accepted (str): Date of the last record accepted
+            - description (str): Short description of the community
+            - about (str): Long description of the community
+            - curation_policy (str): Curation policy of the community
 
         Returns:
             List of community dictionaries
@@ -332,7 +385,7 @@ class ZenodoClient(Client):
         Raises:
             None
         """
-        return self._get_entities("communities", page_size=2000, process=lambda item : {
+        return self._get_entities("communities", page_size=2000, process=lambda item: {
             "id": item["id"],
             "name": item["title"],
             "url": item["links"]["html"],
@@ -346,7 +399,28 @@ class ZenodoClient(Client):
 
 
     def get_funders(self) -> List[Dict]:
-        return self._get_entities("funders", page_size=2000, process=lambda item : {
+        """Retrieves the list of available funders
+
+        WARNING: This is a slow function due to downloads
+
+        Funder dictionary:
+            - id (str): Unique id (= DOI)
+            - name (str): Name of the funder
+            - type (str): Type of the funder
+            - subtype (str): Subtype of the funder
+            - country (str): Country code of the funder
+            - acronyms (list): Acronyms of the funder
+
+        For the complete list of data fields check the JSON schema available at:
+        http://zenodo.org/schemas/funders/funder-v1.0.0.json
+
+        Returns:
+            List of funder dictionaries
+
+        Raises:
+            None
+        """
+        return self._get_entities("funders", page_size=2000, process=lambda item: {
             # REMARK: Zenodo uses DOI to identify funders
             "id": item["metadata"]["doi"],
             "name": item["metadata"]["name"],
@@ -356,12 +430,17 @@ class ZenodoClient(Client):
             "acronyms": item["metadata"]["acronyms"],
         })
 
-    def _get_categories(self) -> List:
-        # REMARK: Zenodo does not have an endpoint to list recognized categories
-        return {}
-
 
     def _get_versions(self, id: Dict) -> OrderedDict:
+        """Returns standard dataset identifiers of the dataset versions
+
+        Args:
+            id (Dict): Dataset id
+
+        Returns:
+            Ordered dictionary of dataset identifiers of the available versions.
+            Keys are the versions, values are the dataset identifiers.
+        """
         details = self._get_dataset_details(id)
         query=f"q=conceptrecid:{details['conceptrecid']}&all_versions=true&sort=version"
         endpoints = [f"records/?{query}"]
@@ -386,31 +465,153 @@ class ZenodoClient(Client):
         return versions
 
 
-    def get_metadata(self, id: Dict) -> Metadata:
+    def _get_metadata(self, id: Dict) -> Dict:
+        # Get dataset details
         details = self._get_dataset_details(id)
 
-        _metadata = details["metadata"]
+        # Get dataset metadata
+        metadata = details["metadata"]
 
-        # Set standard metadata fields
-        metadata = {
-        }
+        # Set metadata attributes
 
-        # Set repository-specific metadata fields
-        metadata["zenodo"] = {
-            "prereserve_doi": _metadata["prereserve_doi"],
-            "notes": _metadata["notes"],
-            "related_identifiers": _metadata["related_identifiers"],
-            "contributors": _metadata["contributors"],
-        }
+        # REMARK: Attributes follow the order of the Zenodo API documentation
+        # https://developers.zenodo.org/#deposit-metadata
+        attrs = {}
 
-        # Set thesis metadata fields if required
-        if _metadata["publication_type"] == "thesis":
-            metadata["zenodo"]["thesis"] = {
-                "supervisors": _metadata["thesis_supervisors"],
-                "university": _metadata["thesis_university"],
-            }
+        def _set(key: str, val=None, source_key: str=None):
+            attrs[key] = metadata.get(source_key if source_key else key, val)
 
-        return Metadata(**metadata)
+        def _get_person(item: Dict) -> Person:
+            return Person(
+                fullname = item.get("name"),
+                institution = item.get("affiliation"),
+                orcid_id = item.get("orcid"),
+                gnd_id = item.get("gnd"),
+                role = item.get("type")
+            )
+
+        # Common attributes
+
+        # Record type
+        type = metadata["upload_type"]
+        if type == "publication":
+            if metadata["publication_type"] != "other":
+                type = metadata["publication_type"]
+        elif type == "image":
+            if metadata["image_type"] != "other":
+                type = metadata["image_type"]
+        attrs["type"] = type
+
+        # Date of publication in ISO8601 format (YYYY-MM-DD)
+        _set("publication_date")
+
+        # Title
+        _set("title")
+
+        # List of authors
+        attrs["authors"] = [_get_person(item) for item in metadata.get("creators", [])]
+
+        # Description
+        _set("description")
+
+        # Access type
+        _set("access_type", source_key="access_right")
+
+        # License (if `access_type` in ["open", "embargoed"])
+        _set("license")
+
+        # Embargo deadline (if `access_type` == "embargoed")
+        _set("embargo_date")
+
+        # Digital Object Identifier
+        _set("doi")
+
+        # Keywords
+        _set("keywords", [])
+
+        # Client-specific attributes
+
+        # Identifier
+        attrs["zenodo_id"] = details["id"]
+
+        # Access conditions (if `access_type` == "restricted")
+        _set("access_conditions")
+
+        # Reserved Digital Object Identifier
+        _set("prereserve_doi")
+
+        # Notes
+        _set("notes")
+
+        # List of related identifiers [{identifier, relation, resource_type}]
+        _set("related_identifiers")
+
+        # List of contributors
+        attrs["contributors"] = [_get_person(item) for item in metadata.get("contributors", [])]
+
+        # List of references
+        _set("references", [])
+
+        # List of communities the record appear
+        attrs["communities"] = [item["identifier"] for item in metadata.get("communities", [])]
+
+        # List of OpenAIRE-supported grants that funded the research
+        attrs["grants"] = [item["id"] for item in metadata.get("grants", [])]
+
+        # Journal article attributes
+        if type == "article":
+            _set("journal_title")
+            _set("journal_volume")
+            _set("journal_issue")
+            _set("journal_pages")
+
+        # Conference paper attributes
+        if type == "conferencepaper":
+            _set("conference_title")
+            _set("conference_acronym")
+            _set("conference_dates")
+            _set("conference_place")
+            _set("conference_url")
+            _set("conference_session")
+            _set("conference_session_part")
+
+        # Imprint attributes
+        if type in {"book", "report", "section"}:
+            _set("imprint_publisher")
+            _set("imprint_isbn")
+            _set("imprint_place")
+
+        # Book section attributes
+        if type == "section":
+            _set("partof_title")
+            _set("partof_pages")
+
+        # Thesis attributes
+        if type == "thesis":
+            attrs["thesis_supervisors"] = [_get_person(item) for item in metadata.get("thesis_supervisors", [])]
+            _set("thesis_university")
+
+        # List of subjects
+        attrs["subjects"] = [{"term": item["term"], "identifier": item["identifier"]} for item in metadata.get("subjects", [])]
+
+        # Version
+        # REMARK: Zenodo does not use `version` as an identifier
+        _set("version")
+
+        # Main language of the record as ISO 639-2 or 639-3 code
+        _set("language")
+
+        # List of locations, [{lat, lon, place, description}]
+        _set("locations")
+
+        # List of date intervals, [{start, end, type, description}]
+        _set("dates")
+
+        # Methodology employed for the research
+        _set("method")
+
+        # Return metadata attributes
+        return attrs
 
 
     def _serialize_persons(self, persons: List[Person]) -> List[Dict]:
@@ -419,30 +620,39 @@ class ZenodoClient(Client):
         for person in persons:
             item = {}
 
-            if person.name:
-                if person.surname:
-                    item["name"] = f"{person.surname}, {person.name}"
+            if "name" in person:
+                if "surname" in person:
+                    item["name"] = f"{person['surname']}, {person['name']}"
                 else:
-                    item["name"] = person.name
-            elif person.surname:
-                item["name"] = person.surname
+                    item["name"] = person["name"]
+            elif "surname" in person:
+                item["name"] = person["surname"]
             else:
-                item["name"] = person.fullname
+                item["name"] = person["fullname"]
 
-            if person.institution:
-                item["affiliation"] = person.institution
+            if "institution" in person:
+                item["affiliation"] = person["institution"]
 
-            if person.orcid_id:
-                item["orcid"] = person.orcid_id
+            if "orcid_id" in person:
+                item["orcid"] = person["orcid_id"]
 
             out.append(item)
 
         return out
 
+
     def _serialize_metadata(self, metadata: Metadata) -> Dict:
+        """Serializes dataset metadata for client use
+
+        Args:
+            metadata (Metadata): Dataset metadata
+
+        Returns:
+            Client-specific dictionary of the metadata
+        """
         out = {}
 
-        def _serialize(key: str, default: None):
+        def _serialize(key: str, default=None):
             if key in metadata:
                 out[key] = metadata[key]
             elif default is not None:
@@ -452,7 +662,7 @@ class ZenodoClient(Client):
 
         _serialize("description", "")
 
-        out["authors"] = self._serialize_persons(metadata.get("authors", []))
+        out["creators"] = self._serialize_persons(metadata.get("authors", []))
 
         out["contributors"] = self._serialize_persons(metadata.get("contributors", []))
 
@@ -467,11 +677,13 @@ class ZenodoClient(Client):
             out["publication_type"] = type
 
         else:
-            out["upload_type"] = type
-            if type == "image":
+            if type:
+                out["upload_type"] = type
+            if type == "image" or type == "publication":
                 out["image_type"] = "other"
-            elif type == "publication":
-                out["publication_type"] = "other"
+
+        # License
+        _serialize("license")
 
         _serialize("doi")
         # TODO: Serialize "prereserve_doi"
@@ -491,6 +703,11 @@ class ZenodoClient(Client):
 
         _serialize("notes")
 
+        val = []
+        for item in metadata.get("communities", []):
+            val.append({"identifier": item})
+        out["communities"] = val
+
         # TODO: Serialize "communities"
         # TODO: Serialize "grants"
         # TODO: Serialize "related_identifiers"
@@ -499,14 +716,11 @@ class ZenodoClient(Client):
 
         _serialize("method")
 
-        if type in {"book", "report", "section"}:
-            _serialize("imprint_publisher")
-            _serialize("imprint_place")
-            _serialize("imprint_isbn")
-
-        if type == "section":
-            _serialize("partof_title")
-            _serialize("partof_pages")
+        if type == "article":
+            _serialize("journal_title")
+            _serialize("journal_volume")
+            _serialize("journal_issue")
+            _serialize("journal_pages")
 
         if type == "conferencepaper":
             _serialize("conference_title")
@@ -517,11 +731,14 @@ class ZenodoClient(Client):
             _serialize("conference_session")
             _serialize("conference_session_part")
 
-        if type == "article":
-            _serialize("journal_title")
-            _serialize("journal_volume")
-            _serialize("journal_issue")
-            _serialize("journal_pages")
+        if type in {"book", "report", "section"}:
+            _serialize("imprint_publisher")
+            _serialize("imprint_place")
+            _serialize("imprint_isbn")
+
+        if type == "section":
+            _serialize("partof_title")
+            _serialize("partof_pages")
 
         if type == "thesis":
             _serialize("thesis_university")
@@ -530,8 +747,35 @@ class ZenodoClient(Client):
         return out
 
 
-    def set_metadata(self, id: Dict, metadata: Metadata) -> None:
-        raise NotImplementedError
+    def save_metadata(self, id: Dict, metadata: Metadata) -> None:
+        """Saves metadata of the specified dataset
+
+        Args:
+            id (Dict): Standard dataset id
+            metadata (Metadata): Metadata to be saved
+
+        Returns:
+            None
+
+        Raises:
+            ValueError("No access token")
+        """
+        # Raise exception if no access token
+        if not self.config.get("token"):
+            raise ValueError("No access token")
+
+        # Serialize metadata
+        data = {"metadata": self._serialize_metadata(metadata)}
+
+        # Save metadata
+        try:
+            result, _ = self._request(f"deposit/depositions/{id['id']}", "PUT", data=data)
+
+        except HTTPError as err:
+            # TODO: Add error handling
+            print(err.response.content)
+
+            raise
 
 
     def validate_metadata(self, metadata: Metadata) -> Dict:
@@ -544,14 +788,14 @@ class ZenodoClient(Client):
             result["authors"] = "At least one author is required."
 
         if not metadata.get("description"):
-            results["description"] = "Description is required."
+            result["description"] = "Description is required."
 
         if not metadata.get("access_type"):
-            results["access_type"] = "Access type is required."
+            result["access_type"] = "Access type is required."
 
         if not metadata.get("license"):
-            if metadata["access_type"] in ["open", "embargoed"]:
-                results["license"] = "License if required."
+            if metadata.get("access_type") in ["open", "embargoed"]:
+                result["license"] = "License is required."
         else:
             # TODO: Validate license
             pass
@@ -630,3 +874,28 @@ class ZenodoClient(Client):
             raise ValueError("No file id")
 
         result, response = self._request(f"deposit/depositions/{id['id']}/files/{file.id}", "DELETE")
+
+
+    def _delete_dataset(self, id: Dict) -> None:
+        """Deletes dataset specified by the standard identifier from the repository
+
+        Args:
+            id (Dict): Standard dataset identifier
+
+        Returns:
+            None
+
+        Raises:
+            ValueError("Operation not permitted")
+            ValueError("Invalid dataset id")
+        """
+        # REMARK: Only unpublished depositions can be deleted
+        try:
+            result, response = self._request(f"deposit/depositions/{id['id']}", "DELETE")
+
+        except HTTPError as err:
+            if err.response.status_code == 403:
+                raise ValueError("Operation not permitted")
+            elif err.response.status_code == 404:
+                raise ValueError("Invalid dataset id")
+            raise

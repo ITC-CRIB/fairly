@@ -16,19 +16,18 @@ import requests
 import hashlib
 import http.client
 
-REGEXP_URL = re.compile(r"^[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$", re.IGNORECASE)
-
 class Client(ABC):
     """
 
     Attributes:
-        config (dict) : Configuration options
-        _session (Session) : HTTP session object
-        _datasets (dict) : Public dataset cache
-        _account_datasets (dict) : Account dataset cache
-        _licenses (List) : Licenses cache
-
+        config (dict): Configuration options
+        _session (Session): HTTP session object
+        _datasets (dict): Public dataset cache
+        _account_datasets (List): Account dataset cache
+        _licenses (List): Licenses cache
     """
+
+    REGEXP_URL = re.compile(r"^[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$", re.IGNORECASE)
 
     REQUEST_FORMAT = "json"
 
@@ -53,7 +52,7 @@ class Client(ABC):
                 # Append configuration from environmental variables
                 # REMARK: Required even if client id equal to repository id
                 config.update(fairly.get_config(repository_id))
-            elif re.match(REGEXP_URL, repository_id):
+            elif re.match(Client.REGEXP_URL, repository_id):
                 kwargs["api_url"] = repository_id
         self._repository_id = repository_id
 
@@ -70,14 +69,15 @@ class Client(ABC):
         self._licenses = None
 
 
-
     @property
     def client_id(self) -> str:
+        """Client identifier"""
         return self._client_id
 
 
     @property
     def repository_id(self) -> str:
+        """Repository identifier of the client"""
         return self._repository_id
 
 
@@ -88,28 +88,34 @@ class Client(ABC):
             if key == "name":
                 config["name"] = val
             elif key == "url":
-                if not re.match(REGEXP_URL, val):
+                if not re.match(Client.REGEXP_URL, val):
                     raise ValueError("Invalid URL address")
                 config["url"] = val
             elif key == "api_url":
-                if not re.match(REGEXP_URL, val):
-                    raise ValueError(f"Invalid API URL address {val}")
+                if not re.match(Client.REGEXP_URL, val):
+                    raise ValueError("Invalid API URL address")
                 config["api_url"] = val
+            elif key == "doi_prefixes":
+                if not isinstance(val, list):
+                    raise ValueError("Invalid DOI prefixes")
+                config["doi_prefixes"] = val
             else:
                 pass
         return config
 
 
-    def parse_id(self, id: str) -> Tuple(str, str):
-        """
+    @classmethod
+    def parse_id(cls, id: str) -> Tuple(str, str):
+        """Parses the specified identifier
 
         Returns:
           Tuple of identifier type and value
-
         """
         match = re.match(r"^(doi:|https?:\/\/doi.org\/)(.+)$", id)
         if match:
             return "doi", match.group(2)
+        elif re.match(Metadata.REGEXP_DOI, id):
+            return "doi", id
         elif re.match(r"^https?:\/\/", id):
             return "url", id
         else:
@@ -122,11 +128,20 @@ class Client(ABC):
 
 
     def get_dataset_id(self, id=None, **kwargs) -> Dict:
+        """Returns standard dataset identifier
+
+        Args:
+            id: Dataset identifier
+            **kwargs: Other identifier arguments
+
+        Returns:
+            Standard dataset identifier
+        """
         if id:
             if isinstance(id, dict):
                 return id
             elif isinstance(id, str):
-                key, val = self.parse_id(id)
+                key, val = Client.parse_id(id)
                 kwargs[key] = val
             else:
                 kwargs["id"] = id
@@ -135,22 +150,87 @@ class Client(ABC):
 
     @abstractmethod
     def _get_dataset_hash(self, id: Dict) -> str:
+        """Returns hash of the standard dataset identifier
+
+        Args:
+            id (Dict): Standard dataset identifier
+
+        Returns:
+            Hash of the dataset identifier
+        """
         raise NotImplementedError
 
 
+    @classmethod
+    def normalize(cls, name: str, val) -> Any:
+        """Normalized metadata attribute value
+
+        Args:
+            name (str): Attribute name
+            val: Attribute value
+
+        Returns:
+            Normalized attribute value
+        """
+        return Metadata.normalize(name, val)
+
+
     @abstractmethod
-    def _create_dataset(self, metadata: Metadata) -> RemoteDataset:
+    def _create_dataset(self, metadata: Metadata) -> Dict:
+        """Creates a dataset with the specified standard metadata
+
+        Args:
+            metadata (Metadata): Standard metadata
+
+        Returns:
+            Standard identifier of the dataset
+        """
         raise NotImplementedError
 
 
     def create_dataset(self, metadata=None) -> RemoteDataset:
+        """Creates a dataset with the specified metadata
+
+        Args:
+            metadata: Metadata of the dataset (optional)
+
+        Returns:
+            Dataset
+
+        Raises:
+            ValueError("Invalid metadata")
+            ValueError("Invalid metadata", validation_result)
+        """
+        # Get standard metadata
         if metadata is None:
             metadata = Metadata()
+
         elif isinstance(metadata, dict):
             metadata = Metadata(**metadata)
+
         elif not isinstance(metadata, Metadata):
             raise ValueError("Invalid metadata")
-        return self._create_dataset(metadata)
+
+        # Validate dataset
+        result = self.validate_metadata(metadata)
+        if result:
+            raise ValueError("Invalid metadata", result)
+
+        # Create dataset
+        id = self._create_dataset(metadata)
+
+        # Get dataset
+        dataset = self.get_dataset(id)
+
+        # Cache dataset
+        hash = self._get_dataset_hash(id)
+        self._datasets[hash] = dataset
+        if not self._account_datasets:
+            self._account_datasets = []
+        self._account_datasets.append(dataset)
+
+        # Return dataset
+        return dataset
 
 
     def _create_session(self) -> Session:
@@ -195,6 +275,8 @@ class Client(ABC):
         _headers = headers.copy() if headers else {}
         if format == "json":
             _headers["Accept"] = "application/json"
+            if "Content-Type" not in _headers:
+                _headers["Content-Type"] = "application/json"
 
         response = self._session.request(method, url, headers=_headers, data=data)
         response.raise_for_status()
@@ -211,63 +293,28 @@ class Client(ABC):
 
 
     @abstractmethod
-    def _get_licenses(self) -> List:
+    def _get_licenses(self) -> Dict:
         raise NotImplementedError
 
 
     def get_licenses(self, refresh: bool=False) -> List[Dict]:
+        """Returns list of available licenses
+
+        Args:
+            refresh (bool): Set True to refresh licenses (default = False)
+
+        Returns:
+            List of client-specific license dictionaries
+        """
         if self._licenses is None or refresh:
             self._licenses = self._get_licenses()
 
         return self._licenses
 
+
     @property
     def licenses(self) -> Dict:
         return self.get_licenses()
-
-
-    @abstractmethod
-    def _get_categories(self) -> List:
-        raise NotImplementedError
-
-
-    @property
-    def categories(self) -> Dict:
-        """Dictionary of categories recognized by the client.
-
-        Keys are the titles of the categories.
-        Values are dictionaries of category attributes.
-
-        Attributes:
-        - id: Category id if exists, otherwise None
-        - parent: Parent category title if exists, otherwise None
-        - parent_id: Parent category id if exists, otherwise None
-        - selectable: True if category is selectable, otherwise False
-
-        Remarks:
-        Presence of parent_id does not mean that corresponding category
-        is available in the dictionary. Some clients (e.g. Figshare) do not
-        provide such information publicly.
-
-        """
-        if not hasattr(self, "_categories"):
-            items = self._load_categories()
-            self._categories = {}
-            for item in items:
-                category = {}
-                if not item["name"]:
-                    raise ValueError("No category name")
-                category["id"] = item["id"] if "id" in item else None
-                category["parent_id"] = item["parent_id"] if "parent_id" in item else None
-                category["selectable"] = item["selectable"] if "selectable" in item else True
-                category["parent"] = item["parent"] if "parent" in item else None
-                if not category["parent"] and category["parent_id"]:
-                    for parent in items:
-                        if parent["id"] == category["parent_id"]:
-                            category["parent"] = parent["name"]
-                            break;
-                self._categories[item["name"]] = category
-        return self._categories
 
 
     @abstractmethod
@@ -299,27 +346,92 @@ class Client(ABC):
 
 
     @abstractmethod
-    def _get_versions(self, id: Dict) -> Dict[Dict]:
+    def _get_versions(self, id: Dict) -> OrderedDict:
+        """Returns dataset ids of the available dataset versions
+
+        Some clients do not provide information to order versions (e.g. date).
+        Therefore, ordered dictionary is needed to have properly ordered
+        versions as reported by the client.
+
+        Args:
+            id (Dict): Dataset id
+
+        Returns:
+            Ordered dictionary of dataset ids of the available versions.
+            Keys are the versions, values are the dataset ids.
+        """
         raise NotImplementedError
 
 
-    def get_versions(self, id, refresh: bool=False, **kwargs) -> Dict[RemoteDataset]:
+    def get_versions(self, id, refresh: bool=False, **kwargs) -> List[RemoteDataset]:
+        """Returns datasets of all available versions of the specified dataset
+
+        Args:
+            id: Dataset identifier
+            refresh (bool): Set True to refresh versions (default = False)
+
+        Returns:
+            List of datasets of all available versions
+        """
         # Get standard id
         id = self.get_dataset_id(id, **kwargs)
-        datasets = {}
+
+        # Get versions
         versions = self._get_versions(id)
-        for version, id in versions.items():
-            datasets[str(version)] = self.get_dataset(id)
+
+        # Get datasets
+        datasets = []
+        for id in versions:
+            datasets.append(self.get_dataset(id))
+
+        # Return datasets
         return datasets
 
 
     @abstractmethod
-    def get_metadata(self, id: Dict) -> Metadata:
+    def _get_metadata(self, id: Dict) -> Dict:
+        """Returns standard metadata attributes
+
+        Args:
+            id (Dict): Standard dataset id
+
+        Returns:
+            Dictionary of standard metadata attributes
+        """
         raise NotImplementedError
 
 
+    def get_metadata(self, id: Dict) -> Metadata:
+        """Returns standard metadata of the specified dataset
+
+        Args:
+            id (Dict): Standard dataset id
+
+        Returns:
+            Standard metadata
+        """
+        # Get standard metadata attributes
+        attrs = self._get_metadata(id)
+
+        # Append repository attributes
+        if self.repository_id:
+            attrs[f"{self.repository_id}_id"] = id
+
+        # Return metadata
+        return Metadata(normalize=self.normalize, **attrs)
+
+
     @abstractmethod
-    def set_metadata(self, id: Dict, metadata: Metadata) -> None:
+    def save_metadata(self, id: Dict, metadata: Metadata) -> None:
+        """Saves metadata of the specified dataset
+
+        Args:
+            id (Dict): Standard dataset id
+            metadata (Metadata): Metadata to be saved
+
+        Returns:
+            None
+        """
         raise NotImplementedError
 
 
@@ -327,7 +439,7 @@ class Client(ABC):
     def validate_metadata(self, metadata: Metadata) -> Dict:
         """Validates metadata
 
-        Arguments:
+        Args:
             metadata (Metadata): Metadata to be validated
 
         Returns:
@@ -417,3 +529,49 @@ class Client(ABC):
 
         # TODO: Do not refresh the complete file list
         dataset.get_files(refresh=True)
+
+
+    @abstractmethod
+    def _delete_dataset(self, id: Dict) -> None:
+        """Deletes dataset specified by the standard identifier from the repository
+
+        Args:
+            id (Dict): Standard dataset identifier
+
+        Returns:
+            None
+
+        Raises:
+            ValueError("Operation not permitted")
+            ValueError("Invalid dataset id")
+        """
+        raise NotImplementedError
+
+
+    def delete_dataset(self, id, **kwargs) -> None:
+        """Deletes specified dataset from the repository
+
+        Args:
+            id: Dataset identifier
+            **kwargs: Other identifier arguments
+
+        Returns:
+            None
+        """
+        # Get standard id
+        id = self.get_dataset_id(id, **kwargs)
+
+        # Delete dataset
+        self._delete_dataset(id)
+
+        # Delete from the dataset cache if exists
+        hash = self._get_dataset_hash(id)
+        if hash in self._datasets:
+            del self._datasets[hash]
+
+        # Delete from the account dataset cache if exists
+        if self._account_datasets:
+            for i, dataset in enumerate(self._account_datasets):
+                if id == dataset.id:
+                    del self._account_datasets[i]
+                    break

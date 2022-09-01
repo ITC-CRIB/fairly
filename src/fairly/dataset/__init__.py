@@ -12,7 +12,7 @@ class Dataset(ABC):
 
     Attributes:
       _metadata (Metadata): Metadata
-      _files (list)       : Files list
+      _files (list): Files list
 
     """
 
@@ -34,7 +34,7 @@ class Dataset(ABC):
     def get_metadata(self, refresh: bool=False) -> Metadata:
         """Returns metadata of the dataset
 
-        Arguments:
+        Args:
             refresh (bool): Set True to enforce metadata retrieval
 
         Returns:
@@ -51,18 +51,14 @@ class Dataset(ABC):
         return self.get_metadata()
 
 
-    @abstractmethod
-    def _set_metadata(self, metadata: Metadata) -> None:
-        raise NotImplementedError
-
-
     def set_metadata(self, **kwargs) -> None:
-        # Create metadata to be updated
-        metadata = Metadata(**kwargs)
-        # Set metadata
-        self._set_metadata(metadata)
-        # Invalidate existing metadata to enforce retrieve on next request
-        self._metadata = None
+        self.get_metadata().update(kwargs)
+
+
+    @abstractmethod
+    def save_metadata(self) -> None:
+        """Stores dataset metadata"""
+        raise NotImplementedError
 
 
     @abstractmethod
@@ -71,13 +67,13 @@ class Dataset(ABC):
 
 
     def get_files(self, refresh: bool=False) -> Dict[str, File]:
-        """Returns list of files of the dataset
+        """Returns dictionary of files of the dataset
 
-        Arguments:
+        Args:
             refresh (bool): Set True to enforce file list retrieval
 
         Returns:
-            List of files of the dataset
+            Dictionary of files of the dataset (key = path, value = File object)
         """
         if self._files is None or refresh:
             files = {}
@@ -105,6 +101,23 @@ class Dataset(ABC):
     @property
     def file(self, val: str) -> File:
         return self.get_file(val)
+
+
+    def add_file(self, file) -> File:
+        raise NotImplementedError
+
+
+    def remove_file(self, file) -> None:
+        raise NotImplementedError
+
+
+    def save_files(self) -> None:
+        raise NotImplementedError
+
+
+    def save(self) -> None:
+        self.save_metadata()
+        self.save_files()
 
 
     def diff_metadata(self, dataset: Dataset):
@@ -135,12 +148,3 @@ class Dataset(ABC):
             if path not in files:
                 diff.remove(path, other_file)
         return diff
-
-
-    def serialize(self) -> Dict:
-        out = {}
-
-        out["metadata"] = self.metadata.serialize()
-        # out["files"] = self.serialize_files()
-
-        return out

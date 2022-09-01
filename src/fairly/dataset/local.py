@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import List, Dict, Set
 
 from . import Dataset
@@ -13,32 +14,34 @@ class LocalDataset(Dataset):
     """
 
     Attributes:
-      _path (str)          : Path of the dataset
-      _manifest_path (str) : Path of the dataset manifest
-      _manifest            : Dataset manifest
-      _md5s (dict)         : Cached MD5 hashes of the files
-      _regexps (dict)      : Regular expression cache for the file rules
+        _path (str): Path of the dataset
+        _manifest_path (str): Path of the dataset manifest
+        _includes (set): File inclusion rules
+        _excludes (set): File exclusion rules
+        _md5s (dict): MD5 hash cache of the files
+
+    Class Attributes:
+        _regexps (dict): Regular expression cache of the file rules
     """
 
     _regexps: Dict = {}
 
     def __init__(self, path: str, manifest_file: str="manifest.yaml"):
-        """
+        """Initializes LocalDataset object.
 
-        Arguments:
-            path (str) : Path of the dataset
-            manifest_file (str) : Name of the dataset manifest file (optional)
+        Args:
+            path (str): Path of the dataset
+            manifest_file (str): Name of the dataset manifest file (optional)
 
         Raises:
-          NotADirectoryError: Invalid dataset path
-
+            NotADirectoryError = Invalid dataset path
         """
         # Call parent method
         super().__init__()
 
         # Throw exception if invalid path
         if not os.path.isdir(path):
-            raise NotADirectoryError(f"Invalid dataset path {path}")
+            raise NotADirectoryError
 
         # Set path
         self._path = path
@@ -46,14 +49,20 @@ class LocalDataset(Dataset):
         # Set manifest path
         self._manifest_path = os.path.join(path, manifest_file)
 
-        # Get manifest
-        self._manifest = self._get_manifest()
+        # Set file rules
+        self._includes = None
+        self._excludes = None
 
         # Load cached MD5 hashes
         self._load_md5s()
 
 
     def _get_manifest(self) -> Dict:
+        """Retrieves dataset manifest
+
+        Returns:
+            Dataset manifest dictionary
+        """
         # TODO: Add exception handling
         manifest = None
         if os.path.isfile(self._manifest_path):
@@ -66,47 +75,77 @@ class LocalDataset(Dataset):
         return {
             "metadata": manifest.get("metadata", {}),
             "files": {
-                "includes": set(files.get("includes", [])),
-                "excludes": set(files.get("excludes", [])),
+                "includes": files.get("includes", []),
+                "excludes": files.get("excludes", []),
             },
         }
 
 
     @property
     def path(self) -> str:
+        """Path of the dataset"""
         return self._path
 
 
     @property
     def includes(self) -> Set:
-        return self._manifest["files"]["includes"]
+        """Inclusion rules of the dataset files"""
+        if self._includes is None:
+            manifest = self._get_manifest()
+            self._includes = manifest["files"]["includes"]
+
+        return self._includes
 
 
     @property
     def excludes(self) -> Set:
-        return self._manifest["files"]["excludes"]
+        """Exclusion rules of the dataset files"""
+        if self._excludes is None:
+            manifest = self._get_manifest()
+            self._excludes = manifest["files"]["excludes"]
+
+        return self._excludes
 
 
     def _get_metadata(self) -> Metadata:
-        metadata = self._manifest["metadata"]
-        return Metadata(**metadata)
+        """Retrieves metadata of the dataset.
 
-
-    def _set_manifest(self, section: str=None) -> None:
+        Returns:
+            Metadata of the dataset
+        """
         manifest = self._get_manifest()
-        if not section or section == "metadata":
-            manifest["metadata"] = self._manifest["metadata"]
-        if not section or section == "files":
-            manifest["files"] = self._manifest["files"]
+
+        return Metadata(**manifest["metadata"])
+
+
+    def _set_manifest(self, manifest: Dict) -> None:
+        """Stores the dataset manifest.
+
+        Args:
+            manifest (Dict): Dataset manifest
+
+        Returns:
+            None
+        """
+        if "metadata" not in manifest:
+            manifest["metadata"] = {}
+
+        if "files" not in manifest:
+            manifest["files"] = {
+                "includes": [],
+                "excludes": [],
+            }
+
         with open(self._manifest_path, "w") as file:
             # TODO: Exception handling
             yaml.emitter.Emitter.process_tag = lambda self, *args, **kw: None
             yaml.dump(manifest, file, default_flow_style=False)
 
 
-    def _set_metadata(self, metadata: Metadata) -> None:
-        self._manifest["metadata"].update(metadata.serialize())
-        self._set_manifest("metadata")
+    def save_metadata(self) -> None:
+        manifest = self._get_manifest()
+        manifest["metadata"] = self.metadata.serialize()
+        self._set_manifest(manifest)
 
 
     def _match_rule(self, name: str, rule: str) -> bool:
@@ -161,6 +200,8 @@ class LocalDataset(Dataset):
 
     def _get_files(self) -> List[LocalFile]:
         files = []
+        excludes = self.excludes
+        includes = self.includes
         dirs = [self.path]
         while dirs:
             dir = dirs.pop(0)
@@ -170,22 +211,30 @@ class LocalDataset(Dataset):
                     dirs.append(fullpath)
                 else:
                     path = os.path.relpath(fullpath, self.path)
-                    if self._manifest["files"]["includes"]:
+
+                    if fullpath == self._manifest_path:
+                        continue
+
+                    if includes:
                         matched = False
-                        for rule in self._manifest["files"]["includes"]:
+                        for rule in includes:
                             if self._match_rule(path, rule):
                                 matched = True
                                 break
                         if not matched:
                             continue
-                    if self._manifest["files"]["excludes"]:
+                    else:
+                        continue
+
+                    if excludes:
                         matched = False
-                        for rule in self._manifest["files"]["excludes"]:
+                        for rule in excludes:
                             if self._match_rule(path, rule):
                                 matched = True
                                 break
                         if matched:
                             continue
+
                     size = None
                     md5 = None
                     if path in self._md5s:
@@ -203,6 +252,7 @@ class LocalDataset(Dataset):
 
 
     def _load_md5s(self) -> None:
+        """Loads MD5 hashes stored in the dataset directory"""
         self._md5s = {}
         path = os.path.join(self.path, ".fairly_md5")
         try:
@@ -212,3 +262,40 @@ class LocalDataset(Dataset):
                     self._md5s[name] = (date, size, md5)
         except FileNotFoundError:
             pass
+
+
+    def save_files(self) -> None:
+        manifest = self._get_manifest()
+        manifest["files"] = {
+            "includes": self.includes,
+            "excludes": self.excludes,
+        }
+        self._set_manifest(manifest)
+
+
+    def upload(self, repository, notify: Callable=None) -> RemoteDataset:
+        import fairly
+        from ..client import Client
+
+        # Get client
+        if isinstance(repository, str):
+            client = fairly.client(repository)
+        elif isinstance(repository, Client):
+            client = repository
+        else:
+            raise ValueError("Invalid repository")
+
+        # Create dataset
+        dataset = client.create_dataset(self.metadata)
+
+        try:
+            # Upload files
+            files = self.get_files(refresh=True)
+            for path, file in files.items():
+                client.upload_file(dataset, file, notify)
+
+        except:
+            client.delete_dataset(dataset.id)
+            raise
+
+        return dataset

@@ -1,0 +1,90 @@
+metadata:
+
+    title: ""
+        # Title of the dataset.
+
+    description: ""
+        # Description of the dataset.
+
+    authors: []
+        # List of authors to be associated with the dataset.
+        #
+        # The list can contain items with the following attributes:
+        # - name
+        # - surname
+        # - email
+        # - institution
+        # - orcid_id
+
+    keywords: []
+        # List of keywords associated with the dataset.
+        #
+        # Example:
+        #
+        # ["Keyword 1", "Keyword 2"]
+
+    doi: ""
+        # Digital Object Identifier of the dataset.
+
+    license: ""
+        # License of the dataset.
+
+    type: ""
+        # Type of the dataset.
+        #
+        # Controlled vocabulary:
+        #
+        # - book
+        # - conference contribution
+        # - dataset
+        # - figure
+        # - journal contribution
+        # - media
+        # - online resource
+        # - poster
+        # - preprint
+        # - presentation
+        # - software
+        # - thesis
+        # - other
+
+    references: []
+        # List of references to be associated with the dataset.
+        #
+        # Example:
+        #
+        # ["http://link1", "http://link2", "http://link3"]
+
+    funding: ""
+        # Grant number or funding authority.
+
+    online_date: ""
+        # Online posted date
+
+    publication_date: ""
+        # Date when the dataset was published by the publisher
+
+    acceptance_date: ""
+        # Date when the dataset was accepted for publication by the publisher
+
+    access_type: "open"
+        # Access type of the dataset
+        #
+        # Controlled vocabulary:
+        #
+        # - open
+        # - embargoed
+        # - restricted
+        # - closed
+
+    embargo_date: ""
+        # Date when the embargo expires.
+        #
+        # Leave empty if access type is "closed"
+        #
+        # Example:
+        #
+        # 2022-10-15T18:30:00
+
+    embargo_reason: ""
+        # Reason for setting embargo

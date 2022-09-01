@@ -1,17 +1,20 @@
-from typing import List, Dict, Callable
+from typing import Any, List, Dict, Callable
 
 from . import Client
 from ..metadata import Metadata
+from ..person import Person
 from ..dataset.remote import RemoteDataset
 from ..file.local import LocalFile
 from ..file.remote import RemoteFile
 
+import re
 from urllib.parse import urlparse
 import requests
 from requests import Session
 from requests.exceptions import HTTPError
 from collections import OrderedDict
 import time
+import warnings
 
 CLASS_NAME = "FigshareClient"
 
@@ -22,11 +25,34 @@ class FigshareClient(Client):
     LOCKED_SLEEP = 5
     LOCKED_TRIES = 5
 
+    record_types = {
+        "book": "Book",
+        "conference contribution": "Conference Contribution",
+        "dataset": "Dataset",
+        "figure": "Figure",
+        "journal contribution": "Journal Contribution",
+        "media": "Media",
+        "online resource": "Online Resource",
+        "poster": "Poster",
+        "preprint": "Preprint",
+        "presentation": "Presentation",
+        "software": "Software",
+        "thesis": "Thesis",
+    }
+
+    record_type_lookup = {
+        "conference contribution": "conferencepaper",
+        "journal contribution": "article",
+        "media": "video",
+        "online resource": "onlineresource",
+    }
 
     def __init__(self, repository_id: str=None, **kwargs):
         # Call parent method
         super().__init__(repository_id, **kwargs)
 
+        # Initialize properties
+        self._categories = None
 
     @classmethod
     def get_config(cls, **kwargs) -> Dict:
@@ -50,14 +76,19 @@ class FigshareClient(Client):
 
 
     def _get_dataset_id(self, **kwargs) -> Dict:
-        """
+        """Returns standard dataset identifier
+
+        Args:
+            **kwargs: Dataset identifier arguments
 
         Returns:
-          Dataset identifier
+            Standard dataset identifier
 
         Raises:
-          ValueError
-
+            ValueError("Invalid id")
+            ValueError("Invalid URL address")
+            ValueError("No identifier")
+            ValueError("Invalid version")
         """
         version = None
         if "id" in kwargs:
@@ -75,9 +106,14 @@ class FigshareClient(Client):
             else:
                 raise ValueError("Invalid URL address")
         elif "doi" in kwargs:
-            # TODO: Find id from DOI
-            # https://docs.figshare.com/#private_articles_search
-            raise NotImplementedError
+            match = re.search(r"(\.figshare\.|\/)(\d+)(\.v(\d+))?$", kwargs["doi"])
+            if match:
+                id = match.group(2)
+                version = match.group(4)
+            else:
+                # TODO: Find id from DOI
+                # https://docs.figshare.com/#private_articles_search
+                raise NotImplementedError
         else:
             raise ValueError("No identifier")
         if version is None and "version" in kwargs and kwargs["version"]:
@@ -88,6 +124,14 @@ class FigshareClient(Client):
 
 
     def _get_dataset_hash(self, id: Dict) -> str:
+        """Returns hash of the standard dataset identifier
+
+        Args:
+            id (Dict): Standard dataset identifier
+
+        Returns:
+            Hash string of the dataset identifier
+        """
         if id["version"]:
             return f"{id['id']}_{id['version']}"
         else:
@@ -95,6 +139,17 @@ class FigshareClient(Client):
 
 
     def _get_dataset_details(self, id: Dict) -> Dict:
+        """Retrieves details of the dataset
+
+        Args:
+            id (Dict): Standard dataset identifier
+
+        Returns:
+            Dictionary of dataset details
+
+        Raises:
+            ValueError("Invalid dataset id")
+        """
         endpoints = []
         if id["version"]:
             endpoint = f"articles/{id['id']}/versions/{id['version']}"
@@ -103,6 +158,7 @@ class FigshareClient(Client):
         endpoints.append(endpoint)
         if "token" in self.config:
             endpoints.append(f"account/{endpoint}")
+
         details = None
         for endpoint in endpoints:
             try:
@@ -111,12 +167,19 @@ class FigshareClient(Client):
             except HTTPError as err:
                 if err.response.status_code != 404:
                     raise
+
         if not details:
             raise ValueError("Invalid dataset id")
+
         return details
 
 
     def _get_account_datasets(self) -> List[RemoteDataset]:
+        """Retrieves list of account datasets
+
+        Returns:
+            List of datasets related to the account
+        """
         if "token" not in self.config:
             return []
         datasets = []
@@ -134,72 +197,349 @@ class FigshareClient(Client):
         return datasets
 
 
-    def _get_licenses(self) -> List:
+    def _get_licenses(self) -> Dict:
+        """Retrieves list of available licenses
+
+        License dictionary:
+            - id (int): License identifier
+            - name (str): Name of the license
+            - url (str): URL address of the license
+
+        Returns:
+            List of license dictionaries
+        """
         # REMARK: Private endpoint returns both public and private licenses
         endpoint = "account/licenses" if "token" in self.config else "licenses"
-        licenses = []
-        for item, _ in self._request(endpoint):
-            licenses.append({
+        items, _ = self._request(endpoint)
+
+        licenses = {}
+
+        for item in items:
+            licenses[item["value"]] = {
                 "id": item["value"],
                 "name": item["name"],
                 "url": item["url"],
-            })
+            }
+
         return licenses
 
 
-    def _get_categories(self) -> List:
+    def _get_categories(self) -> Dict:
+        """Retrieves available categories
+
+        Category dictionary:
+            - id (int): Category identifier
+            - name (str): Name of the category
+            - parent_id (int): Parent category identifier
+            - source_id (int): Source identifier
+            - selectable (bool): True if category is selectable
+
+        Returns:
+            Dictionary of category dictionaries. Keys are category identifiers.
+        """
         # REMARK: Private endpoint returns both public and private categories
         # REMARK: Public endpoint does not return parent categories
-        endpoint = "account/categories" if "token" in self.config else "categories"
-        categories = []
-        for item, _ in self._request(endpoint):
-            categories.append({
-                "name": item["title"],
+        items, _ = self._request("account/categories" if "token" in self.config else "categories")
+
+        categories = {}
+
+        for item in items:
+
+            categories[item["id"]] = {
                 "id": item["id"],
+                "name": item["title"],
                 "parent_id": item["parent_id"],
+                "source_id": item["source_id"],
                 "selectable": item["is_selectable"],
-            })
+            }
+
         return categories
 
 
+    def get_categories(self, refresh: bool=False) -> Dict:
+        if self._categories is None or refresh:
+            self._categories = self._get_categories()
+        return self._categories
+
+
+    @property
+    def categories(self) -> Dict:
+        return self.get_categories()
+
+
     def _get_versions(self, id: Dict) -> OrderedDict:
-        versions = OrderedDict()
+        """Returns standard dataset identifiers of the dataset versions
+
+        Args:
+            id (Dict): Dataset id
+
+        Returns:
+            Ordered dictionary of dataset identifiers of the available versions.
+            Keys are the versions, values are the dataset identifiers.
+        """
         items, _ = self._request(f"articles/{id['id']}/versions")
+
+        versions = OrderedDict()
+
         for item in items:
-            versions[item["version"]] = {
-                "id": id["id"],
-                "version": item["version"],
+            versions[str(item["version"])] = {
+                "id": str(id["id"]),
+                "version": str(item["version"]),
             }
+
         return versions
 
 
-    def get_metadata(self, id: Dict) -> Metadata:
+    def _get_metadata(self, id: Dict) -> Dict:
+        # Get record details
         details = self._get_dataset_details(id)
-        metadata = {}
-        for key, val in details.items():
-            if key == "files":
-                continue
-            elif key == "authors":
-                authors = []
-                for author in val:
-                    authors.append({
-                        "fullname": author["full_name"],
-                        "orcid_id": author["orcid_id"],
-                    })
-                val = authors
-            metadata[key] = val
-        return Metadata(**metadata)
+
+        # Set metadata attributes
+        attrs = {}
+
+        def _set(key: str, val=None, source_key: str=None):
+            attrs[key] = details.get(source_key if source_key else key, val)
+
+        # Common attributes
+
+        # Authors (editable)
+        val = []
+        for item in details.get("authors", []):
+            person = Person(
+                fullname = item.get("full_name"),
+                orcid_id = item.get("orcid_id"),
+                figshare_id = item.get("id")
+            )
+            val.append(person)
+        attrs["authors"] = val
+
+        # Keywords (editable)
+        _set("keywords", [], source_key="tags")
+
+        # Description (editable)
+        _set("description", "")
+
+        # Embargo deadline
+        _set("embargo_date")
+
+        # License
+        val = details.get("license")
+        if val:
+            licenses = self.get_licenses()
+            if isinstance(val, dict):
+                if val["value"] in licenses:
+                    val = val["name"]
+                else:
+                    val = {
+                        "id": val["value"],
+                        "name": val["name"],
+                        "url": val["url"],
+                    }
+            else:
+                if val in licenses:
+                    val = val["name"]
+            attrs["license"] = val
+
+        # References (editable)
+        _set("references", [])
+
+        # Title (editable)
+        _set("title", "")
+
+        # Digital Object Identifier
+        _set("doi")
+
+        # Record type (editable)
+        val = details.get("defined_type_name")
+        if val in self.record_type_lookup:
+            val = self.record_type_lookup[val]
+        attrs["type"] = val
+
+        # Access type (editable)
+        val = "open"
+        if details.get("is_embargoed"):
+            if details.get("embargo_date") == 0:
+                val = "closed"
+            elif details.get("embargo_options"):
+                val = "restricted"
+            else:
+                val = "embargoed"
+        attrs["access_type"] = val
+
+        # Client-specific attributes
+
+        # Custom fields (editable)
+        val = {}
+        for item in details.get("custom_fields", []):
+            val[item["name"]] = item["value"]
+        attrs["custom_fields"] = val
+
+        # Embargo options
+        _set("embargo_options")
+
+        # Embargo type
+        _set("embargo_type")
+
+        # Funding (editable)
+        _set("funding")
+
+        # Funding list (editable)
+        # TODO: Funding ids should be made human-friendly.
+        # REMARK: There is only funding search endpoint available.
+        # https://docs.figshare.com/#private_funding_search
+        _set("funding_list")
+
+        # Embargo title
+        _set("embargo_title")
+
+        # Embargo reason
+        _set("embargo_reason")
+
+        # Categories
+        # REMARK: Categories can be made human-friendly only if original repository is used
+        val = []
+        categories = self.get_categories()
+        for item in details.get("categories", []):
+            val.append(categories[item["id"]]["name"] if item["id"] in categories else item["id"])
+        attrs["categories"] = val
+
+        # Timeline
+        val = details.get("timeline", {})
+        if "firstOnline" in val:
+            attrs["online_date"] = val["firstOnline"]
+        if "publisherPublication" in val:
+            attrs["publication_date"] = val["publisherPublication"]
+        if "publisherAcceptance" in val:
+            attrs["acceptance_date"] = val["publisherAcceptance"]
+
+        # Ignored attributes:
+        #
+        # - account_id
+        # - figshare_url
+        # - resource_title: not applicable for regular users
+        # - resource_doi: not applicable for regular users
+        # - files
+        # - citation
+        # - confidential_reason (DEPRECATED)
+        # - is_confidential (DEPRECATED)
+        # - size
+        # - version
+        # - is_active
+        # - is_metadata_record
+        # - metadata_reason
+        # - status
+        # - is_embargoed
+        # - is_public
+        # - modified_date
+        # - created_date
+        # - has_linked_file
+        # - id
+        # - handle: not applicable for regular users
+        # - group_id: not applicable for regular users
+        # - url: not needed
+        # - url_public_html: not needed
+        # - url_public_api: not needed
+        # - url_private_html: not needed
+        # - url_private_api: not needed
+        # - published_date: Posted date
+        # - thumb: Thumbnail image (not needed)
+        # - defined_type: Type of article identifier (`defined_type_name` is used)
+        # - timeline.posted: Posted date (not editable)
+        # - timeline.submission: Submission date in curation (not editable)
+        # - timeline.revision: Revision date from curation (not editable)
+
+        # Return metadata attributes
+        return attrs
 
 
-    def set_metadata(self, id: Dict, metadata: Metadata) -> None:
-        data = metadata.serialize()
+    def save_metadata(self, id: Dict, metadata: Metadata) -> None:
+        """Saves metadata of the specified dataset
 
+        Args:
+            id (Dict): Standard dataset id
+            metadata (Metadata): Metadata to be saved
+
+        Returns:
+            None
+
+        Raises:
+            ValueError("No access token")
+        """
+        # Raise exception if no access token
+        if not self.config.get("token"):
+            raise ValueError("No access token")
+
+        # Serialize metadata
+        data = self._serialize_metadata(metadata)
+
+        # REMARK: More than 10 authors is not supported while setting metadata
+        # https://docs.figshare.com/#private_article_create (see Body Schema)
+        if len(data["authors"]) > 10:
+            authors = data["authors"]
+            del data["authors"]
+        else:
+            authors = []
+
+        # Save metadata
         try:
-            result = self._request(f"account/articles/{id['id']}", "PUT", data=data)
+            result, _ = self._request(f"account/articles/{id['id']}", "PUT", data=data)
 
         except HTTPError as err:
-            # TODO: Error handling
+            # TODO: Add error handling
+            print(err.response.content)
             raise
+
+        # Add article authors if required
+        # https://docs.figshare.com/#private_article_authors_add
+        if authors:
+            try:
+                result, _ = self._request(f"account/articles/{id['id']}/authors", "POST", data={"authors": authors})
+
+            except HTTPError as err:
+                # TODO: Add error handling
+                print(err.response.content)
+                raise
+
+        # Set embargo attributes
+
+        # REMARK: Setting an article under whole embargo does not imply that
+        #   the article will be published when the embargo will expire. You
+        #   must explicitly call the publish endpoint to enable this
+        #   functionality.
+        # https://docs.figshare.com/#private_article_embargo_update
+
+        access_type = metadata.get("access_type", "open")
+
+        if access_type == "open":
+            try:
+                result, _ = self._request(f"account/articles/{id['id']}/embargo", "DELETE")
+
+            except HTTPError as err:
+                # TODO: Add error handling
+                print(err.response.content)
+                raise
+        else:
+            data = {
+                "is_embargoed": True,
+                "embargo_type": metadata.get("embargo_type", "article"),
+                "embargo_title": metadata.get("embargo_title", ""),
+                "embargo_reason": metadata.get("embargo_reason", ""),
+                "embargo_date": metadata.get("embargo_date", ""),
+                "embargo_options": metadata.get("embargo_options", []),
+            }
+            if access_type == "closed":
+                data["embargo_date"] = "0"
+            elif access_type == "restricted":
+                # REMARK: `embargo_options` should be set if restricted access
+                pass
+
+            try:
+                result, _ = self._request(f"account/articles/{id['id']}/embargo", "PUT", data=data)
+
+            except HTTPError as err:
+                # TODO: Add error handling
+                print(err.response.content)
+                raise
 
 
     def validate_metadata(self, metadata: Metadata) -> Dict:
@@ -229,31 +569,164 @@ class FigshareClient(Client):
         return files
 
 
-    def _create_dataset(self, metadata: Metadata) -> RemoteDataset:
+    def _get_license_id(self, license) -> int:
+        """Returns license id from license information, e.g. name, url, id
+
+        Args:
+            license : License information
+
+        Returns:
+            License id
+
+        Raises:
+            ValueError("Invalid license")
+        """
+        if not license:
+            return None
+        elif isinstance(license, int):
+            return license
+        elif isinstance(license, str):
+            if license.isnumeric():
+                return int(license)
+            for id, item in self.get_licenses().items():
+                if license == item["name"] or license == item["url"]:
+                    return id
+        elif isinstance(license, dict):
+            return license["id"]
+        raise ValueError("Invalid license")
+
+
+    def _serialize_metadata(self, metadata: Metadata) -> Dict:
+        """Serializes dataset metadata for client use
+
+        Args:
+            metadata (Metadata): Dataset metadata
+
+        Returns:
+            Client-specific dictionary of the metadata
+        """
+        out = {}
+
+        def _serialize(key: str, target_key=None):
+            if key in metadata:
+                out[key] = metadata[target_key if target_key else key]
+
+        def _serialize_person(person: Person) -> Dict:
+            try:
+                if person["figshare_id"]:
+                    return {"id": person["figshare_id"]}
+            except:
+                pass
+
+            item = {}
+            # TODO: Check if first_name and last_name are ignored if name
+            #   is specified.
+            if "fullname" in person:
+                item["name"] = person["fullname"]
+            if "name" in person:
+                item["first_name"] = person["name"]
+            if "surname" in person:
+                item["last_name"] = person["surname"]
+            # REMARK: `email` is not supported (422 Client Error: Unprocessable Entity)
+            if "orcid_id" in person:
+                item["orcid_id"] = person["orcid_id"]
+            return item
+
+        # Title
+        _serialize("title")
+
+        # Description
+        _serialize("description")
+
+        # Keywords
+        _serialize("keywords")
+
+        # References
+        _serialize("references")
+
+        # TODO: Serialize "categories"
+
+        # Authors
+        out["authors"] = [_serialize_person(item) for item in metadata.get("authors", [])]
+
+        # TODO: Serialize "custom_fields"
+
+        # Record type
+        type = metadata.get("type")
+        if type:
+            for key, val in self.record_type_lookup.items():
+                if type == val:
+                    type = key
+                    break
+            # REMARK: Figshare doesn't have "other" type. Therefore,
+            #   `defined_type` is set only if `type` is a valid Figshare type.
+            if type in self.record_types:
+                out["defined_type"] = type
+            else:
+                # REMARK: POTENTIAL DATA LOSS!
+                warnings.warn("Unknown dataset type, `defined_type` is not set.")
+
+        # Funding
+        _serialize("funding")
+
+        # TODO: Serialize "funding_list"
+
+        # License
+        license = self._get_license_id(metadata.get("license"))
+        if license:
+            out["license"] = license
+
+        # Timeline
+        timeline = {}
+        if "publication_date" in metadata:
+            timeline["publisherPublication"] = metadata["publication_date"]
+        if "acceptance_date" in metadata:
+            timeline["publisherAcceptance"] = metadata["acceptance_date"]
+        if "online_date" in metadata:
+            timeline["firstOnline"] = metadata["online_date"]
+        if timeline:
+            out["timeline"] = timeline
+
+        return out
+
+
+    def _create_dataset(self, metadata: Metadata) -> Dict:
+        """Creates a dataset with the specified standard metadata
+
+        Args:
+            metadata (Metadata): Standard metadata
+
+        Returns:
+            Standard identifier of the dataset
+
+        Raises:
+            ValueError("No access token")
+        """
+        # Raise exception if no access token
         if not self.config.get("token"):
             raise ValueError("No access token")
 
-        if metadata is None:
-            metadata = Metadata()
-        elif not isinstance(metadata, Metadata):
-            raise ValueError("Invalid metadata")
-
-        result = self.validate_metadata(metadata)
-        if result:
-            raise ValueError("Invalid metadata", result)
-
-        data = metadata.serialize()
-
+        # Create dataset with minimum metadata
         try:
-            result, _ = self._request("account/articles", "POST", data=data)
+            result, _ = self._request("account/articles", "POST", data={"title": metadata.get("title", "")})
 
         except HTTPError as err:
-            # TODO: Error handling
+            # TODO: Add error handling
             raise
 
-        dataset = self.get_dataset(result["entity_id"])
+        # Get dataset id
+        id = self.get_dataset_id(result["entity_id"])
 
-        return dataset
+        # Save metadata
+        try:
+            self.save_metadata(id, metadata)
+
+        except:
+            self.delete_dataset(id)
+            raise
+
+        # Return dataset id
+        return id
 
 
     def _upload_file(self, id: Dict, file: LocalFile, notify: Callable=None) -> RemoteFile:
@@ -360,3 +833,38 @@ class FigshareClient(Client):
             raise ValueError("No file id")
 
         result, response = self._request(f"account/articles/{id['id']}/files/{file.id}", "DELETE")
+
+
+    def _delete_dataset(self, id: Dict) -> None:
+        """Deletes dataset specified by the standard identifier from the repository
+
+        Args:
+            id (Dict): Standard dataset identifier
+
+        Returns:
+            None
+
+        Raises:
+            ValueError("Operation not permitted")
+            ValueError("Invalid dataset id")
+        """
+        # REMARK: Only private articles can be deleted
+        # https://help.figshare.com/article/ive-accidentally-set-my-data-to-public-what-should-i-do
+
+        # REMARK: Specific versions cannot be deleted
+        # https://help.figshare.com/article/can-i-edit-or-delete-my-research-after-it-has-been-made-public
+        if id.get("version"):
+            versions = self._get_versions(id)
+            last_version = next(reversed(versions))
+            if id["version"] != last_version:
+                raise ValueError("Operation not permitted")
+
+        try:
+            result, response = self._request(f"account/articles/{id['id']}", "DELETE")
+
+        except HTTPError as err:
+            if err.response.status_code == 403:
+                raise ValueError("Operation not permitted")
+            elif err.response.status_code == 404:
+                raise ValueError("Invalid dataset id")
+            raise

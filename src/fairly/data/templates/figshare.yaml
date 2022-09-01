@@ -1,155 +1,132 @@
-title: ""
-    # Title of the article.
-    #
-    # Required.
+metadata:
 
-description: ""
-    # Description of the article.
+    title: ""
+        # Title of the dataset.
+        #
+        # Required.
 
-keywords: []
-    # List of tags to be associated with the article.
-    #
-    # Development Notes:
-    # 'tags' can be used instead.
+    description: ""
+        # Description of the dataset.
 
-references: []
-    # List of links to be associated with the article.
-    #
-    # Example:
-    #
-    # ["http://link1", "http://link2", "http://link3"]
+    keywords: []
+        # List of keywords associated with the dataset.
+        #
+        # Example:
+        #
+        # ["Keyword 1", "Keyword 2"]
 
-categories: []
-    # List of category ids to be associated with the article.
-    #
-    # Example:
-    # [1, 23, 33, 66]
-    #
-    # Development Notes:
-    #
-    # Superseded by 'categories_by_source_id'.
+    references: []
+        # List of links associated with the dataset.
+        #
+        # Example:
+        #
+        # ["http://link1", "http://link2", "http://link3"]
 
-authors: []
-    # List of authors to be associated with the article.
-    #
-    # The list can contain the following fields:
-    # - id
-    # - name
-    # - first_name
-    # - last_name
-    # - email
-    # - orcid_id
-    #
-    # If an id is supplied, it will take priority and everything else will 
-    # be ignored. No more than 10 authors. For adding more authors use the
-    # specific authors endpoint.
+    categories: []
+        # List of category names associated with the dataset.
+        #
+        # Example:
+        # ["Agricultural Land Planning", "Biochemistry"]
 
-custom_fields: {}
-    # List of key, values pairs to be associated with the article.
-    #
-    # Development Notes:
-    # 
-    # Superseded by 'custom_fields_list':
-    #
-    # - name (string): Custom metadata name
-    # - value (object): Custom metadata value
-    
-defined_type: ""
-    # Controlled vocabulary:
-    # 
-    # - book
-    # - conference contribution
-    # - dataset
-    # - figure
-    # - journal contribution
-    # - media
-    # - online resource
-    # - poster
-    # - preprint
-    # - presentation
-    # - software
-    # - thesis
+    authors: []
+        # List of authors to be associated with the dataset.
+        #
+        # The list can contain items with the following attributes:
+        # - name
+        # - surname
+        # - fullname
+        # - email
+        # - orcid_id
+        # - figshare_id
+        #
+        # If an id is supplied, it will take priority and everything else will
+        # be ignored.
 
-funding: ""
-    # Grant number or funding authority.
+    custom_fields: {}
+        # List of key, values pairs to be associated with the dataset.
+        #
+        # Example:
+        #
+        # {"Format": "GeoTIFF", "Location": "Amsterdam"}
 
-funding_list: []
-    # Funding creation / update items
-    #
-    # - id (integer): ID as returned by the Funding Search endpoint
-    # - title (string): The title of the new user created funding
+    type: ""
+        # Controlled vocabulary:
+        #
+        # - book
+        # - conference contribution
+        # - dataset
+        # - figure
+        # - journal contribution
+        # - media
+        # - online resource
+        # - poster
+        # - preprint
+        # - presentation
+        # - software
+        # - thesis
 
-license: ""
-    # License id for this article.
+    access_type: ""
+        # Access type of the dataset
+        #
+        # Controlled vocabulary:
+        #
+        # - open
+        # - embargoed
+        # - restricted
+        # - closed
 
-doi: ""
-    # Digital Object Identifier.
-    #
-    # Development Notes:
-    #
-    # Not applicable for regular users. Figshare does not allow to indicate
-    # a custom DOI.
+    funding: ""
+        # Grant number or funding authority.
 
-timeline: 
-    # Various timeline dates
-    
-    firstOnline: ""
-    # Online posted date
+    funding_list: []
+        # Funding creation / update items
+        #
+        # - id (integer): ID as returned by the Funding Search endpoint
+        # - title (string): The title of the new user created funding
 
-    publisherPublication: ""
-    # Publish date
+    license: ""
+        # License for the dataset.
+        #
+        # Example:
+        #
+        # "MIT"
 
-    publisherAcceptance: ""
-    # Date when the item was accepted for publication        
+    online_date: ""
+        # Online posted date
 
-is_embargoed:
-    # Embargo status (boolean)
-    #
-    # Example:
-    #
-    # true
+    publication_date: ""
+        # Date when the dataset was published by the publisher
 
-embargo_date: ""
-    # Date when the embargo expires and the article gets published.
-    #
-    # '0' value will set up permanent embargo.
-    #
-    # Example:
-    #
-    # 2018-05-22T04:04:04
-    
-embargo_type: ""
-    # Embargo can be enabled at the article or the file level.
-    #
-    # Controlled Vocabulary:
-    #
-    # - article
-    # - file
-    #
-    # Example:
-    #
-    # file
+    acceptance_date: ""
+        # Date when the dataset was accepted for publication by the publisher
 
-embargo_title: ""
-    # Title for embargo
-    #
-    # Example:
-    #
-    # File(s) under embargo
-    
-embargo_reason: ""
-    # Reason for setting embargo
-    
-embargo_options: []
-    # List of embargo permissions to be associated with the article.
-    #
-    # The list must contain 'id' and can also contain 'group_ids' (a field 
-    # that only applies to 'logged_in' permissions). The new list replaces 
-    # old options in the database, and an empty list removes all 
-    # permissions for this article. Administration permission has to be set 
-    # up alone but logged in and IP range permissions can be set up 
-    # together.
-    #
-    # Example:
-    #
-    # [{"id": 1321}, {"id": 3345}, {"id": 54621, "group_ids": [4332, 5433]}]
+    embargo_date: ""
+        # Date when the embargo expires and the article gets published.
+        #
+        # '0' value will set up permanent embargo.
+        #
+        # Example:
+        #
+        # 2018-05-22T04:04:04
+
+    embargo_type: ""
+        # Embargo can be enabled at the article or the file level.
+        #
+        # Controlled Vocabulary:
+        #
+        # - article
+        # - file
+        #
+        # Example:
+        #
+        # "file"
+
+    embargo_title: ""
+        # Title for embargo
+        #
+        # Example:
+        #
+        # "File(s) under embargo"
+
+    embargo_reason: ""
+        # Reason for setting embargo
