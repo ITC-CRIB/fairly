@@ -7,6 +7,7 @@ import os
 import json
 import pkgutil
 import importlib
+import shutil
 
 from .client import Client
 from .dataset import Dataset
@@ -15,13 +16,12 @@ from .dataset.local import LocalDataset
 _clients = None
 _repositories = None
 
-
 # TODO: complete docstrings for these functions.
 
 def get_config(prefix: str) -> Dict:
     """
     Params:
-        prefix: ?????
+        prefix (str): Configuration prefix
 
     Returns:
       Dictionary of configuration attributes for the specified prefix
@@ -153,6 +153,32 @@ def dataset(id: str) -> Dataset:
         return LocalDataset(id)
 
     raise ValueError("Unknown dataset identifier")
+
+
+def init_dataset(path: str, template: str="default", manifest_file: str="manifest.yaml", create: bool=True) -> LocalDataset:
+    if not os.path.exists(path):
+        if create:
+            os.makedirs(path)
+        else:
+            raise ValueError("Invalid path")
+    elif not os.path.isdir(path):
+        raise NotADirectoryError    
+    
+    manifest_path = os.path.join(path, manifest_file)
+    if os.path.exists(manifest_path):
+        raise ValueError("Operation not permitted")
+
+    template_path = os.path.join(__path__[0], "data", "templates", f"{template}.yaml")
+    if not os.path.exists(template_path):
+        raise ValueError("Invalid template name")
+    
+    with open(template_path) as file:
+        metadata = file.read()
+    
+    with open(manifest_path, "w") as file:
+        file.write(f"{metadata}\nfiles:\n  includes: []\n  excludes: []\n")
+    
+    return dataset(path)
 
 
 def notify(file, total_size) -> None:
