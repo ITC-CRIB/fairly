@@ -130,3 +130,6 @@ dmypy.json
 
 # experiments
 experiments
+
+# ignore bench-test in tests
+tests/bench-test.py
