@@ -3,28 +3,14 @@ import pytest
 import os
 import json
 
-from dotenv import load_dotenv
+from tests import *
 
-load_dotenv()
+from fairly.client.figshare import FigshareClient
+from fairly.client.zenodo import ZenodoClient
 
-# copy existing ~/.fairly/config.json to ~/.fairly/config.json.bak
-# We do this to test the config file creation and loading
-try: 
-    with open(os.path.expanduser("~/.fairly/config.json"), "r") as f:
-        config = json.load(f)
-        with open(os.path.expanduser("~/.fairly/config.json.bak"), "w") as f:
-            json.dump(config, f)
-except FileNotFoundError:
-    print("No config file found, skipping backup")
-
-# Requires develop to have .env file with FAIRLY_FIGSHARE_TOKEN
-FIGSHARE_TOKEN = os.environ.get("FAIRLY_FIGSHARE_TOKEN")
-
-# Create a file in ~./fairly/config.json
-with open(os.path.expanduser("~/.fairly/config.json"), "w") as f:
-    # Create dict with config
-    config = { "4tu": { "token": FIGSHARE_TOKEN } }
-    f.write(json.dumps(config))
+# We create a dummy dataset locally to upload and then download
+# After we run al the tests the dataset is deleted from the repository
+remote_dataset_id = None
 
 def test_load_config():
     config = fairly.get_config("4tu")
@@ -43,7 +29,62 @@ def test_get_clients():
     assert "zenodo" in clients
     assert "djehuty" in clients
 
-def test_get_datasets():
+# Here we parametrize the test with different clients
+@pytest.mark.parametrize("client_id, token", [("fighsare", FIGSHARE_TOKEN), 
+                            "zenodo", ZENODO_TOKEN ] )
+def create_client():
+    client = fairly.client(client_id, token)
+    assert client._client_id == client_id
+
+# @pytest.fixture
+# def figshare_client():
+#     return fairly.client("figshare")
+
+# @pytest.fixture
+# def zenodo_client():
+#     return fairly.client("zenodo")
+figshare_client = fairly.client(id="figshare", token=FIGSHARE_TOKEN)
+zenodo_client = fairly.client(id="zenodo", token=ZENODO_TOKEN)
+
+def test_figshare_client(figshare_client):
+    print(type(figshare_client))
+    assert isinstance(figshare_client, FigshareClient)
+    assert figshare_client.client_id == "figshare"
+
+@pytest.mark.parametrize("client, ustring", [(figshare_client, ustring),
+                        (zenodo_client, ustring)])
+def test_create_and_upload_dataset(client, ustring):
+    '''Here we create a simple dataset object based on a figshare 
+    template and upload it to figshare'''
+   
+    # Test except if dummy dataset doesnt exist
+    with pytest.raises(NotADirectoryError):
+        local_dataset = fairly.dataset("./tests/non_existing_dataset")
+
+    create_manifest_from_template(f"{client.client_id}.yaml")
+
+    local_dataset = fairly.dataset("./tests/dummy_dataset")
+    assert local_dataset is not None
+    assert local_dataset.metadata['title'] == ustring
+
+    remote_dataset = local_dataset.upload(client, notify=fairly.notify)
+    assert remote_dataset is not None
+    assert remote_dataset.metadata['title'] == ustring
+    client._delete_dataset(remote_dataset.id)
+
+@pytest.fixture
+def create_remote_dataset():
+    # Create remote dataset in figshare
+    local_dataset = fairly.dataset("./tests/dummy_dataset")
+    assert local_dataset is not None
+
+    remote_dataset = local_dataset.upload("figshare")
+    assert remote_dataset is not None
+    assert remote_dataset.metadata['title'] == 'Test dataset'
+    return remote_dataset    
+
+
+def test_get_account_datasets():
     pass
 
 
@@ -56,6 +97,7 @@ def test_download():
 
     # fourtu = fairly.client("4tu")
     # fairly.download("test", "test.txt", "tests/data/test.txt")
+
 
 # CLEAN UP
 # Write back the original config file
