@@ -133,5 +133,5 @@ dmypy.json
 experiments
 
 # ignore bench-test in tests
-./tests/bench_test.py
+tests/notes.py
 
