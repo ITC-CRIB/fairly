@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import pytest
-
 import fairly
 
 # Requires develop to have .env file with FAIRLY_FIGSHARE_TOKEN
@@ -48,17 +47,25 @@ try:
 except:
     print("Dataset already exists, skipping creation")
 
+
 # for template_file in TEMPLATES:
+# TODO: Maybe create a class for each metadata (this needs to change later with schemas)
 def create_manifest_from_template(template_file) -> None:
     with open(f"./src/fairly/data/templates/{template_file}", "r") as f:
         template = f.read()
         template = yaml.safe_load(template)
         template['metadata']['title'] = ustring
-        template['metadata']['authors'] = [ ustring ]
-        
-        # Required fields for zenodo
         template['metadata']['description'] = ustring
-        template['metadata']['license'] = 'cc-by-nc-4.0'
+        if template_file == "figshare.yaml":
+            template['metadata']['authors'] = [ ustring ]
+        if template_file == "zenodo.yaml":
+            template['metadata']['creators'] = [ { "name": ustring } ]
+            template['metadata']['authors'] = [ {"name" : ustring } ]
+            template['metadata']['description'] = ustring
+            template['metadata']['license'] = 'cc-by-nc-4.0'
+            template['metadata']['type'] = 'dataset'
+            # template dates
+            template['metadata']['publication_date'] = '2020-01-01'
 
     with open(f"./tests/dummy_dataset/manifest.yaml", "w") as f:
         f.write(yaml.dump(template))

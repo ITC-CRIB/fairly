@@ -29,43 +29,40 @@ def test_get_clients():
     assert "zenodo" in clients
     assert "djehuty" in clients
 
-# Here we parametrize the test with different clients
+# Test clients creation
 @pytest.mark.parametrize("client_id, token", [("fighsare", FIGSHARE_TOKEN), 
-                            "zenodo", ZENODO_TOKEN ] )
+                            ("zenodo", ZENODO_TOKEN)])
 def create_client():
+    # Except if client doesnt exist
+    with pytest.raises(ValueError):
+        fairly.client("4TU")
+
     client = fairly.client(client_id, token)
     assert client._client_id == client_id
 
-# @pytest.fixture
-# def figshare_client():
-#     return fairly.client("figshare")
-
-# @pytest.fixture
-# def zenodo_client():
-#     return fairly.client("zenodo")
+# Test the procedure of creating a local dataset and uploading it to
+# the different remote repositories
 figshare_client = fairly.client(id="figshare", token=FIGSHARE_TOKEN)
 zenodo_client = fairly.client(id="zenodo", token=ZENODO_TOKEN)
-
-def test_figshare_client(figshare_client):
-    print(type(figshare_client))
-    assert isinstance(figshare_client, FigshareClient)
-    assert figshare_client.client_id == "figshare"
 
 @pytest.mark.parametrize("client, ustring", [(figshare_client, ustring),
                         (zenodo_client, ustring)])
 def test_create_and_upload_dataset(client, ustring):
-    '''Here we create a simple dataset object based on a figshare 
-    template and upload it to figshare'''
-   
     # Test except if dummy dataset doesnt exist
     with pytest.raises(NotADirectoryError):
         local_dataset = fairly.dataset("./tests/non_existing_dataset")
 
+    # This copies the template for the specific client 
+    # and writes it to the dummy dataset directory
     create_manifest_from_template(f"{client.client_id}.yaml")
 
     local_dataset = fairly.dataset("./tests/dummy_dataset")
     assert local_dataset is not None
     assert local_dataset.metadata['title'] == ustring
+
+    with pytest.raises(ValueError):
+        tokenless_client = fairly.client(id='zenodo', token=None)
+        local_dataset.upload(tokenless_client)
 
     remote_dataset = local_dataset.upload(client, notify=fairly.notify)
     assert remote_dataset is not None
