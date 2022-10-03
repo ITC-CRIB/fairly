@@ -2,6 +2,8 @@ from __future__ import annotations
 from typing import List, Dict, Union
 from abc import ABC, abstractmethod
 
+import datetime
+
 from ..metadata import Metadata
 from ..file import File
 from ..diff import Diff
@@ -148,3 +150,15 @@ class Dataset(ABC):
             if path not in files:
                 diff.remove(path, other_file)
         return diff
+
+
+    @property
+    def created(self) -> datetime.datetime:
+        """Creation date and time of the dataset"""
+        raise NotImplementedError
+
+
+    @property
+    def modified(self) -> datetime.datetime:
+        """Last modification date and time of the dataset"""
+        raise NotImplementedError

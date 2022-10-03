@@ -15,7 +15,8 @@ classifiers = [
     "Operating System :: OS Independent", ]
 dependencies = [
     "PyYAML",
-    "requests_toolbelt", ]
+    "requests_toolbelt",
+    "python-dateutil", ]
 keywords = ["fairly", "open science", "research data", "data management"]
 
 [project.optional-dependencies]

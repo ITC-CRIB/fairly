@@ -618,3 +618,20 @@ class Client(ABC):
             ValueError("Invalid dataset id")
         """
         raise NotImplementedError
+
+
+    @abstractmethod
+    def get_dates(self, id: Dict) -> Dict:
+        """Returns date dictionary of the specified dataset
+
+        Date dictionary:
+            - created (datetime.datetime): Creation date and time
+            - modified (datetime.datetime): Last modification date and time
+
+        Args:
+            id (Dict): Standard dataset id
+
+        Returns:
+            Date dictionary of the dataset.
+        """
+        raise NotImplementedError

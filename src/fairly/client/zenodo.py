@@ -12,6 +12,7 @@ from requests import Session
 from requests.exceptions import HTTPError
 from collections import OrderedDict
 from requests_toolbelt.multipart.encoder import MultipartEncoderMonitor
+from datetime import datetime
 
 CLASS_NAME = "ZenodoClient"
 
@@ -982,3 +983,24 @@ class ZenodoClient(Client):
                 raise AttributeError("Unknown access right", access_right)
 
         raise AttributeError("Unknown state", state)
+
+
+    def get_dates(self, id: Dict) -> Dict:
+        """Returns date dictionary of the specified dataset
+
+        Date dictionary:
+            - created (datetime.datetime): Creation date and time
+            - modified (datetime.datetime): Last modification date and time
+
+        Args:
+            id (Dict): Standard dataset id
+
+        Returns:
+            Date dictionary of the dataset.
+        """
+        details = self._get_dataset_details(id)
+
+        return {
+            "created": datetime.fromisoformat(details["created"]),
+            "modified": datetime.fromisoformat(details["modified"]),
+        }

@@ -15,6 +15,7 @@ from requests.exceptions import HTTPError
 from collections import OrderedDict
 import time
 import warnings
+import dateutil.parser
 
 CLASS_NAME = "FigshareClient"
 
@@ -934,3 +935,26 @@ class FigshareClient(Client):
                 return "public"
 
         raise AttributeError("Unknown status", status)
+
+
+    def get_dates(self, id: Dict) -> Dict:
+        """Returns date dictionary of the specified dataset
+
+        Date dictionary:
+            - created (datetime.datetime): Creation date and time
+            - modified (datetime.datetime): Last modification date and time
+
+        Args:
+            id (Dict): Standard dataset id
+
+        Returns:
+            Date dictionary of the dataset.
+        """
+        details = self._get_dataset_details(id)
+
+        # REMARK: dateutil.parser is required, because figshare dates are not
+        # fully ISO 8601 compliant (there is a timezone indicator at the end).
+        return {
+            "created": dateutil.parser.isoparse(details["created_date"]),
+            "modified": dateutil.parser.isoparse(details["modified_date"]),
+        }
