@@ -779,7 +779,7 @@ class FigshareClient(Client):
         with open(file.fullpath, "rb") as stream:
 
             tries = 0
-            total_size = 0
+            current_size = 0
 
             while True:
                 # Get upload information
@@ -809,10 +809,10 @@ class FigshareClient(Client):
                     response = requests.put(f"{upload_url}/{part['partNo']}", data=data)
                     response.raise_for_status()
 
-                    total_size += part_size
+                    current_size += part_size
 
                     if notify:
-                        notify(file, total_size)
+                        notify(file, current_size)
 
                 if done:
                     break

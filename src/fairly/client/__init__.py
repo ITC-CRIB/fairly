@@ -482,8 +482,7 @@ class Client(ABC):
         if not name:
             name = file.name
         fullpath = os.path.join(path, name)
-        size = 0
-        total_size = file.size
+        current_size = 0
         md5 = hashlib.md5()
         if self._session is None:
             self._session = self._create_session()
@@ -495,9 +494,9 @@ class Client(ABC):
                     for chunk in response.iter_content(self.CHUNK_SIZE):
                         local_file.write(chunk)
                         md5.update(chunk)
-                        size += len(chunk)
+                        current_size += len(chunk)
                         if notify:
-                            notify(file=file, size=size)
+                            notify(file, current_size)
             md5 = md5.hexdigest()
             if file.md5 and file.md5 != md5:
                 raise IOError("Invalid MD5 checksum")

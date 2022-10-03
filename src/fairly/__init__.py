@@ -303,8 +303,15 @@ def init_dataset(path: str, template: str = "default", manifest_file: str = "man
     return dataset(path)
 
 
-def notify(file: File, total_size: int) -> None:
-    print(f"{file.path}, {file.size}/{total_size}")
+def notify(file: File, current_size: int, total_size: int = None, current_total_size: int = None) -> None:
+    if total_size:
+        if current_size == file.size:
+            print(f"{file.path}, {current_total_size}/{total_size}")
+        else:
+            print(
+                f"{file.path}, {current_size}/{file.size}, {current_total_size}/{total_size}")
+    else:
+        print(f"{file.path}, {current_size}/{file.size}")
 
 
 if __name__ == "__main__":
