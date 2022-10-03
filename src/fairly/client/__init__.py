@@ -594,3 +594,27 @@ class Client(ABC):
                 if id == dataset.id:
                     del self._account_datasets[i]
                     break
+
+
+    @abstractmethod
+    def get_status(self, id: Dict) -> str:
+        """Returns status of the specified dataset
+
+        Possible statuses are as follows:
+            - "draft": Dataset is not published yet.
+            - "public": Dataset is published and is publicly available.
+            - "embargoed": Dataset is published, but is under embargo.
+            - "restricted": Dataset is published, but accessible only under certain conditions.
+            - "closed": Dataset is published, but accessible only by the owners.
+            - "error": Dataset is in an error state.
+
+        Args:
+            id (Dict): Standard dataset id
+
+        Returns:
+            Status of the dataset.
+
+        Raises:
+            ValueError("Invalid dataset id")
+        """
+        raise NotImplementedError

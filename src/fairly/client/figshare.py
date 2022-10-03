@@ -885,3 +885,52 @@ class FigshareClient(Client):
             elif err.response.status_code == 404:
                 raise ValueError("Invalid dataset id")
             raise
+
+
+    def get_status(self, id: Dict) -> str:
+        """Returns status of the specified dataset
+
+        Possible statuses are as follows:
+            - "draft": Dataset is not published yet.
+            - "public": Dataset is published and is publicly available.
+            - "embargoed": Dataset is published, but is under embargo.
+            - "restricted": Dataset is published, but accessible only under certain conditions.
+            - "closed": Dataset is published, but accessible only by the owners.
+
+        Args:
+            id (Dict): Standard dataset id
+
+        Returns:
+            Status of the dataset.
+
+        Raises:
+            ValueError("Invalid dataset id")
+        """
+        details = self._get_dataset_details(id)
+
+        # REMARK: figshare API documentation does not provide information on
+        # possible status values.
+        status = details["status"]
+
+        if status == "draft":
+            return "draft"
+
+        elif status == "public":
+
+            if details["is_embargoed"]:
+                if details["embargo_date"]:
+                    return "restricted" if details["embargo_options"] else "embargoed"
+                else:
+                    return "restricted" if details["embargo_options"] else "closed"
+
+            # REMARK: is_confidential flag is deprecated
+            # https://docs.figshare.com/#private_article_confidentiality_details
+            elif details["is_confidential"]:
+                return "restricted"
+
+            # REMARK: There doesn't seem to be additional flags, but testing is
+            # required.
+            else:
+                return "public"
+
+        raise AttributeError("Unknown status", status)
