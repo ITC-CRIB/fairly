@@ -15,9 +15,6 @@ from .client import Client
 from .dataset import Dataset
 from .dataset.local import LocalDataset
 
-_clients = None
-_repositories = None
-
 # TODO: complete docstrings for these functions.
 
 def get_config(prefix: str) -> Dict:
@@ -48,17 +45,13 @@ def get_config(prefix: str) -> Dict:
         config[key] = val
     return config
 
-
+@lru_cache(maxsize=None)
 def get_clients() -> Dict:
     """
     Returns a dictionary of clients supported by the package.
     Keys of the dictionary are unique client identifiers (str).
     Values of the dictionary are client classes (Client).
     """
-    global _clients
-    # Return if clients are available
-    if _clients is not None:
-        return _clients
     clients = {}
     # For each client module
     for _, name, _ in pkgutil.iter_modules([os.path.join(__path__[0], "client")]):
@@ -70,17 +63,11 @@ def get_clients() -> Dict:
             raise ValueError(f"No client class name {name}")
         # Set client class
         clients[name] = getattr(client, classname)
-    # Set clients atomically
-    _clients = clients
-    # TODO: Return a deep copy to prevent modification
-    return _clients
+    # Return
+    return clients
 
-
+@lru_cache(maxsize=None)
 def get_repositories() -> Dict:
-    global _repositories
-    # Return if repositories are available
-    if _repositories is not None:
-        return _repositories
     # For each repository file path
     data = {}
     for path in [os.path.join(__path__[0], "data"), os.path.expanduser("~/.fairly")]:
@@ -109,10 +96,8 @@ def get_repositories() -> Dict:
         client = clients[repository["client_id"]]
         repository.update(client.get_config(**attrs))
         repositories[id] = repository
-    # Set repositories atomically
-    _repositories = repositories
-    # TODO: Return a deep copy to prevent modification
-    return _repositories
+    # Return
+    return repositories
 
 
 @lru_cache(maxsize=None)
