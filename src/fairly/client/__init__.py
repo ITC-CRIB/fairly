@@ -82,6 +82,25 @@ class Client(ABC):
 
 
     @classmethod
+    def get_config_parameters(cls) -> Dict:
+        """Returns configuration parameters
+
+        Args:
+            None
+
+        Returns:
+            Dictionary of configuration parameters.
+            Keys are the parameter names, values are the descriptions.
+        """
+        return {
+            "name": "Repository name.",
+            "url": "URL address of the repository.",
+            "api_url": "API end-point URL address of the repository.",
+            "doi_prefixes": "DOI prefixes of the repository.",
+        }
+
+
+    @classmethod
     def get_config(cls, **kwargs) -> Dict:
         config = {}
         for key, val in kwargs.items():

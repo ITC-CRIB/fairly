@@ -54,6 +54,23 @@ class FigshareClient(Client):
         # Initialize properties
         self._categories = None
 
+
+    @classmethod
+    def get_config_parameters(cls) -> Dict:
+        """Returns configuration parameters
+
+        Args:
+            None
+
+        Returns:
+            Dictionary of configuration parameters.
+            Keys are the parameter names, values are the descriptions.
+        """
+        return {**super().get_config_parameters(), **{
+            "token": "Access token.",
+        }}
+
+
     @classmethod
     def get_config(cls, **kwargs) -> Dict:
         config = super().get_config(**kwargs)
