@@ -8,6 +8,8 @@ import json
 import pkgutil
 import importlib
 import shutil
+import glob
+from functools import lru_cache
 
 from .client import Client
 from .dataset import Dataset
@@ -113,6 +115,17 @@ def get_repositories() -> Dict:
     return _repositories
 
 
+@lru_cache(maxsize=None)
+def metadata_templates() -> List:
+    templates = []
+    for file in os.listdir(os.path.join(__path__[0], "data", "templates")):
+        name, ext = os.path.splitext(file)
+        if ext == ".yaml":
+            # TODO: Check if valid metadata template
+            templates.append(name)
+    return templates
+
+
 def get_repository(id: str) -> Dict:
     repositories = get_repositories()
     if id in repositories:
@@ -162,8 +175,8 @@ def init_dataset(path: str, template: str="default", manifest_file: str="manifes
         else:
             raise ValueError("Invalid path")
     elif not os.path.isdir(path):
-        raise NotADirectoryError    
-    
+        raise NotADirectoryError
+
     manifest_path = os.path.join(path, manifest_file)
     if os.path.exists(manifest_path):
         raise ValueError("Operation not permitted")
@@ -171,13 +184,13 @@ def init_dataset(path: str, template: str="default", manifest_file: str="manifes
     template_path = os.path.join(__path__[0], "data", "templates", f"{template}.yaml")
     if not os.path.exists(template_path):
         raise ValueError("Invalid template name")
-    
+
     with open(template_path) as file:
         metadata = file.read()
-    
+
     with open(manifest_path, "w") as file:
         file.write(f"{metadata}\nfiles:\n  includes: []\n  excludes: []\n")
-    
+
     return dataset(path)
 
 
