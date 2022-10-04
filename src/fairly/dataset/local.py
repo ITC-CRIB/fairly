@@ -5,10 +5,14 @@ from . import Dataset
 from ..metadata import Metadata
 from ..file.local import LocalFile
 
+import os
 import os.path
 import yaml
 import re
 import csv
+import datetime
+import platform
+from functools import cached_property
 
 class LocalDataset(Dataset):
     """
@@ -299,3 +303,31 @@ class LocalDataset(Dataset):
             raise
 
         return dataset
+
+
+    @cached_property
+    def created(self) -> datetime.datetime:
+        """Creation date and time of the dataset"""
+        # REMARK: On Unix systems getctime() returns the time of most recent
+        # metadata change, but not the creation.
+        # https://stackoverflow.com/questions/237079/how-do-i-get-file-creation-and-modification-date-times
+        # https://docs.python.org/3/library/os.html#os.stat_result
+        if platform.system() == "Windows":
+            timestamp = os.path.getctime(self._manifest_path)
+
+        else:
+            stat = os.stat(self._manifest_path)
+            try:
+                timestamp = stat.st_birthtime
+            except AttributeError:
+                timestamp = stat.st_mtime
+
+        return datetime.datetime.fromtimestamp(timestamp)
+
+
+    @property
+    def modified(self) -> datetime.datetime:
+        """Last modification date and time of the dataset"""
+        timestamp = os.path.getmtime(self._manifest_path)
+
+        return datetime.datetime.fromtimestamp(timestamp)

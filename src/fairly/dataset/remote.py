@@ -10,7 +10,8 @@ from ..file.remote import RemoteFile
 # from ..client import Client
 
 import os
-import os.path
+import datetime
+from functools import cached_property
 
 class RemoteDataset(Dataset):
     """
@@ -84,9 +85,26 @@ class RemoteDataset(Dataset):
         for name, file in self.files.items():
             local_file = self._download_file(file, path, notify=notify)
             if extract and local_file.is_archive() and local_file.is_simple():
-                local_file.extract(path)
+                files = local_file.extract(path, notify=notify)
+                includes.append({file.path: files})
             else:
                 includes.append(file.path)
         dataset.save_files()
 
         return dataset
+
+
+    @cached_property
+    def created(self) -> datetime.datetime:
+        """Creation date and time of the dataset"""
+        dates = self.client.get_dates(self.id)
+
+        return dates["created"]
+
+
+    @property
+    def modified(self) -> datetime.datetime:
+        """Last modification date and time of the dataset"""
+        dates = self.client.get_dates(self.id)
+
+        return dates["modified"]

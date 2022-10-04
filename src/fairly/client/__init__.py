@@ -82,6 +82,25 @@ class Client(ABC):
 
 
     @classmethod
+    def get_config_parameters(cls) -> Dict:
+        """Returns configuration parameters
+
+        Args:
+            None
+
+        Returns:
+            Dictionary of configuration parameters.
+            Keys are the parameter names, values are the descriptions.
+        """
+        return {
+            "name": "Repository name.",
+            "url": "URL address of the repository.",
+            "api_url": "API end-point URL address of the repository.",
+            "doi_prefixes": "DOI prefixes of the repository.",
+        }
+
+
+    @classmethod
     def get_config(cls, **kwargs) -> Dict:
         config = {}
         for key, val in kwargs.items():
@@ -463,8 +482,7 @@ class Client(ABC):
         if not name:
             name = file.name
         fullpath = os.path.join(path, name)
-        size = 0
-        total_size = file.size
+        current_size = 0
         md5 = hashlib.md5()
         if self._session is None:
             self._session = self._create_session()
@@ -476,9 +494,9 @@ class Client(ABC):
                     for chunk in response.iter_content(self.CHUNK_SIZE):
                         local_file.write(chunk)
                         md5.update(chunk)
-                        size += len(chunk)
+                        current_size += len(chunk)
                         if notify:
-                            notify(file=file, size=size)
+                            notify(file, current_size)
             md5 = md5.hexdigest()
             if file.md5 and file.md5 != md5:
                 raise IOError("Invalid MD5 checksum")
@@ -575,3 +593,44 @@ class Client(ABC):
                 if id == dataset.id:
                     del self._account_datasets[i]
                     break
+
+
+    @abstractmethod
+    def get_status(self, id: Dict) -> str:
+        """Returns status of the specified dataset
+
+        Possible statuses are as follows:
+            - "draft": Dataset is not published yet.
+            - "public": Dataset is published and is publicly available.
+            - "embargoed": Dataset is published, but is under embargo.
+            - "restricted": Dataset is published, but accessible only under certain conditions.
+            - "closed": Dataset is published, but accessible only by the owners.
+            - "error": Dataset is in an error state.
+
+        Args:
+            id (Dict): Standard dataset id
+
+        Returns:
+            Status of the dataset.
+
+        Raises:
+            ValueError("Invalid dataset id")
+        """
+        raise NotImplementedError
+
+
+    @abstractmethod
+    def get_dates(self, id: Dict) -> Dict:
+        """Returns date dictionary of the specified dataset
+
+        Date dictionary:
+            - created (datetime.datetime): Creation date and time
+            - modified (datetime.datetime): Last modification date and time
+
+        Args:
+            id (Dict): Standard dataset id
+
+        Returns:
+            Date dictionary of the dataset.
+        """
+        raise NotImplementedError

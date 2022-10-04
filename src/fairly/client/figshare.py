@@ -15,6 +15,7 @@ from requests.exceptions import HTTPError
 from collections import OrderedDict
 import time
 import warnings
+import dateutil.parser
 
 CLASS_NAME = "FigshareClient"
 
@@ -53,6 +54,23 @@ class FigshareClient(Client):
 
         # Initialize properties
         self._categories = None
+
+
+    @classmethod
+    def get_config_parameters(cls) -> Dict:
+        """Returns configuration parameters
+
+        Args:
+            None
+
+        Returns:
+            Dictionary of configuration parameters.
+            Keys are the parameter names, values are the descriptions.
+        """
+        return {**super().get_config_parameters(), **{
+            "token": "Access token.",
+        }}
+
 
     @classmethod
     def get_config(cls, **kwargs) -> Dict:
@@ -761,7 +779,7 @@ class FigshareClient(Client):
         with open(file.fullpath, "rb") as stream:
 
             tries = 0
-            total_size = 0
+            current_size = 0
 
             while True:
                 # Get upload information
@@ -791,10 +809,10 @@ class FigshareClient(Client):
                     response = requests.put(f"{upload_url}/{part['partNo']}", data=data)
                     response.raise_for_status()
 
-                    total_size += part_size
+                    current_size += part_size
 
                     if notify:
-                        notify(file, total_size)
+                        notify(file, current_size)
 
                 if done:
                     break
@@ -868,3 +886,75 @@ class FigshareClient(Client):
             elif err.response.status_code == 404:
                 raise ValueError("Invalid dataset id")
             raise
+
+
+    def get_status(self, id: Dict) -> str:
+        """Returns status of the specified dataset
+
+        Possible statuses are as follows:
+            - "draft": Dataset is not published yet.
+            - "public": Dataset is published and is publicly available.
+            - "embargoed": Dataset is published, but is under embargo.
+            - "restricted": Dataset is published, but accessible only under certain conditions.
+            - "closed": Dataset is published, but accessible only by the owners.
+
+        Args:
+            id (Dict): Standard dataset id
+
+        Returns:
+            Status of the dataset.
+
+        Raises:
+            ValueError("Invalid dataset id")
+        """
+        details = self._get_dataset_details(id)
+
+        # REMARK: figshare API documentation does not provide information on
+        # possible status values.
+        status = details["status"]
+
+        if status == "draft":
+            return "draft"
+
+        elif status == "public":
+
+            if details["is_embargoed"]:
+                if details["embargo_date"]:
+                    return "restricted" if details["embargo_options"] else "embargoed"
+                else:
+                    return "restricted" if details["embargo_options"] else "closed"
+
+            # REMARK: is_confidential flag is deprecated
+            # https://docs.figshare.com/#private_article_confidentiality_details
+            elif details["is_confidential"]:
+                return "restricted"
+
+            # REMARK: There doesn't seem to be additional flags, but testing is
+            # required.
+            else:
+                return "public"
+
+        raise AttributeError("Unknown status", status)
+
+
+    def get_dates(self, id: Dict) -> Dict:
+        """Returns date dictionary of the specified dataset
+
+        Date dictionary:
+            - created (datetime.datetime): Creation date and time
+            - modified (datetime.datetime): Last modification date and time
+
+        Args:
+            id (Dict): Standard dataset id
+
+        Returns:
+            Date dictionary of the dataset.
+        """
+        details = self._get_dataset_details(id)
+
+        # REMARK: dateutil.parser is required, because figshare dates are not
+        # fully ISO 8601 compliant (there is a timezone indicator at the end).
+        return {
+            "created": dateutil.parser.isoparse(details["created_date"]),
+            "modified": dateutil.parser.isoparse(details["modified_date"]),
+        }

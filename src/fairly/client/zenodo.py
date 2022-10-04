@@ -12,6 +12,7 @@ from requests import Session
 from requests.exceptions import HTTPError
 from collections import OrderedDict
 from requests_toolbelt.multipart.encoder import MultipartEncoderMonitor
+from datetime import datetime
 
 CLASS_NAME = "ZenodoClient"
 
@@ -126,6 +127,22 @@ class ZenodoClient(Client):
 
     def __init__(self, repository_id: str=None, **kwargs):
         super().__init__(repository_id, **kwargs)
+
+
+    @classmethod
+    def get_config_parameters(cls) -> Dict:
+        """Returns configuration parameters
+
+        Args:
+            None
+
+        Returns:
+            Dictionary of configuration parameters.
+            Keys are the parameter names, values are the descriptions.
+        """
+        return {**super().get_config_parameters(), **{
+            "token": "Access token.",
+        }}
 
 
     @classmethod
@@ -318,6 +335,17 @@ class ZenodoClient(Client):
 
 
     def _get_dataset_details(self, id: Dict) -> Dict:
+        """Retrieves dataset details
+
+        Args:
+            id (Dict): Standard dataset id
+
+        Returns:
+            Dictionary of dataset details
+
+        Raises:
+            ValueError("Invalid dataset id")
+        """
         endpoints = [f"records/{id['id']}"]
         if "token" in self.config:
             endpoints.insert(0, f"deposit/depositions/{id['id']}")
@@ -899,3 +927,80 @@ class ZenodoClient(Client):
             elif err.response.status_code == 404:
                 raise ValueError("Invalid dataset id")
             raise
+
+
+    def get_status(self, id: Dict) -> str:
+        """Returns status of the specified dataset
+
+        Possible statuses are as follows:
+            - "draft": Dataset is not published yet.
+            - "public": Dataset is published and is publicly available.
+            - "embargoed": Dataset is published, but is under embargo.
+            - "restricted": Dataset is published, but accessible only under certain conditions.
+            - "closed": Dataset is published, but accessible only by the owners.
+            - "error": Dataset is in an error state.
+
+        Args:
+            id (Dict): Standard dataset id
+
+        Returns:
+            Status of the dataset.
+
+        Raises:
+            ValueError("Invalid dataset id")
+            AttributeError("Unknown state", state)
+            AttributeError("Unknown access right", access_right)
+        """
+        details = self._get_dataset_details(id)
+
+        state = details["state"]
+
+        if state == "inprogress":
+            return "draft"
+
+        elif state == "unsubmitted":
+            return "draft"
+
+        elif state == "error":
+            return "error"
+
+        elif state == "done":
+            access_right = details["metadata"]["access_right"]
+
+            if access_right == "open":
+                return "public"
+
+            elif access_right == "embargoed":
+                return "embargoed"
+
+            elif access_right == "restricted":
+                return "restricted"
+
+            elif access_right == "closed":
+                return "closed"
+
+            else:
+                raise AttributeError("Unknown access right", access_right)
+
+        raise AttributeError("Unknown state", state)
+
+
+    def get_dates(self, id: Dict) -> Dict:
+        """Returns date dictionary of the specified dataset
+
+        Date dictionary:
+            - created (datetime.datetime): Creation date and time
+            - modified (datetime.datetime): Last modification date and time
+
+        Args:
+            id (Dict): Standard dataset id
+
+        Returns:
+            Date dictionary of the dataset.
+        """
+        details = self._get_dataset_details(id)
+
+        return {
+            "created": datetime.fromisoformat(details["created"]),
+            "modified": datetime.fromisoformat(details["modified"]),
+        }
