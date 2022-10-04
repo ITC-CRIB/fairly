@@ -56,6 +56,8 @@ def create_manifest_from_template(template_file) -> None:
         template = yaml.safe_load(template)
         template['metadata']['title'] = ustring
         template['metadata']['description'] = ustring
+        # Add files key to the manifest so that files are added to the dataset object
+        template['files'] = { 'excludes': [], 'includes': ["*.txt"] }
         if template_file == "figshare.yaml":
             template['metadata']['authors'] = [ ustring ]
         if template_file == "zenodo.yaml":
@@ -70,3 +72,15 @@ def create_manifest_from_template(template_file) -> None:
     with open(f"./tests/dummy_dataset/manifest.yaml", "w") as f:
         f.write(yaml.dump(template))
 
+# Generate 10 files with random names
+if not os.path.exists("tests/dummy_dataset/data_files"):
+    os.mkdir("tests/dummy_dataset/data_files")
+    for i in range(10):
+        with open(f"tests/dummy_dataset/data_files/{uuid.uuid4()}.txt", "w") as f:
+            f.write("test")
+else:
+    # Check if there are 10 files in the directory
+    if len(os.listdir("tests/dummy_dataset/data_files")) != 10:
+        for i in range(10):
+            with open(f"./tests/dummy_dataset/data_files/{uuid.uuid4()}.txt", "w") as f:
+                f.write("test")

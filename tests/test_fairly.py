@@ -1,12 +1,16 @@
-import fairly
-import pytest
 import os
 import json
+import re
+import pytest
+import shutil
+
+import fairly
 
 from tests import *
 
 from fairly.client.figshare import FigshareClient
 from fairly.client.zenodo import ZenodoClient
+from fairly.dataset import Dataset
 
 # We create a dummy dataset locally to upload and then download
 # After we run al the tests the dataset is deleted from the repository
@@ -30,20 +34,25 @@ def test_get_clients():
     assert "djehuty" in clients
 
 # Test clients creation
-@pytest.mark.parametrize("client_id, token", [("fighsare", FIGSHARE_TOKEN), 
+@pytest.mark.parametrize("client_id, token, client_class", [("fighsare", FIGSHARE_TOKEN), 
                             ("zenodo", ZENODO_TOKEN)])
-def create_client():
+def create_client():    
     # Except if client doesnt exist
     with pytest.raises(ValueError):
         fairly.client("4TU")
 
     client = fairly.client(client_id, token)
+    assert isinstance(client, client_class)
     assert client._client_id == client_id
+
+
+# SET UP CLIENTS TO RUN CREATE, UPLOAD, DOWNLOAD, DELETE DATASETS
+
+figshare_client = fairly.client(id="figshare", token=FIGSHARE_TOKEN)
+zenodo_client = fairly.client(id="zenodo", token=ZENODO_TOKEN)
 
 # Test the procedure of creating a local dataset and uploading it to
 # the different remote repositories
-figshare_client = fairly.client(id="figshare", token=FIGSHARE_TOKEN)
-zenodo_client = fairly.client(id="zenodo", token=ZENODO_TOKEN)
 
 @pytest.mark.parametrize("client, ustring", [(figshare_client, ustring),
                         (zenodo_client, ustring)])
@@ -59,7 +68,9 @@ def test_create_and_upload_dataset(client, ustring):
     local_dataset = fairly.dataset("./tests/dummy_dataset")
     assert local_dataset is not None
     assert local_dataset.metadata['title'] == ustring
+    assert local_dataset.files is not None
 
+    # Notify user that token is not set
     with pytest.raises(ValueError):
         tokenless_client = fairly.client(id='zenodo', token=None)
         local_dataset.upload(tokenless_client)
@@ -67,34 +78,44 @@ def test_create_and_upload_dataset(client, ustring):
     remote_dataset = local_dataset.upload(client, notify=fairly.notify)
     assert remote_dataset is not None
     assert remote_dataset.metadata['title'] == ustring
+    assert remote_dataset.files is not None
+    assert len(remote_dataset.files) == 10
     client._delete_dataset(remote_dataset.id)
 
-@pytest.fixture
-def create_remote_dataset():
-    # Create remote dataset in figshare
-    local_dataset = fairly.dataset("./tests/dummy_dataset")
-    assert local_dataset is not None
+# Test the download of the different datasets created
+@pytest.mark.parametrize("client", [(figshare_client),
+                        (zenodo_client)])
+def test_download_dataset(client):
+    # local dataset is created in the tests folder
+    # and then deleted after the test is done
+    create_manifest_from_template(f"{client.client_id}.yaml")
 
-    remote_dataset = local_dataset.upload("figshare")
+    local_dataset = fairly.dataset("./tests/dummy_dataset")
+
+    remote_dataset = local_dataset.upload(client, notify=fairly.notify)
     assert remote_dataset is not None
-    assert remote_dataset.metadata['title'] == 'Test dataset'
-    return remote_dataset    
 
+    # Raise error if folder to store the dataset is not empty
+    with pytest.raises(ValueError):
+        remote_dataset.store("./tests/dummy_dataset")
 
+    remote_dataset.store(f"./tests/{client.client_id}.dataset")
+    # load the dataset from the file
+    local_dataset = fairly.dataset(f"./tests/{client.client_id}.dataset")
+    
+    assert isinstance(local_dataset, Dataset)
+    assert len(local_dataset.files) == 10
+    
+    # delete the dataset from the remote repository
+    client._delete_dataset(remote_dataset.id)
+    dirs = [d for d in os.listdir('./tests/') if re.match(r'[a-z]*\.dataset', d)]
+    for dir in dirs:
+        shutil.rmtree(f"./tests/{dir}/")
+    
 def test_get_account_datasets():
-    pass
-
-
-def test_download():
-    # Create remote dataset in figshare
-    local_dataset = fairly.dataset("./tests/dummy_dataset")
-    assert local_dataset is not None
-
-    # TODO: fairly.set_dataset_repository(local_dataset, "figshare")
-
-    # fourtu = fairly.client("4tu")
-    # fairly.download("test", "test.txt", "tests/data/test.txt")
-
+    # get all datasets from the account
+    datasets = figshare_client.get_account_datasets()
+    assert datasets is not None    
 
 # CLEAN UP
 # Write back the original config file
