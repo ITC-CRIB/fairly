@@ -22,7 +22,10 @@ keywords = ["fairly", "open science", "research data", "data management"]
 [project.optional-dependencies]
 dev = [
     "pytest",
-    "ipython", ]
+    "ipython", 
+    "pytest-recording==0.12.1",
+    "vcrpy==4.2.1"
+    ]
 
 [project.urls]
 "Homepage" = "https://github.com/ITC-CRIB/fairly"
