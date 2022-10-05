@@ -85,13 +85,13 @@ def create_manifest_from_template(template_file: str) -> None:
 if not os.path.exists("tests/dummy_dataset/data_files"):
     os.mkdir("tests/dummy_dataset/data_files")
     for i in range(10):
-        with open(f"tests/dummy_dataset/data_files/{uuid.uuid4()}.txt", "w") as f:
+        with open(f"tests/dummy_dataset/{uuid.uuid4()}.txt", "w") as f:
             f.write("test")
 else:
     # Check if there are 10 files in the directory
     if len(os.listdir("tests/dummy_dataset/")) != 10:
         for i in range(10):
-            with open(f"./tests/dummy_dataset//{uuid.uuid4()}.txt", "w") as f:
+            with open(f"./tests/dummy_dataset/{uuid.uuid4()}.txt", "w") as f:
                 f.write("test")
 
 # print list of files in tests/
