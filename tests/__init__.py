@@ -94,8 +94,6 @@ else:
             with open(f"./tests/dummy_dataset/{uuid.uuid4()}.txt", "w") as f:
                 f.write("test")
 
-# print list of files in tests/
-
 # Monkey patch the requests client library where we undo the patching of the HTTPConnection block size 
 # that prevents us from using pytest-vcr to recort the requests
 def _request(self, endpoint: str, method: str="GET", headers: dict=None, data=None, format: str=None, serialize: bool=True):
