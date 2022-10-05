@@ -4,8 +4,9 @@ import re
 import pytest
 import shutil
 
-import fairly
+import vcr
 
+import fairly
 from tests import *
 
 from fairly.client.figshare import FigshareClient
@@ -47,13 +48,11 @@ def create_client():
 
 
 # SET UP CLIENTS TO RUN CREATE, UPLOAD, DOWNLOAD, DELETE DATASETS
-
 figshare_client = fairly.client(id="figshare", token=FIGSHARE_TOKEN)
 zenodo_client = fairly.client(id="zenodo", token=ZENODO_TOKEN)
 
 # Test the procedure of creating a local dataset and uploading it to
 # the different remote repositories
-
 @pytest.mark.parametrize("client, ustring", [(figshare_client, ustring),
                         (zenodo_client, ustring)])
 def test_create_and_upload_dataset(client, ustring):
@@ -126,3 +125,14 @@ with open(os.path.expanduser("~/.fairly/config.json.bak"), "r") as f:
 
 # delete the backup
 os.remove(os.path.expanduser("~/.fairly/config.json.bak"))
+
+@pytest.mark.vcr()
+def test_vcr():
+    # create a dummy dataset in zenodo
+    zenodo_client.get_account_datasets()
+    # assert remote_dataset
+
+@pytest.mark.vcr()
+def test_no_vcr():
+    local_dataset = fairly.dataset("./tests/dummy_dataset")
+    remote_dataset = local_dataset.upload(zenodo_client, notify=fairly.notify)

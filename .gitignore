@@ -33,6 +33,7 @@ MANIFEST
 *.manifest
 *.spec
 *.dataset
+tests/cassettes/
 
 # Installer logs
 pip-log.txt
@@ -135,4 +136,5 @@ experiments
 
 # ignore bench-test in tests
 tests/notes.py
+_no_*
 

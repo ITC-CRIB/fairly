@@ -50,7 +50,14 @@ except:
 
 # for template_file in TEMPLATES:
 # TODO: Maybe create a class for each metadata (this needs to change later with schemas)
-def create_manifest_from_template(template_file) -> None:
+def create_manifest_from_template(template_file: str) -> None:
+    """Create a manifest file from a template file
+    Parameters
+    ----------
+    template_file : str
+        Name of the template file in yaml format e.g. figshare.yaml
+        the file is extracted from the templates folder
+    """
     with open(f"./src/fairly/data/templates/{template_file}", "r") as f:
         template = f.read()
         template = yaml.safe_load(template)
@@ -71,6 +78,63 @@ def create_manifest_from_template(template_file) -> None:
 
     with open(f"./tests/dummy_dataset/manifest.yaml", "w") as f:
         f.write(yaml.dump(template))
+
+# Monkey patch the requests client library where we undo the patching of the HTTPConnection block size 
+# that prevents us from using pytest-vcr to recort the requests
+def _request(self, endpoint: str, method: str="GET", headers: dict=None, data=None, format: str=None, serialize: bool=True):
+    """ Sends a HTTP request and returns the result
+
+    Returns:
+        Returned content and response
+
+    """
+
+    # Patch HTTPConnection block size to improve connection speed
+    # ref: https://stackoverflow.com/questions/72977722/python-requests-post-very-slow
+    # http.client.HTTPConnection.__init__.__defaults__ = tuple(
+    #     x if x != 8192 else self.CHUNK_SIZE
+    #     for x in http.client.HTTPConnection.__init__.__defaults__
+    # )
+
+    # Set default data format
+    if not format:
+        format = self.REQUEST_FORMAT
+
+    # Serialize data if required
+    if data is not None and serialize:
+        if format == "json":
+            data = json.dumps(data)
+
+    # Create session if required
+    if self._session is None:
+        self._session = self._create_session()
+
+    # Build URL address
+    if not self.config["api_url"]:
+        raise ValueError("No API URL address")
+
+    # TODO: Better join of endpoint
+    url = self.config["api_url"] + endpoint
+
+    _headers = headers.copy() if headers else {}
+    if format == "json":
+        _headers["Accept"] = "application/json"
+        if "Content-Type" not in _headers:
+            _headers["Content-Type"] = "application/json"
+
+    response = self._session.request(method, url, headers=_headers, data=data)
+    response.raise_for_status()
+
+    if response.content:
+        if format == "json":
+            content = response.json()
+        else:
+            content = response.content
+    else:
+        content = None
+
+    return content, response
+fairly.Client._request = _request
 
 # Generate 10 files with random names
 if not os.path.exists("tests/dummy_dataset/data_files"):
