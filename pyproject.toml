@@ -16,7 +16,9 @@ classifiers = [
 dependencies = [
     "PyYAML",
     "requests_toolbelt",
-    "python-dateutil", ]
+    "python-dateutil", 
+    "python-dotenv==0.20.0"
+    ]
 keywords = ["fairly", "open science", "research data", "data management"]
 
 [project.optional-dependencies]
