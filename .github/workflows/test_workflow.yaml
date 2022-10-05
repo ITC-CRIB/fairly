@@ -20,8 +20,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e .[dev]
-      - name: Create dummy .env variables
-        run: cp .github/.env_dev ./.env
+      - name: Setup dev env and config
+        run: | 
+          cp .github/.env_dev ./.env
+          mkdir ~/.fairly
       # - name: Lint with flake8
       #   run: |
       #     # stop the build if there are Python syntax errors or undefined names
