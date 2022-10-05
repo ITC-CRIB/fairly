@@ -4,8 +4,6 @@ import re
 import pytest
 import shutil
 
-import vcr
-
 import fairly
 from tests import *
 
@@ -53,9 +51,10 @@ zenodo_client = fairly.client(id="zenodo", token=ZENODO_TOKEN)
 
 # Test the procedure of creating a local dataset and uploading it to
 # the different remote repositories
-@pytest.mark.parametrize("client, ustring", [(figshare_client, ustring),
-                        (zenodo_client, ustring)])
-def test_create_and_upload_dataset(client, ustring):
+@pytest.mark.vcr(cassette_library_dir='tests/fixtures/vcr_cassettes', filter_headers=['authorization'])
+@pytest.mark.parametrize("client", [(figshare_client),
+                        (zenodo_client)])
+def test_create_and_upload_dataset(client: fairly.Client):
     # Test except if dummy dataset doesnt exist
     with pytest.raises(NotADirectoryError):
         local_dataset = fairly.dataset("./tests/non_existing_dataset")
@@ -66,22 +65,23 @@ def test_create_and_upload_dataset(client, ustring):
 
     local_dataset = fairly.dataset("./tests/dummy_dataset")
     assert local_dataset is not None
-    assert local_dataset.metadata['title'] == ustring
+    assert local_dataset.metadata['title'] == "My fairly test"
     assert local_dataset.files is not None
 
-    # Notify user that token is not set
+    # # Notify user that token is not set
     with pytest.raises(ValueError):
         tokenless_client = fairly.client(id='zenodo', token=None)
         local_dataset.upload(tokenless_client)
 
-    remote_dataset = local_dataset.upload(client, notify=fairly.notify)
+    remote_dataset = local_dataset.upload(client.client_id, notify=fairly.notify)
     assert remote_dataset is not None
-    assert remote_dataset.metadata['title'] == ustring
+    assert remote_dataset.metadata['title'] == "My fairly test"
     assert remote_dataset.files is not None
     assert len(remote_dataset.files) == 10
     client._delete_dataset(remote_dataset.id)
 
 # Test the download of the different datasets created
+@pytest.mark.vcr(cassette_library_dir='tests/fixtures/vcr_cassettes', filter_headers=['authorization'])
 @pytest.mark.parametrize("client", [(figshare_client),
                         (zenodo_client)])
 def test_download_dataset(client):
@@ -110,10 +110,13 @@ def test_download_dataset(client):
     dirs = [d for d in os.listdir('./tests/') if re.match(r'[a-z]*\.dataset', d)]
     for dir in dirs:
         shutil.rmtree(f"./tests/{dir}/")
-    
-def test_get_account_datasets():
+
+@pytest.mark.vcr(cassette_library_dir='tests/fixtures/vcr_cassettes', filter_headers=['authorization'])
+@pytest.mark.parametrize("client", [(figshare_client),
+                        (zenodo_client)])
+def test_get_account_datasets(client):
     # get all datasets from the account
-    datasets = figshare_client.get_account_datasets()
+    datasets = client.get_account_datasets()
     assert datasets is not None    
 
 # CLEAN UP
@@ -125,14 +128,3 @@ with open(os.path.expanduser("~/.fairly/config.json.bak"), "r") as f:
 
 # delete the backup
 os.remove(os.path.expanduser("~/.fairly/config.json.bak"))
-
-@pytest.mark.vcr()
-def test_vcr():
-    # create a dummy dataset in zenodo
-    zenodo_client.get_account_datasets()
-    # assert remote_dataset
-
-@pytest.mark.vcr()
-def test_no_vcr():
-    local_dataset = fairly.dataset("./tests/dummy_dataset")
-    remote_dataset = local_dataset.upload(zenodo_client, notify=fairly.notify)

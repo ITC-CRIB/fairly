@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+import vcr
+
 import pytest
 import fairly
 
@@ -61,7 +63,7 @@ def create_manifest_from_template(template_file: str) -> None:
     with open(f"./src/fairly/data/templates/{template_file}", "r") as f:
         template = f.read()
         template = yaml.safe_load(template)
-        template['metadata']['title'] = ustring
+        template['metadata']['title'] = "My fairly test"
         template['metadata']['description'] = ustring
         # Add files key to the manifest so that files are added to the dataset object
         template['files'] = { 'excludes': [], 'includes': ["*.txt"] }
@@ -78,6 +80,19 @@ def create_manifest_from_template(template_file: str) -> None:
 
     with open(f"./tests/dummy_dataset/manifest.yaml", "w") as f:
         f.write(yaml.dump(template))
+
+# Generate 10 files with random names
+if not os.path.exists("tests/dummy_dataset/data_files"):
+    os.mkdir("tests/dummy_dataset/data_files")
+    for i in range(10):
+        with open(f"tests/dummy_dataset/data_files/{uuid.uuid4()}.txt", "w") as f:
+            f.write("test")
+else:
+    # Check if there are 10 files in the directory
+    if len(os.listdir("tests/dummy_dataset/data_files")) != 10:
+        for i in range(10):
+            with open(f"./tests/dummy_dataset/data_files/{uuid.uuid4()}.txt", "w") as f:
+                f.write("test")
 
 # Monkey patch the requests client library where we undo the patching of the HTTPConnection block size 
 # that prevents us from using pytest-vcr to recort the requests
@@ -136,15 +151,3 @@ def _request(self, endpoint: str, method: str="GET", headers: dict=None, data=No
     return content, response
 fairly.Client._request = _request
 
-# Generate 10 files with random names
-if not os.path.exists("tests/dummy_dataset/data_files"):
-    os.mkdir("tests/dummy_dataset/data_files")
-    for i in range(10):
-        with open(f"tests/dummy_dataset/data_files/{uuid.uuid4()}.txt", "w") as f:
-            f.write("test")
-else:
-    # Check if there are 10 files in the directory
-    if len(os.listdir("tests/dummy_dataset/data_files")) != 10:
-        for i in range(10):
-            with open(f"./tests/dummy_dataset/data_files/{uuid.uuid4()}.txt", "w") as f:
-                f.write("test")
