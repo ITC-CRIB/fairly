@@ -89,10 +89,12 @@ if not os.path.exists("tests/dummy_dataset/data_files"):
             f.write("test")
 else:
     # Check if there are 10 files in the directory
-    if len(os.listdir("tests/dummy_dataset/data_files")) != 10:
+    if len(os.listdir("tests/dummy_dataset/")) != 10:
         for i in range(10):
-            with open(f"./tests/dummy_dataset/data_files/{uuid.uuid4()}.txt", "w") as f:
+            with open(f"./tests/dummy_dataset//{uuid.uuid4()}.txt", "w") as f:
                 f.write("test")
+
+# print list of files in tests/
 
 # Monkey patch the requests client library where we undo the patching of the HTTPConnection block size 
 # that prevents us from using pytest-vcr to recort the requests
