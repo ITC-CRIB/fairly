@@ -33,4 +33,4 @@ jobs:
       - name: Test with pytest
         run: |
           # flags added to work with vcr cassettes
-          pytest --record-mode=once -cov=fairly tests/
+          pytest --record-mode=once -cov=fairly -k "test_create_and_upload_dataset"
