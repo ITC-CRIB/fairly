@@ -63,7 +63,7 @@ def test_create_and_upload_dataset(client: fairly.Client):
     # and writes it to the dummy dataset directory
     create_manifest_from_template(f"{client.client_id}.yaml")
 
-    local_dataset = fairly.dataset("./tests/dummy_dataset")
+    local_dataset = fairly.dataset("./tests/fixtures/dummy_dataset")
     assert local_dataset is not None
     assert local_dataset.metadata['title'] == "My fairly test"
     assert local_dataset.files is not None
@@ -79,6 +79,10 @@ def test_create_and_upload_dataset(client: fairly.Client):
     assert remote_dataset.files is not None
     assert len(remote_dataset.files) == 10
     client._delete_dataset(remote_dataset.id)
+    dirs = [d for d in os.listdir('./tests/') if re.match(r'[a-z]*\.dataset', d)]
+    for dir in dirs:
+        shutil.rmtree(f"./tests/{dir}/")
+
 
 # Test the download of the different datasets created
 @pytest.mark.vcr(cassette_library_dir='tests/fixtures/vcr_cassettes', filter_headers=['authorization'])
@@ -89,14 +93,14 @@ def test_download_dataset(client):
     # and then deleted after the test is done
     create_manifest_from_template(f"{client.client_id}.yaml")
 
-    local_dataset = fairly.dataset("./tests/dummy_dataset")
+    local_dataset = fairly.dataset("./tests/fixtures/dummy_dataset")
 
     remote_dataset = local_dataset.upload(client, notify=fairly.notify)
     assert remote_dataset is not None
 
     # Raise error if folder to store the dataset is not empty
     with pytest.raises(ValueError):
-        remote_dataset.store("./tests/dummy_dataset")
+        remote_dataset.store("./tests/fixtures/dummy_dataset")
 
     remote_dataset.store(f"./tests/{client.client_id}.dataset")
     # load the dataset from the file

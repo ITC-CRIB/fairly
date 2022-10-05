@@ -41,10 +41,10 @@ except FileNotFoundError:
 
 # Create a dummy dataset
 try:
-    os.mkdir("tests/dummy_dataset")
+    os.mkdir("tests/fixtures/dummy_dataset")
 
     # Populate with dummy files
-    with open("tests/dummy_dataset/test.txt", "w") as f:
+    with open("tests/fixtures/dummy_dataset/test.txt", "w") as f:
         f.write("test")
 except:
     print("Dataset already exists, skipping creation")
@@ -78,21 +78,23 @@ def create_manifest_from_template(template_file: str) -> None:
             # template dates
             template['metadata']['publication_date'] = '2020-01-01'
 
-    with open(f"./tests/dummy_dataset/manifest.yaml", "w") as f:
+    with open(f"./tests/fixtures/dummy_dataset/manifest.yaml", "w") as f:
         f.write(yaml.dump(template))
 
-# Generate 10 files with random names
-if not os.path.exists("tests/dummy_dataset/data_files"):
-    os.mkdir("tests/dummy_dataset/data_files")
-    for i in range(10):
-        with open(f"tests/dummy_dataset/{uuid.uuid4()}.txt", "w") as f:
-            f.write("test")
-else:
-    # Check if there are 10 files in the directory
-    if len(os.listdir("tests/dummy_dataset/")) != 10:
-        for i in range(10):
-            with open(f"./tests/dummy_dataset/{uuid.uuid4()}.txt", "w") as f:
-                f.write("test")
+# # Generate 10 files with random names
+# if not os.path.exists("tests/dummy_dataset/"):
+#     os.mkdir("tests/dummy_dataset/")
+#     for i in range(10):
+#         with open(f"tests/dummy_dataset/{uuid.uuid4()}.txt", "w") as f:
+#             f.write("test")
+# else:
+#     # Check if there are 10 files in the directory
+#     for f in os.listdir("tests/dummy_dataset/"):
+#         if f.endswith(".txt"):
+#             os.remove(f)
+#     for i in range(10):
+#         with open(f"./tests/dummy_dataset/{uuid.uuid4()}.txt", "w") as f:
+#             f.write("test")
 
 # Monkey patch the requests client library where we undo the patching of the HTTPConnection block size 
 # that prevents us from using pytest-vcr to recort the requests
