@@ -81,21 +81,6 @@ def create_manifest_from_template(template_file: str) -> None:
     with open(f"./tests/fixtures/dummy_dataset/manifest.yaml", "w") as f:
         f.write(yaml.dump(template))
 
-# # Generate 10 files with random names
-# if not os.path.exists("tests/dummy_dataset/"):
-#     os.mkdir("tests/dummy_dataset/")
-#     for i in range(10):
-#         with open(f"tests/dummy_dataset/{uuid.uuid4()}.txt", "w") as f:
-#             f.write("test")
-# else:
-#     # Check if there are 10 files in the directory
-#     for f in os.listdir("tests/dummy_dataset/"):
-#         if f.endswith(".txt"):
-#             os.remove(f)
-#     for i in range(10):
-#         with open(f"./tests/dummy_dataset/{uuid.uuid4()}.txt", "w") as f:
-#             f.write("test")
-
 # Monkey patch the requests client library where we undo the patching of the HTTPConnection block size 
 # that prevents us from using pytest-vcr to recort the requests
 def _request(self, endpoint: str, method: str="GET", headers: dict=None, data=None, format: str=None, serialize: bool=True):
