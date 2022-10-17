@@ -32,12 +32,15 @@ MANIFEST
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
+*.dataset
+tests/cassettes/
 
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
 
 # Unit test / coverage reports
+tests/dummy_dataset/
 htmlcov/
 .tox/
 .nox/
@@ -127,3 +130,11 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# experiments
+experiments
+
+# ignore bench-test in tests
+tests/notes.py
+_no_*
+
