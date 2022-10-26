@@ -129,6 +129,20 @@ class Person(MutableMapping):
 
     @staticmethod
     def get_from_orcid_id(orcid_id: str, access_token: str=None) -> Person:
+        """Returns person information from ORCID identifier.
+
+        If not specified, `access token` is read from `orcid` configuration.
+
+        Args:
+            orcid_id: ORCID identifier
+            access_token: ORCID access token
+
+        Returns:
+            Person object if valid ORCID identifier, otherwise None
+
+        Raises:
+            ValueError("No access token")
+        """
         # Get default access token if required
         if not access_token:
             config = fairly.get_config("orcid")
