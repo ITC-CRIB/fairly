@@ -16,8 +16,7 @@ classifiers = [
 dependencies = [
     "PyYAML",
     "requests_toolbelt",
-    "python-dateutil", 
-    "python-dotenv==0.20.0"
+    "python-dateutil"
     ]
 keywords = ["fairly", "open science", "research data", "data management"]
 
@@ -27,6 +26,7 @@ dev = [
     "ipython", 
     "pytest-recording==0.12.1",
     "pytest-cov==4.0.0",
+    "python-dotenv==0.20.0",
     "vcrpy==4.2.1"
     ]
 
