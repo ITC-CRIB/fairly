@@ -16,7 +16,8 @@ classifiers = [
 dependencies = [
     "PyYAML",
     "requests_toolbelt",
-    "python-dateutil"
+    "python-dateutil", 
+    "typer>=0.6.1"
     ]
 keywords = ["fairly", "open science", "research data", "data management"]
 
