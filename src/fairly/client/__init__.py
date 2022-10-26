@@ -123,6 +123,17 @@ class Client(ABC):
         return config
 
 
+    def save_config(self, save_environment=False) -> Dict:
+        """Saves client configuration."""
+        id = self.repository_id if self.repository_id else self.client_id
+
+        for key, val in self.get_config_parameters().items():
+            # TODO: Implement configuration saving functionality
+            pass
+
+        raise NotImplementedError
+
+
     @classmethod
     def parse_id(cls, id: str) -> Tuple(str, str):
         """Parses the specified identifier
