@@ -275,12 +275,13 @@ class Client(ABC):
 
         """
 
-        # Patch HTTPConnection block size to improve connection speed
-        # ref: https://stackoverflow.com/questions/72977722/python-requests-post-very-slow
-        http.client.HTTPConnection.__init__.__defaults__ = tuple(
-            x if x != 8192 else self.CHUNK_SIZE
-            for x in http.client.HTTPConnection.__init__.__defaults__
-        )
+        if not getattr(fairly, "TESTING", False):
+            # Patch HTTPConnection block size to improve connection speed
+            # ref: https://stackoverflow.com/questions/72977722/python-requests-post-very-slow
+            http.client.HTTPConnection.__init__.__defaults__ = tuple(
+                x if x != 8192 else self.CHUNK_SIZE
+                for x in http.client.HTTPConnection.__init__.__defaults__
+            )
 
         # Set default data format
         if not format:
