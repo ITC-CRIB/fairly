@@ -7,6 +7,8 @@ import shutil
 import fairly
 from tests import *
 
+from fairly.dataset import Dataset
+
 # We create a dummy dataset locally to upload and then download
 # After we run al the tests the dataset is deleted from the repository
 remote_dataset_id = None
