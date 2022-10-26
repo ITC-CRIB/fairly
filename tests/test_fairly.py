@@ -33,7 +33,7 @@ def test_get_clients():
     assert "djehuty" in clients
 
 # Test clients creation
-@pytest.mark.parametrize("client_id, token, client_class", [("fighsare", FIGSHARE_TOKEN), 
+@pytest.mark.parametrize("client_id, token, client_class", [("figshare", FIGSHARE_TOKEN), 
                             ("zenodo", ZENODO_TOKEN)])
 def create_client():    
     # Except if client doesnt exist
