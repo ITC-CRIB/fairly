@@ -39,6 +39,10 @@ import fairly
 
 Currently, the package only supports the [Zenodo](https://zenodo.org/) and [4TU.ResearchDAata](https://data.4tu.nl/) repositories. For more details and examples, consult the [package documentation](https://jupyterfair.readthedocs.io/en/latest/package/installation.html).
 
+## Testing
+
+Unit tests can be run by using `pytest` command in the root directory.
+
 ## Contributions
 
 Read the [guidelines](CONTRIBUTING.md) to know how you can be part of this open source project.
@@ -46,7 +50,7 @@ Read the [guidelines](CONTRIBUTING.md) to know how you can be part of this open 
 ## Citation
 Please cite this software using as follows:
 
-*Grigin, S., Garcia Alvarez, M., & Urra Llanusa, J. Fairly [Computer software]*
+*Girgin, S., Garcia Alvarez, M., & Urra Llanusa, J. Fairly [Computer software]*
 
 ## Acknowledgements
 
