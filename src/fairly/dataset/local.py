@@ -78,6 +78,7 @@ class LocalDataset(Dataset):
         files = manifest.get("files", {})
         return {
             "metadata": manifest.get("metadata", {}),
+            "template": manifest.get("template", ""),
             "files": {
                 "includes": files.get("includes", []),
                 "excludes": files.get("excludes", []),
@@ -85,10 +86,21 @@ class LocalDataset(Dataset):
         }
 
 
-    @property
+    @cached_property
+    def manifest(self) -> Dict:
+        return self._get_manifest()
+
+
+    @cached_property
     def path(self) -> str:
         """Path of the dataset"""
         return self._path
+
+
+    @cached_property
+    def template(self) -> str:
+        """Metadata template of the dataset"""
+        return self.manifest["template"]
 
 
     @property

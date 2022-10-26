@@ -298,7 +298,10 @@ def init_dataset(path: str, template: str = "default", manifest_file: str = "man
         metadata = file.read()
 
     with open(manifest_path, "w") as file:
-        file.write(f"{metadata}\nfiles:\n  includes: []\n  excludes: []\n")
+        file.write(
+            f"{metadata}\ntemplate: {template}\n"
+            f"files:\n  includes: []\n  excludes: []\n"
+        )
 
     return dataset(path)
 
