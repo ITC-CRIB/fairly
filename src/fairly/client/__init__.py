@@ -123,15 +123,53 @@ class Client(ABC):
         return config
 
 
-    def save_config(self, save_environment=False) -> Dict:
-        """Saves client configuration."""
+    def save_config(self, save_environment=False) -> None:
+        """Saves client configuration.
+
+        Args:
+            save_environment: Set True to save environment variables
+
+        Returns:
+            None
+        """
         id = self.repository_id if self.repository_id else self.client_id
 
-        for key, val in self.get_config_parameters().items():
-            # TODO: Implement configuration saving functionality
+        common = {}
+        try:
+            with open(os.path.join(__path__[0], "..", "data", "repositories.json"), "r") as file:
+                common = json.load(file).get(id, {})
+        except FileNotFoundError:
             pass
 
-        raise NotImplementedError
+        path = os.path.join(os.path.expanduser("~/.fairly"), "repositories.json")
+
+        data = {}
+        try:
+            with open(path, "r") as file:
+                data = json.load(file)
+        except FileNotFoundError:
+            pass
+
+        custom = data.get(id, {})
+
+        config = {}
+        for key in self.get_config_parameters():
+            val = self.config.get(key)
+            if val and (key not in common or common[key] != val):
+                if os.environ.get("FAIRLY_{}_{}".format(id.upper(), key.upper())) == val:
+                    if key in custom:
+                        val = custom[key]
+                    elif not save_environment:
+                        continue
+                config[key] = val
+
+        if config:
+            data[id] = config
+        elif id in data:
+            del data[id]
+
+        with open(path, "w") as file:
+            json.dump(data, file, indent=2)
 
 
     @classmethod
@@ -502,7 +540,7 @@ class Client(ABC):
             with self._session.get(file.url, stream=True) as response:
                 response.raise_for_status()
                 os.makedirs(os.path.dirname(fullpath), exist_ok=True)
-                with open(fullpath, 'wb') as local_file:
+                with open(fullpath, "wb") as local_file:
                     for chunk in response.iter_content(self.CHUNK_SIZE):
                         local_file.write(chunk)
                         md5.update(chunk)
