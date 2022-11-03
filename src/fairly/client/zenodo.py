@@ -18,7 +18,14 @@ CLASS_NAME = "ZenodoClient"
 
 class ZenodoClient(Client):
 
+    """
+    Attributes:
+        _details (Dict): Record details cache
+    """
+
     PAGE_SIZE = 100
+
+    KEEP_ALIVE = 10
 
     record_types = {
         "dataset": "Dataset",
@@ -128,6 +135,8 @@ class ZenodoClient(Client):
     def __init__(self, repository_id: str=None, **kwargs):
         super().__init__(repository_id, **kwargs)
 
+        self._details = {}
+
 
     @classmethod
     def get_config_parameters(cls) -> Dict:
@@ -169,13 +178,18 @@ class ZenodoClient(Client):
 
 
     def _get_dataset_id(self, **kwargs) -> Dict:
-        """
+        """Returns standard dataset identifier.
+
+        Args:
+            **kwargs: Dataset identifier arguments
 
         Returns:
-          Dataset identifier
+            Standard dataset identifier
 
         Raises:
-          ValueError
+          ValueError("Invalid id")
+          ValueError("Invalid URL address")
+          ValueError("No identifier")
 
         """
         if "id" in kwargs:
@@ -319,18 +333,35 @@ class ZenodoClient(Client):
     def _get_account_datasets(self) -> List[RemoteDataset]:
         if "token" not in self.config:
             return []
+
         datasets = []
         page = 1
         while True:
             # TODO: Add error handling
             items, _ = self._request(f"deposit/depositions?page={page}&page_size={self.PAGE_SIZE}")
+
             if not items:
                 break
+
             for item in items:
                 id = self.get_dataset_id(**item)
                 dataset = RemoteDataset(self, id)
                 datasets.append(dataset)
+
+                # Store details
+                hash = self._get_dataset_hash(id)
+                self._details[hash] = [item, datetime.now()]
+
+                # Prevent unnecessary requests by triggering the use of available details
+                dataset.title
+                dataset.metadata
+                dataset.files
+
+            if len(items) < self.PAGE_SIZE:
+                break
+
             page += 1
+
         return datasets
 
 
@@ -346,6 +377,13 @@ class ZenodoClient(Client):
         Raises:
             ValueError("Invalid dataset id")
         """
+        hash = self._get_dataset_hash(id)
+
+        if hash in self._details:
+            details, time = self._details[hash]
+            if (datetime.now() - time).total_seconds() < self.KEEP_ALIVE:
+                return details
+
         endpoints = [f"records/{id['id']}"]
         if "token" in self.config:
             endpoints.insert(0, f"deposit/depositions/{id['id']}")
@@ -356,12 +394,14 @@ class ZenodoClient(Client):
                 details, _ = self._request(endpoint)
                 break
             except HTTPError as err:
-                if err.response.status_code in [403, 404]:
+                if err.response.status_code in [401, 403, 404]:
                     continue
                 raise
 
         if not details:
             raise ValueError("Invalid dataset id")
+
+        self._details[hash] = [details, datetime.now()]
 
         return details
 
@@ -929,8 +969,17 @@ class ZenodoClient(Client):
             raise
 
 
-    def get_status(self, id: Dict) -> str:
-        """Returns status of the specified dataset
+    def get_details(self, id: Dict) -> Dict:
+        """Returns standard details of the specified dataset.
+
+        Details dictionary:
+            - title (str): Title
+            - url (str): URL address
+            - doi (str): DOI
+            - status (str): Status
+            - size (int): Total size of data files in bytes
+            - created (datetime.datetime): Creation date and time
+            - modified (datetime.datetime): Last modification date and time
 
         Possible statuses are as follows:
             - "draft": Dataset is not published yet.
@@ -939,68 +988,39 @@ class ZenodoClient(Client):
             - "restricted": Dataset is published, but accessible only under certain conditions.
             - "closed": Dataset is published, but accessible only by the owners.
             - "error": Dataset is in an error state.
+            - "unknown": Dataset is in an unknown state.
 
         Args:
             id (Dict): Standard dataset id
 
         Returns:
-            Status of the dataset.
-
-        Raises:
-            ValueError("Invalid dataset id")
-            AttributeError("Unknown state", state)
-            AttributeError("Unknown access right", access_right)
+            Details dictionary of the dataset.
         """
         details = self._get_dataset_details(id)
 
-        state = details["state"]
+        statuses = {
+            "inprogress": "draft",
+            "unsubmitted": "draft",
+            "error": "error",
+            "open": "public",
+            "embargoed": "embargoed",
+            "restricted": "restricted",
+            "closed": "closed",
+        }
+        state = details["state"] if details["state"] != "done" else details["metadata"]["access_right"]
+        status = statuses.get(state, "unknown")
 
-        if state == "inprogress":
-            return "draft"
-
-        elif state == "unsubmitted":
-            return "draft"
-
-        elif state == "error":
-            return "error"
-
-        elif state == "done":
-            access_right = details["metadata"]["access_right"]
-
-            if access_right == "open":
-                return "public"
-
-            elif access_right == "embargoed":
-                return "embargoed"
-
-            elif access_right == "restricted":
-                return "restricted"
-
-            elif access_right == "closed":
-                return "closed"
-
-            else:
-                raise AttributeError("Unknown access right", access_right)
-
-        raise AttributeError("Unknown state", state)
-
-
-    def get_dates(self, id: Dict) -> Dict:
-        """Returns date dictionary of the specified dataset
-
-        Date dictionary:
-            - created (datetime.datetime): Creation date and time
-            - modified (datetime.datetime): Last modification date and time
-
-        Args:
-            id (Dict): Standard dataset id
-
-        Returns:
-            Date dictionary of the dataset.
-        """
-        details = self._get_dataset_details(id)
+        # Calculate data size
+        size = 0
+        for file in details.get("files", []):
+            size += file["filesize"]
 
         return {
+            "title": details["title"],
+            "url": details["links"].get("html"),
+            "doi": details.get("doi"),
+            "status": status,
+            "size": size,
             "created": datetime.fromisoformat(details["created"]),
             "modified": datetime.fromisoformat(details["modified"]),
         }

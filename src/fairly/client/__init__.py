@@ -123,15 +123,53 @@ class Client(ABC):
         return config
 
 
-    def save_config(self, save_environment=False) -> Dict:
-        """Saves client configuration."""
+    def save_config(self, save_environment=False) -> None:
+        """Saves client configuration.
+
+        Args:
+            save_environment: Set True to save environment variables
+
+        Returns:
+            None
+        """
         id = self.repository_id if self.repository_id else self.client_id
 
-        for key, val in self.get_config_parameters().items():
-            # TODO: Implement configuration saving functionality
+        common = {}
+        try:
+            with open(os.path.join(__path__[0], "..", "data", "repositories.json"), "r") as file:
+                common = json.load(file).get(id, {})
+        except FileNotFoundError:
             pass
 
-        raise NotImplementedError
+        path = os.path.join(os.path.expanduser("~/.fairly"), "repositories.json")
+
+        data = {}
+        try:
+            with open(path, "r") as file:
+                data = json.load(file)
+        except FileNotFoundError:
+            pass
+
+        custom = data.get(id, {})
+
+        config = {}
+        for key in self.get_config_parameters():
+            val = self.config.get(key)
+            if val and (key not in common or common[key] != val):
+                if os.environ.get("FAIRLY_{}_{}".format(id.upper(), key.upper())) == val:
+                    if key in custom:
+                        val = custom[key]
+                    elif not save_environment:
+                        continue
+                config[key] = val
+
+        if config:
+            data[id] = config
+        elif id in data:
+            del data[id]
+
+        with open(path, "w") as file:
+            json.dump(data, file, indent=2)
 
 
     @classmethod
@@ -171,7 +209,7 @@ class Client(ABC):
             if isinstance(id, dict):
                 return id
             elif isinstance(id, str):
-                key, val = Client.parse_id(id)
+                key, val = self.parse_id(id)
                 kwargs[key] = val
             else:
                 kwargs["id"] = id
@@ -364,14 +402,23 @@ class Client(ABC):
         return self._account_datasets
 
 
-    def get_dataset(self, id, refresh: bool=False, **kwargs) -> RemoteDataset:
+    def get_dataset(self, id=None, refresh: bool=False, **kwargs) -> RemoteDataset:
+        # Parse id if required
+        if id and isinstance(id, str):
+            key, val = Client.parse_id(id)
+            kwargs[key] = val
+
         # Get standard id
         id = self.get_dataset_id(id, **kwargs)
         # Get dataset hash
         hash = self._get_dataset_hash(id)
         # Fetch dataset if required
         if hash not in self._datasets or refresh:
-            self._datasets[hash] = RemoteDataset(self, id)
+            self._datasets[hash] = RemoteDataset(self, id, {
+                "url": kwargs.get("url"),
+                "doi": kwargs.get("doi"),
+            })
+
         # Return dataset
         return self._datasets[hash]
 
@@ -502,7 +549,7 @@ class Client(ABC):
             with self._session.get(file.url, stream=True) as response:
                 response.raise_for_status()
                 os.makedirs(os.path.dirname(fullpath), exist_ok=True)
-                with open(fullpath, 'wb') as local_file:
+                with open(fullpath, "wb") as local_file:
                     for chunk in response.iter_content(self.CHUNK_SIZE):
                         local_file.write(chunk)
                         md5.update(chunk)
@@ -608,8 +655,17 @@ class Client(ABC):
 
 
     @abstractmethod
-    def get_status(self, id: Dict) -> str:
-        """Returns status of the specified dataset
+    def get_details(self, id: Dict) -> Dict:
+        """Returns standard details of the specified dataset.
+
+        Details dictionary:
+            - title (str): Title
+            - url (str): URL address
+            - doi (str): DOI
+            - status (str): Status
+            - size (int): Total size of data files in bytes
+            - created (datetime.datetime): Creation date and time
+            - modified (datetime.datetime): Last modification date and time
 
         Possible statuses are as follows:
             - "draft": Dataset is not published yet.
@@ -618,31 +674,12 @@ class Client(ABC):
             - "restricted": Dataset is published, but accessible only under certain conditions.
             - "closed": Dataset is published, but accessible only by the owners.
             - "error": Dataset is in an error state.
+            - "unknown": Dataset is in an unknown state.
 
         Args:
             id (Dict): Standard dataset id
 
         Returns:
-            Status of the dataset.
-
-        Raises:
-            ValueError("Invalid dataset id")
-        """
-        raise NotImplementedError
-
-
-    @abstractmethod
-    def get_dates(self, id: Dict) -> Dict:
-        """Returns date dictionary of the specified dataset
-
-        Date dictionary:
-            - created (datetime.datetime): Creation date and time
-            - modified (datetime.datetime): Last modification date and time
-
-        Args:
-            id (Dict): Standard dataset id
-
-        Returns:
-            Date dictionary of the dataset.
+            Details dictionary of the dataset.
         """
         raise NotImplementedError

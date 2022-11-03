@@ -317,6 +317,16 @@ class LocalDataset(Dataset):
         return dataset
 
 
+    @property
+    def size(self) -> int:
+        """Total size of the dataset in bytes."""
+        size = 0
+        for file in self.files:
+            size += file.size
+
+        return size
+
+
     @cached_property
     def created(self) -> datetime.datetime:
         """Creation date and time of the dataset"""
