@@ -14,8 +14,8 @@ class Diff:
 
     def __repr__(self):
         return "{{'added': {}, 'modified': {}, 'removed': {}}}".format(self.added, self.modified, self.removed)
-        
-    
+
+
     @property
     def added(self) -> Dict:
         return self._added

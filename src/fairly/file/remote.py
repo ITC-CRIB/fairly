@@ -67,7 +67,7 @@ class RemoteFile(File):
         if self._md5 is None:
             self._md5 = self.headers.get("content-md5")
         return self._md5
-        
+
 
     def match(self, val: str) -> bool:
         return True if self.url == val or self.id == val else super().match(val)

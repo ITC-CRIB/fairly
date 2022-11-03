@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import List, Dict, Union
 from abc import ABC, abstractmethod
+from functools import cached_property
 
 import datetime
 
@@ -153,12 +154,27 @@ class Dataset(ABC):
 
 
     @property
-    def created(self) -> datetime.datetime:
-        """Creation date and time of the dataset"""
+    def title(self) -> str:
+        """Title of the dataset."""
+        return self.metadata["title"]
+
+
+    @property
+    @abstractmethod
+    def size(self) -> int:
+        """Total size of the dataset in bytes."""
         raise NotImplementedError
 
 
     @property
+    @abstractmethod
+    def created(self) -> datetime.datetime:
+        """Creation date and time of the dataset."""
+        raise NotImplementedError
+
+
+    @property
+    @abstractmethod
     def modified(self) -> datetime.datetime:
-        """Last modification date and time of the dataset"""
+        """Last modification date and time of the dataset."""
         raise NotImplementedError

@@ -94,7 +94,7 @@ class FigshareClient(Client):
 
 
     def _get_dataset_id(self, **kwargs) -> Dict:
-        """Returns standard dataset identifier
+        """Returns standard dataset identifier.
 
         Args:
             **kwargs: Dataset identifier arguments
@@ -142,7 +142,7 @@ class FigshareClient(Client):
 
 
     def _get_dataset_hash(self, id: Dict) -> str:
-        """Returns hash of the standard dataset identifier
+        """Returns hash of the standard dataset identifier.
 
         Args:
             id (Dict): Standard dataset identifier
@@ -157,7 +157,7 @@ class FigshareClient(Client):
 
 
     def _get_dataset_details(self, id: Dict) -> Dict:
-        """Retrieves details of the dataset
+        """Retrieves details of the dataset.
 
         Args:
             id (Dict): Standard dataset identifier
@@ -167,6 +167,7 @@ class FigshareClient(Client):
 
         Raises:
             ValueError("Invalid dataset id")
+            HTTPError
         """
         endpoints = []
         if id["version"]:
@@ -208,8 +209,12 @@ class FigshareClient(Client):
             if not items:
                 break
             for item in items:
+                print(item)
                 id = self.get_dataset_id(**item)
-                dataset = RemoteDataset(self, id)
+                dataset = RemoteDataset(self, id, {
+                    "url": item.get("url_public_html", item.get("url_private_html")),
+                    "doi": item.get("doi"),
+                })
                 datasets.append(dataset)
             page += 1
         return datasets
@@ -888,8 +893,17 @@ class FigshareClient(Client):
             raise
 
 
-    def get_status(self, id: Dict) -> str:
-        """Returns status of the specified dataset
+    def get_details(self, id: Dict) -> Dict:
+        """Returns standard details of the specified dataset.
+
+        Details dictionary:
+            - title (str): Title
+            - url (str): URL address
+            - doi (str): DOI
+            - status (str): Status
+            - size (int): Total size of data files in bytes
+            - created (datetime.datetime): Creation date and time
+            - modified (datetime.datetime): Last modification date and time
 
         Possible statuses are as follows:
             - "draft": Dataset is not published yet.
@@ -897,15 +911,13 @@ class FigshareClient(Client):
             - "embargoed": Dataset is published, but is under embargo.
             - "restricted": Dataset is published, but accessible only under certain conditions.
             - "closed": Dataset is published, but accessible only by the owners.
+            - "unknown": Dataset is in an unknown state.
 
         Args:
             id (Dict): Standard dataset id
 
         Returns:
-            Status of the dataset.
-
-        Raises:
-            ValueError("Invalid dataset id")
+            Details dictionary of the dataset.
         """
         details = self._get_dataset_details(id)
 
@@ -914,47 +926,41 @@ class FigshareClient(Client):
         status = details["status"]
 
         if status == "draft":
-            return "draft"
+            pass
 
         elif status == "public":
 
             if details["is_embargoed"]:
                 if details["embargo_date"]:
-                    return "restricted" if details["embargo_options"] else "embargoed"
+                    status = "restricted" if details["embargo_options"] else "embargoed"
                 else:
-                    return "restricted" if details["embargo_options"] else "closed"
+                    status = "restricted" if details["embargo_options"] else "closed"
 
             # REMARK: is_confidential flag is deprecated
             # https://docs.figshare.com/#private_article_confidentiality_details
             elif details["is_confidential"]:
-                return "restricted"
+                status = "restricted"
 
             # REMARK: There doesn't seem to be additional flags, but testing is
             # required.
             else:
-                return "public"
+                status = "public"
 
-        raise AttributeError("Unknown status", status)
+        else:
+            status = "unknown"
 
-
-    def get_dates(self, id: Dict) -> Dict:
-        """Returns date dictionary of the specified dataset
-
-        Date dictionary:
-            - created (datetime.datetime): Creation date and time
-            - modified (datetime.datetime): Last modification date and time
-
-        Args:
-            id (Dict): Standard dataset id
-
-        Returns:
-            Date dictionary of the dataset.
-        """
-        details = self._get_dataset_details(id)
+        # Calculate data size
+        size = 0
+        for file in details.get("files", []):
+            size += file["size"]
 
         # REMARK: dateutil.parser is required, because figshare dates are not
         # fully ISO 8601 compliant (there is a timezone indicator at the end).
         return {
+            "title": details["title"],
+            "url": details["url_public_html"] if "url_public_html" in details else details["url_private_url"],
+            "status": status,
+            "size": size,
             "created": dateutil.parser.isoparse(details["created_date"]),
             "modified": dateutil.parser.isoparse(details["modified_date"]),
         }
