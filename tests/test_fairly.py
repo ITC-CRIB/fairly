@@ -123,12 +123,12 @@ def test_get_account_datasets(client):
 
 # CLEAN UP
 # Write back the original config file
-with open(os.path.expanduser("~/.fairly/config.json.backup"), "r") as f:
-    config = json.load(f)
-    with open(os.path.expanduser("~/.fairly/config.json"), "w") as f:
-        json.dump(config, f)
+# with open(os.path.expanduser("~/.fairly/config.json.backup"), "r") as f:
+#     config = json.load(f)
+#     with open(os.path.expanduser("~/.fairly/config.json"), "w") as f:
+#         json.dump(config, f)
 
-assert os.path.exists(os.path.expanduser("~/.fairly/config.json.backup"))
+# assert os.path.exists(os.path.expanduser("~/.fairly/config.json.backup"))
 
 # @pytest.fixture(scope='session', autouse=True)
 # def run_after_tests():
