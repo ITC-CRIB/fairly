@@ -21,13 +21,16 @@ TEMPLATES = os.listdir("./src/fairly/data/templates")
 # We generate a unique string that we can use to populate metadata for testing
 ustring = str(uuid.uuid4())
 
+# create ~/.fairly folder if it does not exist
+if not os.path.exists(os.path.expanduser("~/.fairly")):
+    os.makedirs(os.path.expanduser("~/.fairly"))
 
-# copy existing ~/.fairly/config.json to ~/.fairly/config.json.bak
+# copy existing ~/.fairly/config.json to ~/.fairly/config.json.backup
 # We do this to test the config file creation and loading
 try: 
     with open(os.path.expanduser("~/.fairly/config.json"), "r") as f:
         config = json.load(f)
-        with open(os.path.expanduser("~/.fairly/config.json.bak"), "w") as f:
+        with open(os.path.expanduser("~/.fairly/config.json.backup"), "w") as f:
             json.dump(config, f)
 except FileNotFoundError:
     print("No config file found, skipping backup")
