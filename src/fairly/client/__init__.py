@@ -313,8 +313,6 @@ class Client(ABC):
 
         """
 
-        print(f"Request: {endpoint}")
-
         if not getattr(fairly, "TESTING", False):
             # Patch HTTPConnection block size to improve connection speed
             # ref: https://stackoverflow.com/questions/72977722/python-requests-post-very-slow

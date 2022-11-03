@@ -209,9 +209,9 @@ class FigshareClient(Client):
             if not items:
                 break
             for item in items:
-                print(item)
                 id = self.get_dataset_id(**item)
                 dataset = RemoteDataset(self, id, {
+                    "title": item.get("title"),
                     "url": item.get("url_public_html", item.get("url_private_html")),
                     "doi": item.get("doi"),
                 })

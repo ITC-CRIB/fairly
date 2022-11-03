@@ -18,7 +18,14 @@ CLASS_NAME = "ZenodoClient"
 
 class ZenodoClient(Client):
 
+    """
+    Attributes:
+        _details (Dict): Record details cache
+    """
+
     PAGE_SIZE = 100
+
+    KEEP_ALIVE = 10
 
     record_types = {
         "dataset": "Dataset",
@@ -127,6 +134,8 @@ class ZenodoClient(Client):
 
     def __init__(self, repository_id: str=None, **kwargs):
         super().__init__(repository_id, **kwargs)
+
+        self._details = {}
 
 
     @classmethod
@@ -324,18 +333,35 @@ class ZenodoClient(Client):
     def _get_account_datasets(self) -> List[RemoteDataset]:
         if "token" not in self.config:
             return []
+
         datasets = []
         page = 1
         while True:
             # TODO: Add error handling
             items, _ = self._request(f"deposit/depositions?page={page}&page_size={self.PAGE_SIZE}")
+
             if not items:
                 break
+
             for item in items:
                 id = self.get_dataset_id(**item)
                 dataset = RemoteDataset(self, id)
                 datasets.append(dataset)
+
+                # Store details
+                hash = self._get_dataset_hash(id)
+                self._details[hash] = [item, datetime.now()]
+
+                # Prevent unnecessary requests by triggering the use of available details
+                dataset.title
+                dataset.metadata
+                dataset.files
+
+            if len(items) < self.PAGE_SIZE:
+                break
+
             page += 1
+
         return datasets
 
 
@@ -351,6 +377,13 @@ class ZenodoClient(Client):
         Raises:
             ValueError("Invalid dataset id")
         """
+        hash = self._get_dataset_hash(id)
+
+        if hash in self._details:
+            details, time = self._details[hash]
+            if (datetime.now() - time).total_seconds() < self.KEEP_ALIVE:
+                return details
+
         endpoints = [f"records/{id['id']}"]
         if "token" in self.config:
             endpoints.insert(0, f"deposit/depositions/{id['id']}")
@@ -367,6 +400,8 @@ class ZenodoClient(Client):
 
         if not details:
             raise ValueError("Invalid dataset id")
+
+        self._details[hash] = [details, datetime.now()]
 
         return details
 
