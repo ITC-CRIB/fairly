@@ -87,6 +87,6 @@ def create_manifest_from_template(template_file: str) -> None:
 # Set testing flag
 fairly.TESTING = True
 
-if __name__ == "__main__":
-    setup_fairly_config_for_testing()
+# Create a fairly config file for testing
+setup_fairly_config_for_testing()
 
