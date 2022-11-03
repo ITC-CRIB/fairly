@@ -26,24 +26,28 @@ def setup_fairly_config_for_testing():
     for this we need to create also the directory where the config file is stored
     We also create a backup of the config file before running the tests to recover prior existing config
     """
-    # create ~/.fairly folder if it does not exist
-    if not os.path.exists(os.path.expanduser("~/.fairly")):
-        os.makedirs(os.path.expanduser("~/.fairly"))
-    
-    else: print("fairly config folder already exists")
-   
-    # copy existing ~/.fairly/config.json to ~/.fairly/config.json.backup
+    # User might not have a fairly config file
+    try: 
+        if not os.path.exists(os.path.expanduser("~/.fairly")):
+            os.makedirs(os.path.expanduser("~/.fairly"))
+    except: print("Could not create ~/.fairly folder, check for premisions or if the folder already exists")
+       
+    # If user has a config file we backup it
     # We do this to test the config file creation and loading
     try: 
-        # Create the config file if it does not exist
+        config = {}
+
+        # Create the config file if it does not exist using environment variables
         if not os.path.exists(os.path.expanduser("~/.fairly/config.json")):
-            print("fairly config file does not exist")
             with open(os.path.expanduser("~/.fairly/config.json"), "w") as f:
                 # create dummy config file using environment variables
-                config = {}
                 config['4tu'] = { 'token' : FIGSHARE_TOKEN }
                 config['zenodo'] = { 'token' : ZENODO_TOKEN }
                 f.write(json.dumps(config))
+        else: 
+            # Otherwise we use the existing config file and backup it
+            with open(os.path.expanduser("~/.fairly/config.json"), "r") as f:
+                config = json.load(f)
 
         with open(os.path.expanduser("~/.fairly/config.json.backup"), "w") as f:
             json.dump(config, f)
