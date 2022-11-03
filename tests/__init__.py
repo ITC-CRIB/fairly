@@ -21,13 +21,6 @@ TEMPLATES = os.listdir("./src/fairly/data/templates")
 # We generate a unique string that we can use to populate metadata for testing
 ustring = str(uuid.uuid4())
 
-# Create a file in ~./fairly/config.json
-with open(os.path.expanduser("~/.fairly/config.json"), "w") as f:
-    # Create dict with config
-    config = { "4tu": { "token": FIGSHARE_TOKEN }, 
-               "zenodo": { "token": ZENODO_TOKEN } 
-             }
-    f.write(json.dumps(config))
 
 # copy existing ~/.fairly/config.json to ~/.fairly/config.json.bak
 # We do this to test the config file creation and loading
@@ -50,8 +43,6 @@ except:
     print("Dataset already exists, skipping creation")
 
 
-# for template_file in TEMPLATES:
-# TODO: Maybe create a class for each metadata (this needs to change later with schemas)
 def create_manifest_from_template(template_file: str) -> None:
     """Create a manifest file from a template file
     Parameters
