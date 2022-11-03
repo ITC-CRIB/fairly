@@ -21,30 +21,35 @@ TEMPLATES = os.listdir("./src/fairly/data/templates")
 # We generate a unique string that we can use to populate metadata for testing
 ustring = str(uuid.uuid4())
 
-# create ~/.fairly folder if it does not exist
-if not os.path.exists(os.path.expanduser("~/.fairly")):
-    os.makedirs(os.path.expanduser("~/.fairly"))
+def setup_fairly_config_for_testing():
+    """Create a fairly config file for testing
+    for this we need to create also the directory where the config file is stored
+    We also create a backup of the config file before running the tests to recover prior existing config
+    """
+    # create ~/.fairly folder if it does not exist
+    if not os.path.exists(os.path.expanduser("~/.fairly")):
+        os.makedirs(os.path.expanduser("~/.fairly"))
+    
+    else: print("fairly config folder already exists")
+   
+    # copy existing ~/.fairly/config.json to ~/.fairly/config.json.backup
+    # We do this to test the config file creation and loading
+    try: 
+        # Create the config file if it does not exist
+        if not os.path.exists(os.path.expanduser("~/.fairly/config.json")):
+            print("fairly config file does not exist")
+            with open(os.path.expanduser("~/.fairly/config.json"), "w") as f:
+                # create dummy config file using environment variables
+                config = {}
+                config['4tu'] = { 'token' : FIGSHARE_TOKEN }
+                config['zenodo'] = { 'token' : ZENODO_TOKEN }
+                f.write(json.dumps(config))
 
-# copy existing ~/.fairly/config.json to ~/.fairly/config.json.backup
-# We do this to test the config file creation and loading
-try: 
-    with open(os.path.expanduser("~/.fairly/config.json"), "r") as f:
-        config = json.load(f)
         with open(os.path.expanduser("~/.fairly/config.json.backup"), "w") as f:
             json.dump(config, f)
-except FileNotFoundError:
-    print("No config file found, skipping backup")
 
-# Create a dummy dataset
-try:
-    os.mkdir("tests/fixtures/dummy_dataset")
-
-    # Populate with dummy files
-    with open("tests/fixtures/dummy_dataset/test.txt", "w") as f:
-        f.write("test")
-except:
-    print("Dataset already exists, skipping creation")
-
+    except FileNotFoundError:
+        print("No config file found, skipping backup")
 
 def create_manifest_from_template(template_file: str) -> None:
     """Create a manifest file from a template file
@@ -77,4 +82,7 @@ def create_manifest_from_template(template_file: str) -> None:
 
 # Set testing flag
 fairly.TESTING = True
+
+if __name__ == "__main__":
+    setup_fairly_config_for_testing()
 
