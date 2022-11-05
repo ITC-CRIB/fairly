@@ -311,8 +311,7 @@ class ZenodoClient(Client):
             endpoint (str): Path of the endpoint
 
             page_size (int): Page size for each retrieval step. Default page
-                size is used if set to None. Page size is set to the number of
-                records if set to 0 (zero).
+                size is used if set to None.
 
             process (Callable): Callback function to process each entity.
                 Retrieved entity is provided as the argument and returned value
@@ -320,19 +319,12 @@ class ZenodoClient(Client):
                 value is False.
 
         """
-        # Get the total number of entities
-        content, _ = self._request(f"{endpoint}?page=1&size=1")
-        if not content or not content["hits"]:
-            raise ValueError("Invalid endpoint")
-        total = content["hits"]["total"]
+        # Set argument separator
+        sep = "&" if "?" in endpoint else "?"
 
         # Set default page size if required
         if page_size is None or page_size < 0:
             page_size = self.PAGE_SIZE
-
-        # Set page size to retrieve all records at once if required
-        elif page_size == 0:
-            page_size = total
 
         page = 1
         entities = {} if key else []
@@ -340,17 +332,24 @@ class ZenodoClient(Client):
         while True:
 
             try:
-                content, _ = self._request(f"{endpoint}?page={page}&size={page_size}")
+                content, _ = self._request(f"{endpoint}{sep}page={page}&size={page_size}")
 
             except HTTPError as err:
                 if page > 1 and err.response.status_code in [400, 403, 404]:
                     break
                 raise
 
-            if not content or not content["hits"] or not content["hits"]["hits"]:
+            if not content:
                 break
 
-            for item in content["hits"]["hits"]:
+            if isinstance(content, list):
+                items = content
+            elif not content["hits"] or not content["hits"]["hits"]:
+                break
+            else:
+                items = content["hits"]["hits"]
+
+            for item in items:
                 if process:
                     entity = process(item)
                     if item is False:
@@ -362,8 +361,9 @@ class ZenodoClient(Client):
                     entities[entity[key]] = entity
                 else:
                     entities.append(entity)
+
             else:
-                if len(entities) == total:
+                if len(entities) < page_size:
                     break
 
                 page += 1
@@ -463,7 +463,7 @@ class ZenodoClient(Client):
             None
         """
         # REMARK: It looks like license names are not unique
-        return self._get_entities("licenses", page_size = 0, key = "id", process=lambda item: {
+        return self._get_entities("licenses", page_size = 2000, key = "id", process=lambda item: {
             "id": item["metadata"]["id"],
             "name": item["metadata"]["title"],
             "url": item["metadata"]["url"],
@@ -550,33 +550,27 @@ class ZenodoClient(Client):
         """
         details = self._get_dataset_details(id)
 
-        query=f"q=conceptrecid:{details['conceptrecid']}&all_versions=true&sort=version"
-        endpoints = [f"records/?{query}"]
+        query=f"?q=conceptrecid:{details['conceptrecid']}&all_versions=true&sort=version"
+        endpoints = [f"records/{query}"]
         if "token" in self.config:
-            endpoints.insert(0, f"deposit/depositions/?{query}")
+            endpoints.insert(0, f"deposit/depositions/{query}")
 
         versions = OrderedDict()
         for endpoint in endpoints:
             try:
-                page = 1
-                while True:
-                    items, _ = self._request(f"{endpoint}&page={page}&size={self.PAGE_SIZE}")
-
-                    if not items or not items["hits"]["hits"]:
-                        break
-
-                    for item in items["hits"]["hits"]:
-                        versions[item["metadata"]["version"]] = {"id": item["id"]}
-
-                        self._set_details(item["id"], item)
-
-                    page += 1
-                break
+                items = self._get_entities(endpoint)
 
             except HTTPError as err:
                 if err.response.status_code in [403, 404]:
                     continue
                 raise
+
+            for item in items:
+                version_id = {"id": item["id"]}
+
+                versions[item["metadata"]["version"]] = version_id
+
+                self._set_details(version_id, item)
 
         return versions
 
