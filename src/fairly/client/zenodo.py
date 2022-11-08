@@ -223,6 +223,49 @@ class ZenodoClient(Client):
         return id["id"]
 
 
+    def _set_details(self, id: Dict, details: Dict) -> None:
+        """Stores dataset details in the cache.
+
+        Args:
+            id (Dict): Standard dataset id.
+            details (Dict): Dataset details. Set None to clear the cached details.
+
+        Returns:
+            None
+        """
+        hash = self._get_dataset_hash(id)
+
+        if details:
+            self._details[hash] = [details, datetime.now()]
+
+        else:
+            if hash in self._details:
+                del self._details[hash]
+
+
+    def _get_details(self, id: Dict) -> Dict:
+        """Returns cached dataset details.
+
+        Args:
+            id (Dict): Standard dataset id.
+
+        Returns:
+            Dataset details dictionary if cache is valid, None otherwise.
+        """
+        hash = self._get_dataset_hash(id)
+
+        if hash not in self._details:
+            return None
+
+        details, time = self._details[hash]
+
+        if (datetime.now() - time).total_seconds() > self.KEEP_ALIVE:
+            del self._details[hash]
+            return None
+
+        return details
+
+
     def _create_dataset(self, metadata: Metadata) -> Dict:
         """Creates a dataset with the specified standard metadata
 
@@ -268,8 +311,7 @@ class ZenodoClient(Client):
             endpoint (str): Path of the endpoint
 
             page_size (int): Page size for each retrieval step. Default page
-                size is used if set to None. Page size is set to the number of
-                records if set to 0 (zero).
+                size is used if set to None.
 
             process (Callable): Callback function to process each entity.
                 Retrieved entity is provided as the argument and returned value
@@ -277,19 +319,12 @@ class ZenodoClient(Client):
                 value is False.
 
         """
-        # Get the total number of entities
-        content, _ = self._request(f"{endpoint}?page=1&size=1")
-        if not content or not content["hits"]:
-            raise ValueError("Invalid endpoint")
-        total = content["hits"]["total"]
+        # Set argument separator
+        sep = "&" if "?" in endpoint else "?"
 
         # Set default page size if required
         if page_size is None or page_size < 0:
             page_size = self.PAGE_SIZE
-
-        # Set page size to retrieve all records at once if required
-        elif page_size == 0:
-            page_size = total
 
         page = 1
         entities = {} if key else []
@@ -297,17 +332,24 @@ class ZenodoClient(Client):
         while True:
 
             try:
-                content, _ = self._request(f"{endpoint}?page={page}&size={page_size}")
+                content, _ = self._request(f"{endpoint}{sep}page={page}&size={page_size}")
 
             except HTTPError as err:
                 if page > 1 and err.response.status_code in [400, 403, 404]:
                     break
                 raise
 
-            if not content or not content["hits"] or not content["hits"]["hits"]:
+            if not content:
                 break
 
-            for item in content["hits"]["hits"]:
+            if isinstance(content, list):
+                items = content
+            elif not content["hits"] or not content["hits"]["hits"]:
+                break
+            else:
+                items = content["hits"]["hits"]
+
+            for item in items:
                 if process:
                     entity = process(item)
                     if item is False:
@@ -319,8 +361,9 @@ class ZenodoClient(Client):
                     entities[entity[key]] = entity
                 else:
                     entities.append(entity)
+
             else:
-                if len(entities) == total:
+                if len(entities) < page_size:
                     break
 
                 page += 1
@@ -349,8 +392,7 @@ class ZenodoClient(Client):
                 datasets.append(dataset)
 
                 # Store details
-                hash = self._get_dataset_hash(id)
-                self._details[hash] = [item, datetime.now()]
+                self._set_details(id, item)
 
                 # Prevent unnecessary requests by triggering the use of available details
                 dataset.title
@@ -377,12 +419,9 @@ class ZenodoClient(Client):
         Raises:
             ValueError("Invalid dataset id")
         """
-        hash = self._get_dataset_hash(id)
-
-        if hash in self._details:
-            details, time = self._details[hash]
-            if (datetime.now() - time).total_seconds() < self.KEEP_ALIVE:
-                return details
+        details = self._get_details(id)
+        if details:
+            return details
 
         endpoints = [f"records/{id['id']}"]
         if "token" in self.config:
@@ -401,7 +440,7 @@ class ZenodoClient(Client):
         if not details:
             raise ValueError("Invalid dataset id")
 
-        self._details[hash] = [details, datetime.now()]
+        self._set_details(id, details)
 
         return details
 
@@ -424,7 +463,7 @@ class ZenodoClient(Client):
             None
         """
         # REMARK: It looks like license names are not unique
-        return self._get_entities("licenses", page_size = 0, key = "id", process=lambda item: {
+        return self._get_entities("licenses", page_size = 2000, key = "id", process=lambda item: {
             "id": item["metadata"]["id"],
             "name": item["metadata"]["title"],
             "url": item["metadata"]["url"],
@@ -510,26 +549,29 @@ class ZenodoClient(Client):
             Keys are the versions, values are the dataset identifiers.
         """
         details = self._get_dataset_details(id)
-        query=f"q=conceptrecid:{details['conceptrecid']}&all_versions=true&sort=version"
-        endpoints = [f"records/?{query}"]
+
+        query=f"?q=conceptrecid:{details['conceptrecid']}&all_versions=true&sort=version"
+        endpoints = [f"records/{query}"]
         if "token" in self.config:
-            endpoints.insert(0, f"deposit/depositions/?{query}")
+            endpoints.insert(0, f"deposit/depositions/{query}")
+
         versions = OrderedDict()
         for endpoint in endpoints:
             try:
-                page = 1
-                while True:
-                    items, _ = self._request(f"{endpoint}&page={page}&size={self.PAGE_SIZE}")
-                    if not items or not items["hits"]["hits"]:
-                        break
-                    for item in items["hits"]["hits"]:
-                        versions[item["metadata"]["version"]] = {"id": item["id"]}
-                    page += 1
-                break
+                items = self._get_entities(endpoint)
+
             except HTTPError as err:
                 if err.response.status_code in [403, 404]:
                     continue
                 raise
+
+            for item in items:
+                version_id = {"id": item["id"]}
+
+                versions[item["metadata"]["version"]] = version_id
+
+                self._set_details(version_id, item)
+
         return versions
 
 
@@ -841,9 +883,11 @@ class ZenodoClient(Client):
 
         except HTTPError as err:
             # TODO: Add error handling
-            print(err.response.content)
-
+            # print(err.response.content)
             raise
+
+        # Update details cache
+        self._set_details(id, result)
 
 
     def validate_metadata(self, metadata: Metadata) -> Dict:
@@ -934,6 +978,9 @@ class ZenodoClient(Client):
             self._delete_file(id, remote_file)
             raise IOError("Invalid file upload")
 
+        # Invalidate details cache
+        self._set_details(id, None)
+
         return remote_file
 
 
@@ -941,7 +988,11 @@ class ZenodoClient(Client):
         if not file.id:
             raise ValueError("No file id")
 
+        # TODO: Add error handling
         result, response = self._request(f"deposit/depositions/{id['id']}/files/{file.id}", "DELETE")
+
+        # Invalidate details cache
+        self._set_details(id, None)
 
 
     def _delete_dataset(self, id: Dict) -> None:
@@ -967,6 +1018,9 @@ class ZenodoClient(Client):
             elif err.response.status_code == 404:
                 raise ValueError("Invalid dataset id")
             raise
+
+        # Invalidate details cache
+        self._set_details(id, None)
 
 
     def get_details(self, id: Dict) -> Dict:

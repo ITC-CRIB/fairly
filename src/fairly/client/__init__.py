@@ -403,10 +403,11 @@ class Client(ABC):
 
 
     def get_dataset(self, id=None, refresh: bool=False, **kwargs) -> RemoteDataset:
-        # Parse id if required
+        # Parse id to get additional information if possible
         if id and isinstance(id, str):
             key, val = Client.parse_id(id)
-            kwargs[key] = val
+            if key != "id":
+                kwargs[key] = val
 
         # Get standard id
         id = self.get_dataset_id(id, **kwargs)
@@ -459,7 +460,7 @@ class Client(ABC):
 
         # Get datasets
         datasets = []
-        for id in versions:
+        for version, id in versions.items():
             datasets.append(self.get_dataset(id))
 
         # Return datasets
