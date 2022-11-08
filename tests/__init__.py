@@ -57,6 +57,8 @@ def setup_fairly_config_for_testing():
 
 def create_manifest_from_template(template_file: str) -> None:
     """Create a manifest file from a template file
+    This procedure fills the manifest with the minimum required metadata to create a remote dataset
+
     Parameters
     ----------
     template_file : str
@@ -67,15 +69,15 @@ def create_manifest_from_template(template_file: str) -> None:
         template = f.read()
         template = yaml.safe_load(template)
         template['metadata']['title'] = "My fairly test"
-        template['metadata']['description'] = ustring
+        template['metadata']['description'] = "My test description"
         # Add files key to the manifest so that files are added to the dataset object
         template['files'] = { 'excludes': [], 'includes': ["*.txt"] }
         if template_file == "figshare.yaml":
-            template['metadata']['authors'] = [ ustring ]
+            template['metadata']['authors'] = [ "John Doe" ]
         if template_file == "zenodo.yaml":
-            template['metadata']['creators'] = [ { "name": ustring } ]
-            template['metadata']['authors'] = [ {"name" : ustring } ]
-            template['metadata']['description'] = ustring
+            template['metadata']['creators'] = [ { "name": "John Doe" } ]
+            template['metadata']['authors'] = [ {"name" : "John Doe" } ]
+            template['metadata']['description'] = "My test description"
             template['metadata']['license'] = 'cc-by-nc-4.0'
             template['metadata']['type'] = 'dataset'
             # template dates
@@ -84,9 +86,28 @@ def create_manifest_from_template(template_file: str) -> None:
     with open(f"./tests/fixtures/dummy_dataset/manifest.yaml", "w") as f:
         f.write(yaml.dump(template))
 
+# Dummy dataset path
+DUMMY_DATASET_PATH = "./tests/fixtures/"
+
+def generate_dummy_dataset():
+    # Generate 10 files with random names
+    try: 
+        if not os.path.exists(f"{DUMMY_DATASET_PATH}dummy_dataset"):
+            os.mkdir(f"{DUMMY_DATASET_PATH}dummy_dataset")
+            for i in range(10):
+                with open(f"{DUMMY_DATASET_PATH}dummy_dataset/dummy_file_{i}.txt", "w") as f:
+                    f.write("test")
+    except: print("Could not create dummy dataset, check for premisions or if the folder already exists")    
+
+
+
+
 # Set testing flag
 fairly.TESTING = True
 
 # Create a fairly config file for testing
 setup_fairly_config_for_testing()
+
+# Create a dummy dataset for testing
+generate_dummy_dataset()
 

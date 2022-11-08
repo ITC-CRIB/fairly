@@ -122,18 +122,30 @@ def test_get_account_datasets(client):
     assert datasets is not None    
 
 # CLEAN UP
-# Write back the original config file
-with open(os.path.expanduser("~/.fairly/config.json.backup"), "r") as f:
-    config = json.load(f)
-    with open(os.path.expanduser("~/.fairly/config.json"), "w") as f:
-        json.dump(config, f)
+@pytest.fixture(scope="session")
+def cleanup():
+    # Write back the original config file
+    with open(os.path.expanduser("~/.fairly/config.json.backup"), "r") as f:
+        config = json.load(f)
+        with open(os.path.expanduser("~/.fairly/config.json"), "w") as f:
+            json.dump(config, f)
 
-assert os.path.exists(os.path.expanduser("~/.fairly/config.json.backup"))
+    assert os.path.exists(os.path.expanduser("~/.fairly/config.json.backup"))
 
-# remove the backup file
-os.remove(os.path.expanduser("~/.fairly/config.json.backup"))
-assert not os.path.exists(os.path.expanduser("~/.fairly/config.json.backup"))
+    # remove the backup file
+    print(f"Backup file exists {os.path.exists(os.path.expanduser('~/.fairly/config.json.backup'))}")
+    os.remove(os.path.expanduser("~/.fairly/config.json.backup"))
+    print(f"Backup file exists? {os.path.exists(os.path.expanduser('~/.fairly/config.json.backup'))}")
+    assert not os.path.exists(os.path.expanduser("~/.fairly/config.json.backup"))
 
 
+    # remove manifest file from dummy dataset
+    try: 
+        os.remove("./tests/fixtures/dummy_dataset/manifest.yaml")
+        assert not os.path.exists("./tests/fixtures/dummy_dataset/manifest.yaml")
+    except FileNotFoundError:
+        pass
+
+cleanup()
 
 
