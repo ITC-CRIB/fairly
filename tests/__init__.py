@@ -85,26 +85,9 @@ def create_manifest_from_template(template_file: str, dummy_dataset) -> None:
 
     with open(f"{dummy_dataset}/manifest.yaml", "w") as f:
         f.write(yaml.dump(template))
-
-# Dummy dataset path
-DUMMY_DATASET_PATH = "./tests/fixtures/"
-
-def generate_dummy_dataset():
-    # Generate 10 files with random names
-    try: 
-        if not os.path.exists(f"{DUMMY_DATASET_PATH}dummy_dataset"):
-            os.mkdir(f"{DUMMY_DATASET_PATH}dummy_dataset")
-            for i in range(10):
-                with open(f"{DUMMY_DATASET_PATH}dummy_dataset/dummy_file_{i}.txt", "w") as f:
-                    f.write("test")
-    except: print("Could not create dummy dataset, check for premisions or if the folder already exists")    
-
+ 
 # Set testing flag
 fairly.TESTING = True
 
 # Create a fairly config file for testing
 setup_fairly_config_for_testing()
-
-# Create a dummy dataset for testing
-generate_dummy_dataset()
-
