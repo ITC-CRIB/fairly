@@ -52,16 +52,18 @@ zenodo_client = fairly.client(id="zenodo", token=ZENODO_TOKEN)
 @pytest.mark.vcr(cassette_library_dir='tests/fixtures/vcr_cassettes', filter_headers=['authorization'])
 @pytest.mark.parametrize("client", [(figshare_client),
                         (zenodo_client)])
-def test_create_and_upload_dataset(client: fairly.Client):
+def test_create_and_upload_dataset(client: fairly.Client, dummy_dataset):
     # Test except if dummy dataset doesnt exist
     with pytest.raises(NotADirectoryError):
         local_dataset = fairly.dataset("./tests/non_existing_dataset")
 
     # This copies the template for the specific client 
     # and writes it to the dummy dataset directory
-    create_manifest_from_template(f"{client.client_id}.yaml")
+    create_manifest_from_template(f"{client.client_id}.yaml", dummy_dataset)
 
-    local_dataset = fairly.dataset("./tests/fixtures/dummy_dataset")
+    # Fot some reason the dummy dataset fixture is not being interpreted as a path where the dataset lives
+    # so we need to pass the .strpath property to create the fairly.dataset
+    local_dataset = fairly.dataset(dummy_dataset.strpath)
     assert local_dataset is not None
     assert local_dataset.metadata['title'] == "My fairly test"
     assert local_dataset.files is not None
@@ -86,37 +88,37 @@ def test_create_and_upload_dataset(client: fairly.Client):
 @pytest.mark.vcr(cassette_library_dir='tests/fixtures/vcr_cassettes', filter_headers=['authorization'])
 @pytest.mark.parametrize("client", [(figshare_client),
                         (zenodo_client)])
-def test_download_dataset(client):
+def test_download_dataset(client: fairly.Client, dummy_dataset):
     # local dataset is created in the tests folder
     # and then deleted after the test is done
-    create_manifest_from_template(f"{client.client_id}.yaml")
+    create_manifest_from_template(f"{client.client_id}.yaml", dummy_dataset)
 
-    local_dataset = fairly.dataset("./tests/fixtures/dummy_dataset")
+    local_dataset = fairly.dataset(dummy_dataset.strpath)
 
     remote_dataset = local_dataset.upload(client, notify=fairly.notify)
     assert remote_dataset is not None
 
     # Raise error if folder to store the dataset is not empty
     with pytest.raises(ValueError):
-        remote_dataset.store("./tests/fixtures/dummy_dataset")
+        remote_dataset.store(dummy_dataset.strpath)
 
-    remote_dataset.store(f"./tests/{client.client_id}.dataset")
+    remote_dataset.store(f"{dummy_dataset.strpath}/{client.client_id}.dataset")
     # load the dataset from the file
-    local_dataset = fairly.dataset(f"./tests/{client.client_id}.dataset")
+    local_dataset = fairly.dataset(f"{dummy_dataset.strpath}/{client.client_id}.dataset")
     
     assert isinstance(local_dataset, Dataset)
     assert len(local_dataset.files) == 10
     
     # delete the dataset from the remote repository
     client._delete_dataset(remote_dataset.id)
-    dirs = [d for d in os.listdir('./tests/') if re.match(r'[a-z]*\.dataset', d)]
+    dirs = [d for d in os.listdir(f'{dummy_dataset.strpath}/') if re.match(r'[a-z]*\.dataset', d)]
     for dir in dirs:
-        shutil.rmtree(f"./tests/{dir}/")
+        shutil.rmtree(f"{dummy_dataset.strpath}/{dir}/")
 
 @pytest.mark.vcr(cassette_library_dir='tests/fixtures/vcr_cassettes', filter_headers=['authorization'])
 @pytest.mark.parametrize("client", [(figshare_client),
                         (zenodo_client)])
-def test_get_account_datasets(client):
+def test_get_account_datasets(client: fairly.Client):
     # get all datasets from the account
     datasets = client.get_account_datasets()
     assert datasets is not None    
@@ -146,6 +148,5 @@ def cleanup():
     except FileNotFoundError:
         pass
 
-cleanup()
 
 

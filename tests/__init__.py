@@ -55,7 +55,7 @@ def setup_fairly_config_for_testing():
     except FileNotFoundError:
         print("No config file found, skipping backup")
 
-def create_manifest_from_template(template_file: str) -> None:
+def create_manifest_from_template(template_file: str, dummy_dataset) -> None:
     """Create a manifest file from a template file
     This procedure fills the manifest with the minimum required metadata to create a remote dataset
 
@@ -83,7 +83,7 @@ def create_manifest_from_template(template_file: str) -> None:
             # template dates
             template['metadata']['publication_date'] = '2020-01-01'
 
-    with open(f"./tests/fixtures/dummy_dataset/manifest.yaml", "w") as f:
+    with open(f"{dummy_dataset}/manifest.yaml", "w") as f:
         f.write(yaml.dump(template))
 
 # Dummy dataset path
@@ -98,9 +98,6 @@ def generate_dummy_dataset():
                 with open(f"{DUMMY_DATASET_PATH}dummy_dataset/dummy_file_{i}.txt", "w") as f:
                     f.write("test")
     except: print("Could not create dummy dataset, check for premisions or if the folder already exists")    
-
-
-
 
 # Set testing flag
 fairly.TESTING = True
