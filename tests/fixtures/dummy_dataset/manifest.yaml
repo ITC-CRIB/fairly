@@ -6,7 +6,7 @@ metadata:
   access_conditions: ''
   access_type: open
   authors:
-  - name: 898f515e-ad8e-4a52-983b-acdaf296d4c8
+  - name: John Doe
   communities: []
   conference_acronym: ''
   conference_dates: ''
@@ -17,9 +17,9 @@ metadata:
   conference_url: ''
   contributors: []
   creators:
-  - name: 898f515e-ad8e-4a52-983b-acdaf296d4c8
+  - name: John Doe
   dates: []
-  description: 898f515e-ad8e-4a52-983b-acdaf296d4c8
+  description: My test description
   doi: ''
   embargo_date: ''
   grants: []
