@@ -24,6 +24,7 @@ keywords = ["fairly", "open science", "research data", "data management"]
 dev = [
     "pytest",
     "vcrpy==4.2.1",
+    "vcrpy==4.2.1",
     "pytest-recording==0.12.1",
     "pytest-cov==4.0.0",
     "python-dotenv==0.20.0",
