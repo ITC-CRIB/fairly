@@ -129,9 +129,12 @@ class Dataset(ABC):
         other_metadata = dataset.metadata
         for key, val in metadata.items():
             if key in other_metadata:
-                pass
+                if val == other_metadata[key]:
+                    pass
+                else:
+                    diff.modify(key, val, other_metadata[key])
             else:
-                pass
+                diff.remove()
 
 
     def diff_files(self, dataset: Dataset) -> Diff:

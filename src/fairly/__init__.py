@@ -262,13 +262,13 @@ def dataset(id: str) -> Dataset:
         for repository_id, repository in get_repositories().items():
             url = repository.get("url")
             if url and val.startswith(url):
-                return client(repository_id).get_dataset(url=url)
+                return client(repository_id).get_dataset(url=val)
 
     elif key == "doi":
         for repository_id, repository in get_repositories().items():
             for prefix in repository.get("doi_prefixes", []):
                 if prefix and val.startswith(prefix):
-                    return client(repository_id).get_dataset(doi=doi)
+                    return client(repository_id).get_dataset(doi=val)
 
     else:
         return LocalDataset(id)

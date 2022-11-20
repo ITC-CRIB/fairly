@@ -1,6 +1,12 @@
 from typing import Dict
 
 class Diff:
+    """
+    Attributes:
+        _added (Dict): Items added
+        _modified (Dict): Items modified
+        _removed (Dict): Items removed
+    """
 
     def __init__(self):
         self._added = {}
