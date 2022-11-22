@@ -138,5 +138,9 @@ experiments
 tests/notes.py
 _no_*
 
+<<<<<<< HEAD
 /tests/fixtures/dummy_dataset/manifest.yaml
+=======
+tests/fixtures/dummy_dataset/manifest.yaml
+>>>>>>> 3c36715... ignore manifest.yaml in dummy data
 
