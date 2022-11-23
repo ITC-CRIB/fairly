@@ -7,8 +7,6 @@ import yaml
 import typer
 import fairly
 
-from cli import test_connection
-
 pp = pprint.PrettyPrinter(indent=4)
 
 app = typer.Typer(pretty_exceptions_show_locals=False)
@@ -42,32 +40,55 @@ def show():
     '''
     raise NotImplementedError
 
-
 @app.command()
-def download(
+def clone(
     url: str = typer.Option("", help="URL option argument"),
+    token: str = typer.Option("", help="Token option argument"),
     doi: str = typer.Option("", help="DOI option argument"),
+    repo: str = typer.Option("", help="Repository option argument"),
+    id: str = typer.Option("", help="ID option argument"),
     path: str = typer.Argument("./", help="Path where the dataset will be downloaded"),
 ) -> None:
-    '''Download a dataset by using its URL address, DOI or ID'
-    Download a dataset by using its URL address or DOI
-    fairly automatically recognize them and creates corresponding client
-    
-    fairly dataset download <url|doi>
-    fairly download <url|doi>
-    
-    Example: 
-    >>> fairly download https://zenodo.org/record/6026285
-
-    fairly dataset download <url|doi> --token <token> 
-    fairly dataset download <repository> <id>
-    fairly dataset download --repository zenodo --id 6026285
     '''
-    # Test the connection to the repository by listing account datasets
+    Clones a dataset by using its URL address, DOI or ID among other arguments
+    
+    Examples:
+        >>> fairly dataset clone <url|doi>
+        >>> fairly dataset clone https://zenodo.org/record/6026285
+        
+        >>> fairly dataset clone <url|doi> --token <token> 
+        
+        >>> fairly dataset clone <repository> <id>
+        >>> fairly dataset clone --repo zenodo --id 6026285
+    '''
+    # Test the connection to the repository by listing account datasets    
+    dataset = None
+    if url or doi:
+        arg = url if url else doi
+        try:
+            if token: dataset = fairly.dataset(arg, token=token)
+            else: 
+                dataset = fairly.dataset(arg)
+        except Exception as e: 
+            print(e)
+            return None
 
-    # Fetch the dataset metadata
-    # stire the dataset metadata in the manifest
-    raise NotImplementedError
+    elif repo:
+        # Make sure that client is a valid client
+        try: client = fairly.client(repo)
+        except Exception as e: print(e)
+
+        try: dataset = client.get_dataset(id)
+        except Exception as e: 
+            print(e)
+            print("Please specify the dataset ID")
+            return None
+    try:
+        dir_name = dataset.metadata['title'].replace(" ", "_").lower()        
+        dataset.store(f'{path}{dir_name}')
+        print(f"Dataset {dir_name} successfully cloned to {path}{dir_name}")
+    except Exception as e: print(e, "Probably you have already cloned this dataset in this directory.")
+    
 
 @app.command()
 def list(
@@ -75,31 +96,29 @@ def list(
 ) -> None:
     '''List all datasets in the specified repository by doi, title, and publication_date'''
     # Test the connection to the repository by listing account datasets
-    c = fairly.client(repository)
+    client = fairly.client(repository)
     try:
-        if test_connection(c) == True:
-        # if test_connection(c) == True:
-            # store dataset lists and print the id, url and title
-            l = c.get_account_datasets()
-            if len(l) == 0:
-                print("There are no datasets under this account")
-            else:
-                print("\n")
-                for dataset in l:
-                    # get the dataset metadata
-                    metadata = dataset.metadata
-                    item = {}
-                    for i in metadata:
-                        if i == "publication_date": item[i] = metadata[i]
-                        if i == 'title': item[i] = metadata[i]
-                        if i == 'doi': item[i] = metadata[i]
+        # store dataset lists and print the id, url and title
+        list = client.get_account_datasets()
+        if len(list) == 0:
+            print("There are no datasets under this account")
+        else:
+            print("\n")
+            for dataset in list:
+                # get the dataset metadata
+                metadata = dataset.metadata
+                item = {}
+                for i in metadata:
+                    if i == "publication_date": item[i] = metadata[i]
+                    if i == 'title': item[i] = metadata[i]
+                    if i == 'doi': item[i] = metadata[i]
 
-                    # pretty print the list of datasets with yaml format
-                    yaml.dump(item, sys.stdout)
-                    print("------------------")
-            
-            #TODO: Print the test_connection exception message
-            # List datasets in readable format
+                # pretty print the list of datasets with yaml format
+                yaml.dump(item, sys.stdout)
+                print("------------------")
+        
+        #TODO: Print the test_connection exception message
+        # List datasets in readable format
     except:
         pass
 

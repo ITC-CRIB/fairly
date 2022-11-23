@@ -1,0 +1,424 @@
+metadata:
+    type: ""
+        # Required.
+        #
+        # Controlled vocabulary:
+        #
+        # - dataset: Dataset
+        # - image: Image
+        # - lesson: Lesson
+        # - physicalobject: Physical object
+        # - poster: Poster
+        # - presentation: Presentation
+        # - publication: Publication
+        # - software: Software
+        # - video: Video/Audio
+        # - other: Other
+        # - annotationcollection: Annotation collection
+        # - article: Journal article
+        # - book: Book
+        # - conferencepaper: Conference paper
+        # - datamanagementplan: Data management plan
+        # - deliverable: Project deliverable
+        # - milestone: Project milestone
+        # - patent: Patent
+        # - preprint: Preprint
+        # - proposal: Proposal
+        # - report: Report
+        # - section: Book section
+        # - softwaredocumentation: Software documentation
+        # - taxonomictreatment: Taxonomic treatment
+        # - technicalnote: Technical note
+        # - thesis: Thesis
+        # - workingpaper: Working paper
+        # - diagram: Diagram
+        # - drawing: Drawing
+        # - figure: Figure
+        # - photo: Photo
+        # - plot: Plot
+        
+    publication_date: ""
+        # Date of publication in ISO8601 format (YYYY-MM-DD).
+        #
+        # Required.
+        #
+        # Defaults to current date.
+
+    title: ""
+        # Title of the dataset.
+        #
+        # Required.
+
+    authors: []
+        # The authors of the dataset.
+        #
+        # Required.
+        #
+        # Each array element is an object with the attributes:
+        #
+        # - name: Name of author in the format Family name, Given names.
+        # - affiliation: Affiliation of author (optional).
+        # - orcid: ORCID identifier of author (optional).
+        # - gnd: GND identifier of author (optional).
+        #
+        # Example:
+        #
+        # [{'name':'Doe, John', 'affiliation': 'Zenodo'}, {'name':'Smith, Jane',
+        # 'affiliation': 'Zenodo', 'orcid': '0000-0002-1694-233X'}, {'name':
+        # 'Kowalski, Jack', 'affiliation': 'Zenodo', 'gnd': '170118215'}]
+
+
+    description: ""
+        # Description of the dataset.
+        #
+        # Required.
+        #
+        # Allows HTML.
+
+    access_type: "open"
+        # Required.
+        #
+        # Controlled vocabulary:
+        #
+        # - open: Open Access
+        # - embargoed: Embargoed Access
+        # - restricted: Restricted Access
+        # - closed: Closed Access
+
+    license: ""
+        # Required if 'access_type' is 'open' or 'embargoed'.
+        #
+        # The selected license applies to all files in the dataset, but not
+        # to the metadata which is licensed under Creative Commons Zero.
+        #
+        # Controlled vocabulary is available at /api/licenses endpoint.
+        #
+        # Defaults to 'cc-zero' for datasets and 'cc-by' for everything else.
+
+    embargo_date: ""
+        # When the deposited files will be made automatically made publicly
+        # available by the system.
+        #
+        # Required if 'access_type' is 'embargoed'.
+        #
+        # Defaults to current date.
+
+    access_conditions: ""
+        # Conditions under which you grant users access to the files in the
+        # dataset.
+        #
+        # User requesting access will be asked to justify how they fulfill the
+        # conditions. Based on the justification, you decide who to grant/deny
+        # access.
+        #
+        # Required if 'access_type' is 'restricted'.
+        #
+        # Allows HTML.
+
+    doi: ""
+        # Digital Object Identifier.
+        # If left empty, Zenodo will register a new DOI when you publish.
+
+    prereserve_doi:
+        # Set 'true' to reserve a DOI.
+        #
+        # Reserved DOI cannot be changed. Reserved DOI is not registered with
+        # DataCite until you publish, and thus cannot be used before then.
+        # Reserving a DOI is useful, if you need to include it in the files you
+        # upload, or if you need to provide a dataset DOI to your publisher but
+        # not yet publish your dataset.
+
+    keywords: []
+        # List of free form keywords.
+        #
+        # Example:
+        #
+        # ["Keyword 1", "Keyword 2"]
+
+    notes: ""
+        # Additional notes.
+
+    related_identifiers: []
+        # Persistent identifiers of related publications and datasets.
+        #
+        # Supported identifiers include:
+        #
+        # DOI, Handle, ARK, PURL, ISSN, ISBN, PubMed ID, PubMed Central ID,
+        # ADS Bibliographic Code, arXiv, Life Science Identifiers (LSID),
+        # EAN-13, ISTC, URNs and URLs.
+        #
+        # Each array element is an object with the attributes:
+        #
+        # - identifier: The persistent identifier
+        # - relation: Relationship. Controlled vocabulary:
+        #   - isCitedBy
+        #   - cites
+        #   - isSupplementTo
+        #   - isSupplementedBy
+        #   - isContinuedBy
+        #   - continues
+        #   - isDescribedBy
+        #   - describes
+        #   - hasMetadata
+        #   - isMetadataFor
+        #   - isNewVersionOf
+        #   - isPreviousVersionOf
+        #   - isPartOf
+        #   - hasPart
+        #   - isReferencedBy
+        #   - references
+        #   - isDocumentedBy
+        #   - documents
+        #   - isCompiledBy
+        #   - compiles
+        #   - isVariantFormOf
+        #   - isOriginalFormof
+        #   - isIdenticalTo
+        #   - isAlternateIdentifier
+        #   - isReviewedBy
+        #   - reviews
+        #   - isDerivedFrom
+        #   - isSourceOf
+        #   - requires
+        #   - isRequiredBy
+        #   - isObsoletedBy
+        #   - obsoletes
+        # - resource_type: Type of the related resource (based on the type field).
+        #
+        # The identifier type (e.g. DOI) is automatically detected, and used to
+        # validate and normalize the identifier into a standard form.
+        #
+        # Example:
+        #
+        # [{'relation': 'isSupplementTo', 'identifier':'10.1234/foo'},
+        # {'relation': 'cites', 'identifier':'https://doi.org/10.1234/bar',
+        # 'resource_type': 'image-diagram'}]
+
+    contributors: []
+        # The contributors of the dataset (e.g. editors, data curators, etc.).
+        #
+        # Each array element is an object with the attributes:
+        # - name: Name of contributor in the format Family name, Given names.
+        # - type: Contributor type. Controlled vocabulary:
+        #   - ContactPerson
+        #   - DataCollector
+        #   - DataCurator
+        #   - DataManager
+        #   - Distributor
+        #   - Editor
+        #   - Funder
+        #   - HostingInstitution
+        #   - Producer
+        #   - ProjectLeader
+        #   - ProjectManager
+        #   - ProjectMember
+        #   - RegistrationAgency
+        #   - RegistrationAuthority
+        #   - RelatedPerson
+        #   - Researcher
+        #   - ResearchGroup
+        #   - RightsHolder
+        #   - Supervisor
+        #   - Sponsor
+        #   - WorkPackageLeader
+        #   - Other
+        # - affiliation: Affiliation of contributor (optional).
+        # - orcid: ORCID identifier of contributor (optional).
+        # - gnd: GND identifier of contributor (optional).
+        #
+        # Example:
+        #
+        # [{'name':'Doe, John', 'affiliation': 'Zenodo', 'type': 'Editor' }]
+
+    references: []
+        # List of references.
+        #
+        # Example:
+        # ["Doe J (2014). Title. Publisher. DOI", "Smith J (2014). Title.
+        # Publisher. DOI"]
+
+    communities: []
+        # List of communities you wish the dataset to appear.
+        # The owner of the community will be notified, and can either accept or
+        # reject your request.
+        #
+        # Each array element is a community identifier:
+        #
+        # Example:
+        #
+        # ["ecfunded"]
+
+    grants: []
+        # List of OpenAIRE-supported grants, which have funded the research for
+        # the dataset.
+        #
+        # Each array element is a grant identifier:
+        #
+        # Example:
+        #
+        # ["283595"]
+        # ["10.13039/501100000780::283595"]
+
+    subjects: []
+        # Subjects from a taxonomy or controlled vocabulary.
+        #
+        # Each term must be uniquely identified (e.g. a URL).
+        # For free form text, use the keywords field.
+        #
+        # Each array element is an object with the attributes:
+        # - term: Term from taxonomy or controlled vocabulary.
+        # - identifier: Unique identifier for term.
+        #
+        # Example:
+        #
+        # [{"term": "Astronomy", "identifier": "http://id.loc.gov/authorities/subjects/sh85009003"}]
+
+    version: ""
+        # Version of the resource.
+        #
+        # Any string will be accepted, however the suggested format is a
+        # semantically versioned tag (see more details on semantic versioning
+        # at https://semver.org)
+        #
+        # Example:
+        #
+        # 2.1.5
+
+    language: ""
+        # Main language of the dataset as ISO 639-2 or 639-3 code.
+        #
+        # See Library of Congress ISO 639 codes list at
+        # https://www.loc.gov/standards/iso639-2/php/code_list.php.
+        #
+        # Example:
+        #
+        # eng
+
+    locations: []
+        # List of locations.
+        #
+        # Each array element is an object with the attributes:
+        #
+        # - lat (double): Latitude
+        # - lon (double): Longitude
+        # - place (string): Name of place (required)
+        # - description (string): Description of place (optional)
+        #
+        # Example:
+        #
+        # [{"lat": 34.02577, "lon": -118.7804, "place": "Los Angeles"},
+        # {"place": "Mt.Fuji, Japan", "description": "Sample found 100ft from
+        # the foot of the mountain."}]
+
+    dates: []
+        # List of date intervals
+        #
+        # Each array element is an object with the attributes:
+        #
+        # - start (ISO date string): Start date
+        # - end (ISO date string): End date
+        # - type (Collected, Valid, Withdrawn): Type of interval (required)
+        # - description (string): Description of interval (optional)
+        #
+        # You have to specify at least a start or end date.
+        # For an exact date, use the same value for both start and end.
+        #
+        # Example:
+        #
+        # [{"start": "2018-03-21", "end": "2018-03-25", "type": "Collected",
+        # "description": "Specimen A5 collection period."}]
+
+    method: ""
+        # The methodology employed for the research.
+        #
+        # Allows HTML.
+
+    journal_title: ""
+        # Journal title
+
+    journal_volume: ""
+        # Journal volume
+
+    journal_issue: ""
+        # Journal issue
+
+    journal_pages: ""
+        # Journal pages
+
+    conference_title: ""
+        # Title of conference.
+        #
+        # Example:
+        #
+        # 20th International Conference on Cloud Computing
+
+    conference_acronym: ""
+        # Acronym of conference.
+        #
+        # Example:
+        #
+        # CHEP'13
+
+    conference_dates: ""
+        # Dates of conference.
+        #
+        # Conference title or acronym must also be specified if this field is
+        # specified.
+        #
+        # Example:
+        #
+        # 14-18 August 2022
+
+    conference_place: ""
+        # Place of conference in the format city, country.
+        #
+        # Conference title or acronym must also be specified if this field is
+        # specified.
+        #
+        # Example:
+        #
+        # Amsterdam, The Netherlands
+
+    conference_url: ""
+        # URL of conference.
+        #
+        # Example:
+        #
+        # http://www.chep2013.org/
+
+    conference_session: ""
+        # Number of session within the conference.
+        #
+        # Example:
+        #
+        # VI
+
+    conference_session_part: ""
+        # Number of part within a session.
+        #
+        # Example:
+        #
+        # 1
+
+    imprint_publisher: ""
+        # Publisher of a book, report, or chapter.
+
+    imprint_isbn: ""
+        # ISBN of a book or report.
+
+    imprint_place: ""
+        # Place of publication of a book, report, or chapter in the format city, country.
+
+    partof_title: ""
+        # Title of book for chapters.
+
+    partof_pages: ""
+        # Pages numbers of book.
+
+    thesis_supervisors: []
+        # Supervisors of the thesis.
+        #
+        # Same format as for authors.
+
+    thesis_university: ""
+        # Awarding university of thesis.
