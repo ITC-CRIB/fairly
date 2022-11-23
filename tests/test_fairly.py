@@ -59,7 +59,7 @@ def test_create_and_upload_dataset(client: fairly.Client):
 
     # This copies the template for the specific client 
     # and writes it to the dummy dataset directory
-    create_manifest_from_template(f"{client.client_id}.yaml")
+    create_manifest_from_template(f"{client.client_id}.yaml", "tests/fixtures/dummy_dataset")
 
     local_dataset = fairly.dataset("./tests/fixtures/dummy_dataset")
     assert local_dataset is not None
@@ -89,7 +89,7 @@ def test_create_and_upload_dataset(client: fairly.Client):
 def test_download_dataset(client):
     # local dataset is created in the tests folder
     # and then deleted after the test is done
-    create_manifest_from_template(f"{client.client_id}.yaml")
+    create_manifest_from_template(f"{client.client_id}.yaml", "tests/fixtures/dummy_dataset")
 
     local_dataset = fairly.dataset("./tests/fixtures/dummy_dataset")
 
