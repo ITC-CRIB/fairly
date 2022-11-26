@@ -10,7 +10,6 @@ import vcr
 from dotenv import load_dotenv
 
 import fairly
-from tests import *
 
 from fairly.dataset import Dataset
 
