@@ -414,10 +414,11 @@ class Client(ABC):
         hash = self._get_dataset_hash(id)
         # Fetch dataset if required
         if hash not in self._datasets or refresh:
-            self._datasets[hash] = RemoteDataset(self, id, {
-                "url": kwargs.get("url"),
-                "doi": kwargs.get("doi"),
-            })
+            details = {}
+            for key in ["url", "doi"]:
+                if kwargs.get(key):
+                    details[key] = kwargs[key]
+            self._datasets[hash] = RemoteDataset(self, id, details)
 
         # Return dataset
         return self._datasets[hash]
