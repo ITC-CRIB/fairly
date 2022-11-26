@@ -67,7 +67,7 @@ def create_manifest_from_template(template_file: str, path) -> None:
 def test_load_config():
     config = fairly.get_config("zenodo")
     assert config is not None
-    assert config["token"] is os.environ.get("FAIRLY_ZENODO_TOKEN")
+    assert config["token"] == os.environ.get("FAIRLY_ZENODO_TOKEN")
 
 
 def test_get_clients():
