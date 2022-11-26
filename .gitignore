@@ -40,7 +40,6 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # Unit test / coverage reports
-tests/fixtures/dummy_dataset/
 htmlcov/
 .tox/
 .nox/
