@@ -26,5 +26,5 @@ jobs:
           pip install -e .[dev]
       - name: Test with pytest
         run: |
-          # pytest --record-mode=once -cov=fairly tests/
+          # pytest --record-mode=once --cov=fairly tests/
           pytest --disable-recording
