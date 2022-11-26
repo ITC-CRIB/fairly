@@ -902,6 +902,9 @@ class ZenodoClient(Client):
         if not metadata.get("description"):
             result["description"] = "Description is required."
 
+        if not metadata.get("type"):
+            result["type"] = "Type is required."
+
         if not metadata.get("access_type"):
             result["access_type"] = "Access type is required."
 
