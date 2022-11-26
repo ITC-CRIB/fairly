@@ -256,7 +256,10 @@ def dataset(id: str) -> Dataset:
         >>> dataset = fairly.dataset("10.5281/zenodo.6026285")
         >>> dataset = fairly.dataset("https://zenodo.org/record/6026285")
     """
-    key, val = Client.parse_id(id)
+    if isinstance(id, str):
+        key, val = Client.parse_id(id)
+    else:
+        key = None
 
     if key == "url":
         for repository_id, repository in get_repositories().items():
