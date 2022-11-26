@@ -5,7 +5,7 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 10
     env:
       FAIRLY_FIGSHARE_TOKEN: ${{ secrets.FIGSHARE_TOKEN }}
       FAIRLY_ZENODO_TOKEN: ${{ secrets.ZENODO_TOKEN }}
