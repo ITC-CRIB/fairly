@@ -27,4 +27,4 @@ jobs:
       - name: Test with pytest
         run: |
           # pytest --record-mode=once -cov=fairly tests/
-          pytest --disable-vcr
+          pytest
