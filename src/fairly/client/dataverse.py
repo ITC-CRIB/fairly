@@ -51,7 +51,7 @@ class DataverseClient(Client):
         session = super()._create_session()
 
         # Set authentication token
-        if "token" in self.config:
+        if self.config.get("token"):
             session.headers["X-Dataverse-key"] = self.config['token']
 
         return session

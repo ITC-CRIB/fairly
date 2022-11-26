@@ -171,7 +171,7 @@ class ZenodoClient(Client):
         session = super()._create_session()
 
         # Set authentication token
-        if "token" in self.config:
+        if self.config.get("token"):
             session.headers["Authorization"] = f"Bearer {self.config['token']}"
 
         return session
@@ -424,7 +424,7 @@ class ZenodoClient(Client):
             return details
 
         endpoints = [f"records/{id['id']}"]
-        if "token" in self.config:
+        if self.config.get("token"):
             endpoints.insert(0, f"deposit/depositions/{id['id']}")
 
         details = None
@@ -552,7 +552,7 @@ class ZenodoClient(Client):
 
         query=f"?q=conceptrecid:{details['conceptrecid']}&all_versions=true&sort=version"
         endpoints = [f"records/{query}"]
-        if "token" in self.config:
+        if self.config.get("token"):
             endpoints.insert(0, f"deposit/depositions/{query}")
 
         versions = OrderedDict()
