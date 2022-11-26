@@ -18,9 +18,6 @@ ZENODO_TOKEN = os.environ.get("FAIRLY_ZENODO_TOKEN")
 # load clients from supported clients
 TEMPLATES = os.listdir("./src/fairly/data/templates")
 
-# We generate a unique string that we can use to populate metadata for testing
-ustring = str(uuid.uuid4())
-
 def setup_fairly_config_for_testing():
     """Create a fairly config file for testing
     for this we need to create also the directory where the config file is stored
