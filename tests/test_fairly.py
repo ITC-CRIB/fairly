@@ -31,7 +31,7 @@ zenodo_client = fairly.client(id="zenodo", token=ZENODO_TOKEN)
 @pytest.fixture(scope="session", autouse=True)
 def setup(request):
     # Backup existing ~/.fairly/config.json
-    try: 
+    try:
         with open(os.path.expanduser("~/.fairly/config.json"), "r") as f:
             config = json.load(f)
             with open(os.path.expanduser("~/.fairly/config.json.bak"), "w") as f:
@@ -42,8 +42,8 @@ def setup(request):
     # Create a test ~./fairly/config.json
     with open(os.path.expanduser("~/.fairly/config.json"), "w") as f:
         # Create dict with config
-        config = { "4tu": { "token": FIGSHARE_TOKEN }, 
-                   "zenodo": { "token": ZENODO_TOKEN } 
+        config = { "4tu": { "token": FIGSHARE_TOKEN },
+                   "zenodo": { "token": ZENODO_TOKEN }
                  }
         f.write(json.dumps(config))
 
@@ -124,9 +124,9 @@ def test_get_clients():
 
 
 # Test clients creation
-@pytest.mark.parametrize("client_id, token, client_class", [("figshare", FIGSHARE_TOKEN), 
+@pytest.mark.parametrize("client_id, token, client_class", [("figshare", FIGSHARE_TOKEN),
                             ("zenodo", ZENODO_TOKEN)])
-def create_client():    
+def create_client():
     # Except if client doesnt exist
     with pytest.raises(ValueError):
         fairly.client("4TU")
@@ -146,7 +146,7 @@ def test_create_and_upload_dataset(client: fairly.Client):
     with pytest.raises(NotADirectoryError):
         local_dataset = fairly.dataset("./tests/non_existing_dataset")
 
-    # This copies the template for the specific client 
+    # This copies the template for the specific client
     # and writes it to the dummy dataset directory
     create_manifest_from_template(f"{client.client_id}.yaml")
 
@@ -192,10 +192,10 @@ def test_download_dataset(client):
     remote_dataset.store(f"./tests/{client.client_id}.dataset")
     # load the dataset from the file
     local_dataset = fairly.dataset(f"./tests/{client.client_id}.dataset")
-    
+
     assert isinstance(local_dataset, Dataset)
     assert len(local_dataset.files) == 10
-    
+
     # delete the dataset from the remote repository
     client._delete_dataset(remote_dataset.id)
     dirs = [d for d in os.listdir('./tests/') if re.match(r'[a-z]*\.dataset', d)]
@@ -209,4 +209,4 @@ def test_download_dataset(client):
 def test_get_account_datasets(client):
     # get all datasets from the account
     datasets = client.get_account_datasets()
-    assert datasets is not None    
+    assert datasets is not None
