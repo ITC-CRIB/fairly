@@ -110,21 +110,32 @@ class Person(MutableMapping):
     @staticmethod
     def get_orcid_token(client_id: str=None, client_secret: str=None) -> str:
         config = fairly.get_config("fairly")
+
         if not client_id:
             client_id = config.get("orcid_client_id")
             if not client_id:
                 raise ValueError("No client id")
+
         if not client_secret:
             client_secret = config.get("orcid_client_secret")
             if not client_secret:
                 raise ValueError("No client secret")
-        data = f"client_id={client_id}&client_secret={client_secret}&grant_type=client_credentials&scope=/read-public"
+
         response = requests.post(
             "https://orcid.org/oauth/token",
-            data=data,
-            headers={"accept": "application/json"}
+            data=f"client_id={client_id}&client_secret={client_secret}&grant_type=client_credentials&scope=/read-public",
+            headers={
+                "Accept": "application/json",
+                "Content-Type": "application/x-www-form-urlencoded",
+            }
         )
-        return response.json()
+
+        json = response.json()
+
+        if "access_token" not in json:
+            raise ValueError("Invalid response")
+
+        return json["access_token"]
 
 
     @staticmethod
