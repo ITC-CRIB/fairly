@@ -6,8 +6,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      FAIRLY_FIGSHARE_TOKEN: ${{secrets.FIGSHARE_TOKEN}}
-      FAIRLY_ZENODO_TOKEN: ${{secrets.ZENODO_TOKEN}}
+      FAIRLY_FIGSHARE_TOKEN: ${{ secrets.FIGSHARE_TOKEN }}
+      FAIRLY_ZENODO_TOKEN: ${{ secrets.ZENODO_TOKEN }}
     strategy:
       matrix:
         python-version: ["3.8", "3.9", "3.10"]
@@ -24,7 +24,4 @@ jobs:
           pip install -e .[dev]
       - name: Test with pytest
         run: |
-          # flags added to work with vcr cassettes
-          # pytest --record-mode=once -cov=fairly tests/
-          pytest --record-mode=none
-          pytest
+          pytest --record-mode=once -cov=fairly tests/
