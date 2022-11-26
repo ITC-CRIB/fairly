@@ -6,8 +6,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      FAIRLY_FIGSHARE_TOKEN : <My access token for figshare>
-      FAIRLY_ZENODO_TOKEN: <My access token for zenodo>
+      FAIRLY_FIGSHARE_TOKEN: ${{secrets.FIGSHARE_TOKEN}}
+      FAIRLY_ZENODO_TOKEN: ${{secrets.ZENODO_TOKEN}}
     strategy:
       matrix:
         python-version: ["3.8", "3.9", "3.10"]
