@@ -15,8 +15,6 @@ import fairly
 FIGSHARE_TOKEN = os.environ.get("FAIRLY_FIGSHARE_TOKEN")
 ZENODO_TOKEN = os.environ.get("FAIRLY_ZENODO_TOKEN")
 
-# load clients from supported clients
-TEMPLATES = os.listdir("./src/fairly/data/templates")
 
 def setup_fairly_config_for_testing():
     """Create a fairly config file for testing
