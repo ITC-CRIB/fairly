@@ -38,22 +38,21 @@ class Client(ABC):
         # Get client id
         self._client_id = self.__module__.split(".")[-1]
 
-        # Get configuration from environmental variables by client id
-        config = fairly.get_config(self._client_id)
+        config = {}
 
         # Check if repository id is specified
         if repository_id:
+
             repository = fairly.get_repository(repository_id)
+
             if repository:
                 if repository["client_id"] != self._client_id:
-                    raise ValueError("Repository id mismatch")
-                # Append configuration from repository
-                config.update(repository)
-                # Append configuration from environmental variables
-                # REMARK: Required even if client id equal to repository id
-                config.update(fairly.get_config(repository_id))
+                    raise ValueError("Repository client id mismatch")
+                config = repository
+
             elif re.match(Client.REGEXP_URL, repository_id):
                 kwargs["api_url"] = repository_id
+
         self._repository_id = repository_id
 
         # Append named arguments
@@ -136,12 +135,12 @@ class Client(ABC):
 
         common = {}
         try:
-            with open(os.path.join(__path__[0], "..", "data", "repositories.json"), "r") as file:
+            with open(os.path.join(__path__[0], "..", "data", "config.json"), "r") as file:
                 common = json.load(file).get(id, {})
         except FileNotFoundError:
             pass
 
-        path = os.path.join(os.path.expanduser("~/.fairly"), "repositories.json")
+        path = os.path.expanduser("~/.fairly/config.json")
 
         data = {}
         try:

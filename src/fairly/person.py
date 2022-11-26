@@ -109,13 +109,13 @@ class Person(MutableMapping):
 
     @staticmethod
     def get_orcid_token(client_id: str=None, client_secret: str=None) -> str:
-        config = fairly.get_config("orcid")
+        config = fairly.get_config("fairly")
         if not client_id:
-            client_id = config.get("client_id")
+            client_id = config.get("orcid_client_id")
             if not client_id:
                 raise ValueError("No client id")
         if not client_secret:
-            client_secret = config.get("client_secret")
+            client_secret = config.get("orcid_client_secret")
             if not client_secret:
                 raise ValueError("No client secret")
         data = f"client_id={client_id}&client_secret={client_secret}&grant_type=client_credentials&scope=/read-public"
@@ -131,7 +131,7 @@ class Person(MutableMapping):
     def get_from_orcid_id(orcid_id: str, access_token: str=None) -> Person:
         """Returns person information from ORCID identifier.
 
-        If not specified, `access token` is read from `orcid` configuration.
+        If not specified, `access_token` is read from `fairly` configuration.
 
         Args:
             orcid_id: ORCID identifier
@@ -145,8 +145,8 @@ class Person(MutableMapping):
         """
         # Get default access token if required
         if not access_token:
-            config = fairly.get_config("orcid")
-            access_token = config.get("token")
+            config = fairly.get_config("fairly")
+            access_token = config.get("orcid_token")
             if not access_token:
                 raise ValueError("No access token")
 

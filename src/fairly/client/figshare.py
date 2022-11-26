@@ -75,11 +75,13 @@ class FigshareClient(Client):
     @classmethod
     def get_config(cls, **kwargs) -> Dict:
         config = super().get_config(**kwargs)
+
         for key, val in kwargs.items():
             if key == "token":
                 config["token"] = val
             else:
                 pass
+
         return config
 
 
