@@ -89,7 +89,7 @@ class FigshareClient(Client):
         session = super()._create_session()
 
         # Set authentication token
-        if "token" in self.config:
+        if self.config.get("token"):
             session.headers["Authorization"] = f"token {self.config['token']}"
 
         return session
@@ -177,7 +177,7 @@ class FigshareClient(Client):
         else:
             endpoint = f"articles/{id['id']}"
         endpoints.append(endpoint)
-        if "token" in self.config:
+        if self.config.get("token"):
             endpoints.append(f"account/{endpoint}")
 
         details = None
@@ -234,8 +234,16 @@ class FigshareClient(Client):
             List of license dictionaries
         """
         # REMARK: Private endpoint returns both public and private licenses
-        endpoint = "account/licenses" if "token" in self.config else "licenses"
-        items, _ = self._request(endpoint)
+        endpoints = ["account/licenses"] if self.config.get("token") else []
+        endpoints.append("licenses")
+
+        for endpoint in endpoints:
+            try:
+                items, _ = self._request(endpoint)
+                break
+            except HTTPError as err:
+                if err.response.status_code != 403:
+                    raise
 
         licenses = {}
 
@@ -264,7 +272,16 @@ class FigshareClient(Client):
         """
         # REMARK: Private endpoint returns both public and private categories
         # REMARK: Public endpoint does not return parent categories
-        items, _ = self._request("account/categories" if "token" in self.config else "categories")
+        endpoints = ["account/categories"] if self.config.get("token") else []
+        endpoints.append("categories")
+
+        for endpoint in endpoints:
+            try:
+                items, _ = self._request(endpoint)
+                break
+            except HTTPError as err:
+                if err.response.status_code != 403:
+                    raise
 
         categories = {}
 
