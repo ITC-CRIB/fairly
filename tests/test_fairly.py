@@ -60,14 +60,16 @@ def setup(request):
 
 
 def clean():
-    # Write back the original config file
-    with open(os.path.expanduser("~/.fairly/config.json.bak"), "r") as f:
-        config = json.load(f)
-        with open(os.path.expanduser("~/.fairly/config.json"), "w") as f:
-            json.dump(config, f)
+    # Write back the original config file and delete backup if exists
+    try:
+        with open(os.path.expanduser("~/.fairly/config.json.bak"), "r") as file:
+            config = json.load(file)
+            with open(os.path.expanduser("~/.fairly/config.json"), "w") as file:
+                json.dump(config, file)
+        os.remove(os.path.expanduser("~/.fairly/config.json.bak"))
 
-    # delete the backup
-    os.remove(os.path.expanduser("~/.fairly/config.json.bak"))
+    except FileNotFoundError:
+        pass
 
 
 # TODO: Maybe create a class for each metadata (this needs to change later with schemas)
