@@ -288,7 +288,7 @@ class Person(MutableMapping):
         return persons
 
 
-    def autocomplete(self, overwrite: bool=False) -> Dict:
+    def autocomplete(self, overwrite: bool=False, orcid_token: str=None) -> Dict:
         """Completes missing information by using the ORCID identifier.
 
         Args:
@@ -300,7 +300,7 @@ class Person(MutableMapping):
         if not self.get("orcid_id"):
             return {}
 
-        person = Person.from_orcid_id(self["orcid_id"])
+        person = Person.from_orcid_id(self["orcid_id"], token=orcid_token)
 
         attrs = {}
         for key, val in person.__dict__.items():
