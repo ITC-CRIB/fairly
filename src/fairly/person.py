@@ -19,13 +19,13 @@ class Person(MutableMapping):
     # https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier
     REGEXP_ORCID_ID = re.compile(r"^(\d{4}-){3}\d{3}(\d|X)$")
 
-    def __init__(self, **kwargs):
+    def __init__(self, person: str=None, **kwargs):
         """Initializes Person object.
 
         Full name is obtained from name and surname, if required.
 
         Name and surname are obtained from full name, if required.
-        (see parse_fullname() method for details).
+        (see parse() method for details).
 
         Standard attributes:
             name (string): Name of the person
@@ -36,19 +36,20 @@ class Person(MutableMapping):
             orcid_id (string): ORCID identifier of the person
 
         Args:
+            person: Person identifier
             **kwargs: Person attributes
         """
-        if "fullname" in kwargs:
-            attrs = Person.parse_fullname(kwargs["fullname"])
-            if attrs.get("name"):
-                kwargs["name"] = attrs.get("name")
-            if attrs.get("surname"):
-                kwargs["surname"] = attrs.get("surname")
+        attrs = Person.parse(person) if person else {}
 
-        elif "name" in kwargs and "surname" in kwargs:
-            kwargs["fullname"] = (kwargs["name"] + " " + kwargs["surname"]).strip()
+        if kwargs.get("fullname"):
+            attrs.update(Person.parse(kwargs["fullname"]))
 
-        for key, val in kwargs.items():
+        attrs.update(kwargs)
+
+        if not attrs.get("fullname") and attrs.get("name") and attrs.get("surname"):
+            attrs["fullname"] = (attrs["name"] + " " + attrs["surname"]).strip()
+
+        for key, val in attrs.items():
             if bool(val) or isinstance(val, (bool, int, float)):
                 self.__dict__[key] = val
 
@@ -85,7 +86,7 @@ class Person(MutableMapping):
 
 
     @classmethod
-    def parse_fullname(cls, fullname: str) -> Dict:
+    def parse(cls, fullname: str) -> Dict:
         """Parses full name and extracts available person attributes
 
         The following attributes might be extracted:
@@ -102,7 +103,7 @@ class Person(MutableMapping):
         """
         fullname = fullname.strip()
 
-        if re.match(REGEXP_ORCID_ID, fullname):
+        if re.match(Person.REGEXP_ORCID_ID, fullname):
             return {"orcid_id": fullname}
 
         attrs = {"fullname": fullname}
@@ -205,7 +206,7 @@ class Person(MutableMapping):
         of the iterable, the following are performed:
 
             - If it is a Person object, a copy is created
-            - If it is a string, it is parsed to a dictionary using parse_fullname()
+            - If it is a string, it is parsed to a dictionary using parse()
             - If is is a dictionary, Person object is created
 
         Args:
@@ -237,7 +238,7 @@ class Person(MutableMapping):
 
             else:
                 if isinstance(item, str):
-                    item = Person.parse_fullname(item)
+                    item = Person.parse(item)
                 if not isinstance(item, Dict):
                     raise ValueError
                 person = Person(**item)
