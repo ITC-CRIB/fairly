@@ -32,6 +32,7 @@ class Person(MutableMapping):
     REGEXP_ORCID_ID = re.compile(r"^(\d{4}-){3}\d{3}(\d|X)$")
     REGEXP_EMAIL = re.compile(r"^[\w\.+-]+@([\w-]+\.)+[\w-]{2,}$")
 
+
     def __init__(self, person: str=None, **kwargs):
         """Initializes Person object.
 
@@ -182,7 +183,7 @@ class Person(MutableMapping):
 
 
     @staticmethod
-    def get_from_orcid_id(orcid_id: str, token: str=None) -> Person:
+    def from_orcid_id(orcid_id: str, token: str=None) -> Person:
         """Retrieves person information from ORCID identifier.
 
         If not specified, `token` is read from fairly configuration. If it is
@@ -197,6 +198,7 @@ class Person(MutableMapping):
 
         Raises:
             ValueError("No access token"): If access token is not available.
+            ValueError("Invalid ORCID identifier"): If ORCID identified is not valid.
         """
         # Get default access token if required
         if not token:
@@ -219,9 +221,9 @@ class Person(MutableMapping):
         )
         results = response.json().get("expanded-result")
 
-        # Return if no results
+        # Raise exception if no results
         if not results:
-            return None
+            raise ValueError("Invalid ORCID Id")
 
         # Return the first person matching the ORCID identifier
         result = results[0]
@@ -283,3 +285,25 @@ class Person(MutableMapping):
             persons.append(person)
 
         return persons
+
+
+    def autocomplete(self, overwrite: bool=False) -> Dict:
+        """Completes missing information by using the ORCID identifier.
+
+        Args:
+            overwrite: If True existing attributes are overwritten.
+
+        Returns:
+            A dictionary of attributes set by method.
+        """
+        if not self.get("orcid_id"):
+            return {}
+
+        person = Person.from_orcid_id(self["orcid_id"])
+
+        attrs = {}
+        for key, val in person.__dict__.items():
+            if key not in self.__dict__ or overwrite:
+                self.__dict__[key] = attrs[key] = val
+
+        return attrs
