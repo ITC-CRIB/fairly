@@ -302,9 +302,9 @@ class Person(MutableMapping):
 
         person = Person.from_orcid_id(self["orcid_id"], token=orcid_token)
 
-        attrs = {}
+        updated = {}
         for key, val in person.__dict__.items():
             if key not in self.__dict__ or overwrite:
-                self.__dict__[key] = attrs[key] = val
+                self.__dict__[key] = updated[key] = val
 
-        return attrs
+        return updated

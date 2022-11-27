@@ -131,3 +131,26 @@ class Metadata(MutableMapping):
             Metadata dictionary.
         """
         return self._attrs.copy()
+
+
+    def autocomplete(self, overwrite: bool=False, attrs: List=None, **kwargs) -> Dict:
+        """Completes missing metadata attributes by using the available information.
+
+        Args:
+            overwrite: If True existing attributes are overwritten.
+            attrs: List of attributes to be completed.
+            **kwargs: Arguments for the specific autocomplete methods.
+
+        Returns:
+            A dictionary of attributes set by method.
+        """
+        updated = {}
+
+        if self.get("authors") and (not attrs or "authors" in attrs):
+            updated["authors"] = {}
+            for key, val in enumerate(self["authors"]):
+                result = val.autocomplete(overwrite=overwrite, **kwargs)
+                if result:
+                    updated["authors"][key] = result
+
+        return updated
