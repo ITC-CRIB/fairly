@@ -25,6 +25,11 @@ class Client(ABC):
         _datasets (dict): Public dataset cache
         _account_datasets (List): Account dataset cache
         _licenses (List): Licenses cache
+
+    Class Attributes:
+        REGEXP_URL: Regular expression to validate URL address.
+        REQUEST_FORMAT: Request data format
+        CHUCK_SIZE: Data transfer chuck size
     """
 
     REGEXP_URL = re.compile(r"^[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$", re.IGNORECASE)
@@ -683,4 +688,11 @@ class Client(ABC):
         Returns:
             Details dictionary of the dataset.
         """
+        raise NotImplementedError
+
+
+    @classmethod
+    @abstractmethod
+    def supports_folder(cls) -> bool:
+        """Returns if folders are supported."""
         raise NotImplementedError

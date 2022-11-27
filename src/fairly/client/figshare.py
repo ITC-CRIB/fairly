@@ -983,3 +983,8 @@ class FigshareClient(Client):
             "created": dateutil.parser.isoparse(details["created_date"]),
             "modified": dateutil.parser.isoparse(details["modified_date"]),
         }
+
+
+    @classmethod
+    def supports_folder(cls) -> bool:
+        return False

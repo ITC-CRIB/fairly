@@ -1081,3 +1081,8 @@ class ZenodoClient(Client):
             "created": datetime.fromisoformat(details["created"]),
             "modified": datetime.fromisoformat(details["modified"]),
         }
+
+
+    @classmethod
+    def supports_folder(cls) -> bool:
+        return False
