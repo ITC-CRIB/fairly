@@ -329,7 +329,7 @@ class LocalDataset(Dataset):
     def size(self) -> int:
         """Total size of the dataset in bytes."""
         size = 0
-        for file in self.files:
+        for file in self.files.values():
             size += file.size
 
         return size
