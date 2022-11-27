@@ -1,3 +1,15 @@
+"""Person class module.
+
+Person class is used to store person (e.g. author) information in a standardized
+manner.
+
+Usage example:
+
+    >>> person = Person("Doe, John")
+    >>> person = Person(fullname="Doe, Jon", orcid_id="xxx")
+    >>> person.affiliation = "fairly Community"
+
+"""
 from __future__ import annotations
 from typing import List, Dict
 from collections.abc import Iterable, MutableMapping
@@ -9,10 +21,10 @@ import requests
 import copy
 
 class Person(MutableMapping):
-    """Class to handle personal information, e.g. for authors, contributors, etc.
+    """Class to handle person information, e.g. for authors, contributors, etc.
 
-    Attributes:
-        REGEXP_ORCID_ID: Regular expression to validate ORCID identifier
+    Class Attributes:
+        REGEXP_ORCID_ID: Regular expression to validate ORCID identifier.
     """
 
     # TODO: Check the checksum digit
@@ -25,19 +37,19 @@ class Person(MutableMapping):
         Full name is obtained from name and surname, if required.
 
         Name and surname are obtained from full name, if required.
-        (see parse() method for details).
+        (see `parse()` method for details).
 
         Standard attributes:
-            name (string): Name of the person
-            surname (string): Surname of the person
-            fullname (string): Full name of the person
-            email (string): E-mail address of the person
-            institution (string): Institution of the person
-            orcid_id (string): ORCID identifier of the person
+            name (string): Name of the person.
+            surname (string): Surname of the person.
+            fullname (string): Full name of the person.
+            email (string): E-mail address of the person.
+            institution (string): Institution of the person.
+            orcid_id (string): ORCID identifier of the person.
 
         Args:
-            person: Person identifier
-            **kwargs: Person attributes
+            person: Person identifier.
+            **kwargs: Person attributes.
         """
         attrs = Person.parse(person) if person else {}
 
@@ -86,8 +98,8 @@ class Person(MutableMapping):
 
 
     @classmethod
-    def parse(cls, fullname: str) -> Dict:
-        """Parses full name and extracts available person attributes
+    def parse(cls, person: str) -> Dict:
+        """Parses person identifier and extracts available person attributes.
 
         The following attributes might be extracted:
             - name
@@ -96,10 +108,10 @@ class Person(MutableMapping):
             - orcid_id
 
         Args:
-            fullname: Full name of the person
+            person: Person identifier (e.g. fullname)
 
         Returns:
-            Dictionary of person attributes
+            Dictionary of person attributes.
         """
         fullname = fullname.strip()
 
@@ -116,6 +128,26 @@ class Person(MutableMapping):
 
     @staticmethod
     def get_orcid_token(client_id: str=None, client_secret: str=None) -> str:
+        """Retrieves ORCID access token by using ORCID client id and secret.
+
+        ORCID access token is required to retrieve person information by using
+        an ORCID ID.
+
+        If not specified, `client_id` and `client_secret` are read from fairly
+        configuration.
+
+        Args:
+            client_id: ORCID client id.
+            client_secret: ORCID client secret.
+
+        Returns:
+            ORCID access token.
+
+        Raises:
+            ValueError("No client id"): If client id is not available.
+            ValueError("No client secret"): If client secret is not available.
+            ValueError("Invalid response"): If access token is not retrieved.
+        """
         config = fairly.get_config("fairly")
 
         if not client_id:
@@ -146,28 +178,29 @@ class Person(MutableMapping):
 
 
     @staticmethod
-    def get_from_orcid_id(orcid_id: str, access_token: str=None) -> Person:
-        """Returns person information from ORCID identifier.
+    def get_from_orcid_id(orcid_id: str, token: str=None) -> Person:
+        """Retrieves person information from ORCID identifier.
 
-        If not specified, `access_token` is read from `fairly` configuration.
+        If not specified, `token` is read from fairly configuration. If it is
+        also not available, it is retrieved by using `get_orcid_token()` method.
 
         Args:
-            orcid_id: ORCID identifier
-            access_token: ORCID access token
+            orcid_id: ORCID identifier.
+            token: ORCID access token.
 
         Returns:
-            Person object if valid ORCID identifier, otherwise None
+            Person object if valid ORCID identifier, otherwise None.
 
         Raises:
-            ValueError("No access token")
+            ValueError("No access token"): If access token is not available.
         """
         # Get default access token if required
-        if not access_token:
+        if not token:
             config = fairly.get_config("fairly")
-            access_token = config.get("orcid_token")
-            if not access_token:
+            token = config.get("orcid_token")
+            if not token:
                 try:
-                    access_token = Person.get_orcid_token()
+                    token = Person.get_orcid_token()
                 except:
                     raise ValueError("No access token")
 
@@ -177,7 +210,7 @@ class Person(MutableMapping):
             f"https://pub.orcid.org/v3.0/expanded-search/?q=orcid:{orcid_id}&fl={fields}",
             headers={
                 "Content-type": "application/vnd.orcid+json",
-                "Authorization type and Access token": f"Bearer {access_token}"
+                "Authorization type and Access token": f"Bearer {token}"
             }
         )
         results = response.json().get("expanded-result")
@@ -199,24 +232,24 @@ class Person(MutableMapping):
 
     @staticmethod
     def get_people(people) -> List[Person]:
-        """Returns standard person list from custom people input
+        """Returns standard person list from the people argument.
 
         A string or an iterable are accepted as input. If input is a string,
         it is split using semicolon and line feed as separators. For the items
         of the iterable, the following are performed:
 
-            - If it is a Person object, a copy is created
-            - If it is a string, it is parsed to a dictionary using parse()
-            - If is is a dictionary, Person object is created
+            - If it is a Person object, a copy is created.
+            - If it is a string, it is parsed to a dictionary using parse().
+            - If is is a dictionary, Person object is created.
 
         Args:
-            people: Custom people input
+            people: People argument.
 
         Returns:
-            List of person objects
+            List of person objects.
 
         Raises:
-            ValueError
+            ValueError: If people argument is invalid.
         """
         if not people:
             return []
