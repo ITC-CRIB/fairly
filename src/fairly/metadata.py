@@ -1,5 +1,15 @@
+"""Metadata class module.
+
+Metadata class is used to store metadata attributes in a standardized manner.
+
+Usage example:
+
+    >>> metadata = Metadata({"title": "Title", "DOI": "doi:xxx"})
+    >>> metadata["authors"] = ["Doe, John"]
+
+"""
 from __future__ import annotations
-from typing import Any, Dict, Union
+from typing import Any, Dict
 from collections.abc import MutableMapping
 
 from .person import Person
@@ -7,21 +17,29 @@ from .person import Person
 import re
 
 class Metadata(MutableMapping):
-
-    """
+    """Metadata class.
 
     Attributes:
-        _normalize (Callable): Attribute normalization method
-        _attrs (Dict): Metadata attributes
+        _normalize (Callable): Attribute normalization method.
+        _attrs (Dict): Metadata attributes.
 
     Class Attributes:
-        REGEXP_DOI: Regular expression to validate DOI
+        REGEXP_DOI: Regular expression to validate DOI.
     """
 
     REGEXP_DOI = re.compile(r"^10.\d{4,9}/[-._;()/:a-z0-9]+$", re.IGNORECASE)
 
 
     def __init__(self, normalize: Callable=None, **kwargs):
+        """Initializes Metadata object.
+
+        The default normalization method `Metadata.normalize()` is not called
+        if user-defined normalization method is provided.
+
+        Args:
+            normalize: User-defined normalization method.
+            **kwargs: Metadata attributes.
+        """
         self._normalize = normalize if normalize else Metadata.normalize
         self._attrs = {}
         for key, val in kwargs.items():
@@ -62,14 +80,17 @@ class Metadata(MutableMapping):
 
     @classmethod
     def normalize(cls, name: str, val) -> Any:
-        """Normalized metadata attribute value
+        """Normalizes metadata attribute value.
 
         Args:
-            name (str): Attribute name
-            val: Attribute value
+            name: Attribute name.
+            val: Attribute value.
 
         Returns:
-            Normalized attribute value
+            Normalized attribute value.
+
+        Raises:
+            ValueError: If invalid attribute value.
         """
         # Digital Object Identifier
         if name == "doi":
@@ -104,4 +125,9 @@ class Metadata(MutableMapping):
 
 
     def serialize(self) -> Dict:
+        """Serializes metadata as a dictionary.
+
+        Returns:
+            Metadata dictionary.
+        """
         return self._attrs.copy()
