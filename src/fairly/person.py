@@ -113,13 +113,13 @@ class Person(MutableMapping):
         Returns:
             Dictionary of person attributes.
         """
-        fullname = fullname.strip()
+        person = person.strip()
 
-        if re.match(Person.REGEXP_ORCID_ID, fullname):
-            return {"orcid_id": fullname}
+        if re.match(Person.REGEXP_ORCID_ID, person):
+            return {"orcid_id": person}
 
-        attrs = {"fullname": fullname}
-        parts = [part.strip() for part in fullname.split(",")]
+        attrs = {"fullname": person}
+        parts = [part.strip() for part in person.split(",")]
         if len(parts) == 2:
             attrs["surname"], attrs["name"] = parts
 
