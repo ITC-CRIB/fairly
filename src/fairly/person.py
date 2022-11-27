@@ -85,13 +85,14 @@ class Person(MutableMapping):
 
 
     @classmethod
-    def parse_fullname(cls, fullname:str) -> Dict:
+    def parse_fullname(cls, fullname: str) -> Dict:
         """Parses full name and extracts available person attributes
 
         The following attributes might be extracted:
             - name
             - surname
             - fullname
+            - orcid_id
 
         Args:
             fullname: Full name of the person
@@ -100,10 +101,15 @@ class Person(MutableMapping):
             Dictionary of person attributes
         """
         fullname = fullname.strip()
+
+        if re.match(REGEXP_ORCID_ID, fullname):
+            return {"orcid_id": fullname}
+
         attrs = {"fullname": fullname}
         parts = [part.strip() for part in fullname.split(",")]
         if len(parts) == 2:
             attrs["surname"], attrs["name"] = parts
+
         return attrs
 
 
@@ -159,7 +165,10 @@ class Person(MutableMapping):
             config = fairly.get_config("fairly")
             access_token = config.get("orcid_token")
             if not access_token:
-                raise ValueError("No access token")
+                try:
+                    access_token = Person.get_orcid_token()
+                except:
+                    raise ValueError("No access token")
 
         # Send request
         fields = ",".join(["orcid", "email", "given-names", "family-name", "current-institution-affiliation-name"])
