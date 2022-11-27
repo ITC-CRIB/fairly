@@ -25,6 +25,7 @@ class Person(MutableMapping):
 
     Class Attributes:
         REGEXP_ORCID_ID: Regular expression to validate ORCID identifier.
+        REGEXP_EMAIL: Regular expression to validate e-mail address.
     """
 
     # TODO: Check the checksum digit
