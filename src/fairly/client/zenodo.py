@@ -2,7 +2,7 @@ from typing import Dict, List, Callable
 
 from . import Client
 from ..metadata import Metadata
-from ..person import Person
+from ..person import Person, PersonList
 from ..dataset.remote import RemoteDataset
 from ..file.local import LocalFile
 from ..file.remote import RemoteFile
@@ -619,7 +619,7 @@ class ZenodoClient(Client):
         _set("title")
 
         # List of authors
-        attrs["authors"] = [_get_person(item) for item in metadata.get("creators", [])]
+        attrs["authors"] = PersonList([_get_person(item) for item in metadata.get("creators", [])])
 
         # Description
         _set("description")

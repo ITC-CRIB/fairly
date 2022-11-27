@@ -71,7 +71,7 @@ class Person(MutableMapping):
 
     def __setitem__(self, key, val):
         if bool(val) or isinstance(val, (bool, int, float)):
-            self.__dict__[key] = self._normalize(key, val)
+            self.__dict__[key] = val
         elif hasattr(self.__dict__, key):
             del self.__dict__[key]
 
@@ -238,7 +238,7 @@ class Person(MutableMapping):
 
 
     @staticmethod
-    def get_people(people) -> List[Person]:
+    def get_persons(people) -> List[Person]:
         """Returns standard person list from the people argument.
 
         A string or an iterable are accepted as input. If input is a string,
@@ -259,7 +259,7 @@ class Person(MutableMapping):
             ValueError: If people argument is invalid.
         """
         if not people:
-            return []
+            return PersonList()
 
         if isinstance(people, str):
             people = re.split(r"[;\n]", people)
@@ -267,7 +267,7 @@ class Person(MutableMapping):
         if not isinstance(people, Iterable):
             raise ValueError
 
-        persons = []
+        persons = PersonList()
         for item in people:
 
             if not item:
@@ -308,3 +308,45 @@ class Person(MutableMapping):
                 self.__dict__[key] = updated[key] = val
 
         return updated
+
+
+    def serialize(self) -> Dict:
+        """Serializes person as a dictionary.
+
+        Returns:
+            Person dictionary.
+        """
+        return self.__dict__.copy()
+
+
+class PersonList(list):
+    def _person(self, item):
+        if isinstance(item, Person):
+            return item
+
+        if isinstance(item, str):
+            return Person(item)
+
+        if isinstance(item, dict):
+            return Person(**item)
+
+        raise ValueError
+
+    def __init__(self, iterable=None):
+        if iterable:
+            super().__init__(self._person(item) for item in iterable)
+
+    def __setitem__(self, index, item):
+        super().__setitem__(index, self._person(item))
+
+    def insert(self, index, item):
+        super().insert(index, self._person(item))
+
+    def append(self, item):
+        super().append(self._person(item))
+
+    def extend(self, other):
+        if isinstance(other, type(self)):
+            super().extend(other)
+        else:
+            super().extend(self._person(item) for item in other)

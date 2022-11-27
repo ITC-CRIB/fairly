@@ -2,7 +2,7 @@ from typing import Any, List, Dict, Callable
 
 from . import Client
 from ..metadata import Metadata
-from ..person import Person
+from ..person import Person, PersonList
 from ..dataset.remote import RemoteDataset
 from ..file.local import LocalFile
 from ..file.remote import RemoteFile
@@ -345,7 +345,7 @@ class FigshareClient(Client):
         # Common attributes
 
         # Authors (editable)
-        val = []
+        val = PersonList()
         for item in details.get("authors", []):
             person = Person(
                 fullname = item.get("full_name"),

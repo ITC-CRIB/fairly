@@ -7,7 +7,7 @@ from ..file.local import LocalFile
 
 import os
 import os.path
-import yaml
+from ruamel.yaml import YAML
 import re
 import csv
 import datetime
@@ -23,6 +23,7 @@ class LocalDataset(Dataset):
         _includes (set): File inclusion rules
         _excludes (set): File exclusion rules
         _md5s (dict): MD5 hash cache of the files
+        _yaml: YAML object
 
     Class Attributes:
         _regexps (dict): Regular expression cache of the file rules
@@ -60,6 +61,8 @@ class LocalDataset(Dataset):
         # Load cached MD5 hashes
         self._load_md5s()
 
+        self._yaml = YAML()
+
 
     def _get_manifest(self) -> Dict:
         """Retrieves dataset manifest
@@ -71,19 +74,24 @@ class LocalDataset(Dataset):
         manifest = None
         if os.path.isfile(self._manifest_path):
             with open(self._manifest_path, "r") as file:
-                # REMARK: safe_load returns None if file is empty
-                manifest = yaml.safe_load(file)
+                # REMARK: ruaml.yaml is used to preserve document structure
+                # https://stackoverflow.com/questions/71024653/how-to-update-yaml-file-without-loss-of-comments-and-formatting-yaml-automatic
+                manifest = self._yaml.load(file)
+
         if not manifest:
             manifest = {}
-        files = manifest.get("files", {})
-        return {
-            "metadata": manifest.get("metadata", {}),
-            "template": manifest.get("template", ""),
-            "files": {
-                "includes": files.get("includes", []),
-                "excludes": files.get("excludes", []),
-            },
+
+        defaults = {
+            "metadata": {},
+            "template": "",
+            "files": {"includes": [], "excludes": []}
         }
+
+        for key, val in defaults.items():
+            if not manifest.get(key):
+                manifest[key] = val
+
+        return manifest
 
 
     @cached_property
@@ -154,13 +162,12 @@ class LocalDataset(Dataset):
 
         with open(self._manifest_path, "w") as file:
             # TODO: Exception handling
-            yaml.emitter.Emitter.process_tag = lambda self, *args, **kw: None
-            yaml.dump(manifest, file, default_flow_style=False)
+            self._yaml.dump(manifest, file)
 
 
     def save_metadata(self) -> None:
         manifest = self._get_manifest()
-        manifest["metadata"] = self.metadata.serialize()
+        manifest["metadata"].update(self.metadata.serialize())
         self._set_manifest(manifest)
 
 
@@ -290,6 +297,7 @@ class LocalDataset(Dataset):
 
 
     def upload(self, repository, notify: Callable=None) -> RemoteDataset:
+        # REMARK: Local import to prevent circular import
         import fairly
         from ..client import Client
 
@@ -353,3 +361,20 @@ class LocalDataset(Dataset):
         timestamp = os.path.getmtime(self._manifest_path)
 
         return datetime.datetime.fromtimestamp(timestamp)
+
+
+    def synchronize(self, source, notify: Callable=None) -> None:
+        # REMARK: Local import to prevent circular import
+        import fairly
+
+        if not isinstance(source, Dataset):
+            source = fairly.dataset(source)
+
+        diff = source.diff_metadata(self)
+        # TODO: Synchronize metadata
+        print(diff)
+
+        diff = source.diff_files(self)
+
+        for file in diff.added.values():
+            pass

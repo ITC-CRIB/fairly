@@ -118,7 +118,7 @@ class Metadata(MutableMapping):
 
         # Authors
         elif name == "authors":
-            val = Person.get_people(val)
+            val = Person.get_persons(val)
 
         # Return normalized value
         return val
@@ -130,7 +130,12 @@ class Metadata(MutableMapping):
         Returns:
             Metadata dictionary.
         """
-        return self._attrs.copy()
+        out = self._attrs.copy()
+
+        if out.get("authors"):
+            out["authors"] = [author.serialize() for author in out["authors"]]
+
+        return out
 
 
     def autocomplete(self, overwrite: bool=False, attrs: List=None, **kwargs) -> Dict:

@@ -1,6 +1,6 @@
 import os
 import json
-import yaml
+from ruamel.yaml import YAML
 import shutil
 from functools import lru_cache
 
@@ -42,9 +42,9 @@ def create_manifest_from_template(template_file: str, path) -> None:
         Name of the template file in yaml format e.g. figshare.yaml
         the file is extracted from the templates folder
     """
-    with open(f"./src/fairly/data/templates/{template_file}", "r") as f:
-        template = f.read()
-        template = yaml.safe_load(template)
+    with open(f"./src/fairly/data/templates/{template_file}", "r") as file:
+        yaml = YAML()
+        template = yaml.load(file)
         template['metadata']['title'] = "My fairly test"
         template['metadata']['description'] = "My test description"
         # Add files key to the manifest so that files are added to the dataset object
@@ -60,8 +60,8 @@ def create_manifest_from_template(template_file: str, path) -> None:
             # template dates
             template['metadata']['publication_date'] = '2020-01-01'
 
-    with open(f"{path}/manifest.yaml", "w") as f:
-        f.write(yaml.dump(template))
+    with open(f"{path}/manifest.yaml", "w") as file:
+        yaml.dump(template, file)
  
 
 def test_load_config():
