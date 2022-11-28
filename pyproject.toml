@@ -17,7 +17,8 @@ dependencies = [
     "PyYAML",
     "requests_toolbelt",
     "python-dateutil", 
-    "typer>=0.6.1"
+    "typer>=0.6.1",
+    "rich"
     ]
 keywords = ["fairly", "open science", "research data", "data management"]
 
@@ -35,3 +36,6 @@ dev = [
 "Bug Tracker" = "https://github.com/ITC-CRIB/fairly/issues"
 "Documentation" = "https://jupyterfair.readthedocs.io/en/latest/"
 "Funding" = "https://nwo.nl/en/researchprogrammes/open-science/open-science-fund"
+
+[project.scripts]
+fairly = "cli:app"

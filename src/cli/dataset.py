@@ -5,6 +5,8 @@ import pprint
 import yaml
 
 import typer
+from rich.progress import Progress, SpinnerColumn, TextColumn
+
 import fairly
 
 pp = pprint.PrettyPrinter(indent=4)
@@ -13,7 +15,7 @@ app = typer.Typer(pretty_exceptions_show_locals=False)
 
 @app.command()
 def create(
-    metadata: str = typer.Argument("", help="Metadata specification to be used for the dataset, for example figshare or zenodo."),
+    metadata: str = typer.Argument(..., help="Metadata specification to be used for the dataset, for example figshare or zenodo."),
 ) -> None:
     '''Create a local dataset under path with default template
     
@@ -28,8 +30,7 @@ def create(
     if os.path.isfile("manifest.yaml"):
         print("manifest.yaml already exists in the current directory, cannot overwrite existing dataset metadata")
     else:
-        fairly_path = os.path.dirname(fairly.__file__)
-        template_path = os.path.join(fairly_path, "data","templates", f'{metadata}.yaml')
+        template_path = os.path.join(os.path.dirname(fairly.__file__), './data/templates', f'{metadata}.yaml')
         shutil.copy(template_path, os.path.join(os.getcwd(), "manifest.yaml"))
 
 @app.command()
@@ -44,7 +45,7 @@ def show():
 def clone(
     url: str = typer.Option("", help="URL option argument"),
     token: str = typer.Option("", help="Token option argument"),
-    doi: str = typer.Option("", help="DOI option argument"),
+    # doi: str = typer.Option("", help="DOI option argument"),
     repo: str = typer.Option("", help="Repository option argument"),
     id: str = typer.Option("", help="ID option argument"),
     path: str = typer.Argument("./", help="Path where the dataset will be downloaded"),
@@ -52,23 +53,20 @@ def clone(
     '''
     Clones a dataset by using its URL address, DOI or ID among other arguments
     
-    Examples:
-        >>> fairly dataset clone <url|doi>
-        >>> fairly dataset clone https://zenodo.org/record/6026285
-        
-        >>> fairly dataset clone <url|doi> --token <token> 
-        
-        >>> fairly dataset clone <repository> <id>
-        >>> fairly dataset clone --repo zenodo --id 6026285
+    Examples: \n
+        >>> fairly dataset clone <url|doi> \n
+        >>> fairly dataset clone https://zenodo.org/record/6026285 \n
+        >>> fairly dataset clone url --token <token>  \n
+        >>> fairly dataset clone <repository> <id> \n
+        >>> fairly dataset clone --repo zenodo --id 6026285 \n
     '''
     # Test the connection to the repository by listing account datasets    
     dataset = None
-    if url or doi:
-        arg = url if url else doi
+    if url:
+        arg = url # (uncomment when doi is implemented) if url else doi
         try:
             if token: dataset = fairly.dataset(arg, token=token)
-            else: 
-                dataset = fairly.dataset(arg)
+            else: dataset = fairly.dataset(arg)
         except Exception as e: 
             print(e)
             return None
@@ -84,12 +82,20 @@ def clone(
             print("Please specify the dataset ID")
             return None
     try:
-        dir_name = dataset.metadata['title'].replace(" ", "_").lower()        
-        dataset.store(f'{path}{dir_name}')
-        print(f"Dataset {dir_name} successfully cloned to {path}{dir_name}")
-    except Exception as e: print(e, "Probably you have already cloned this dataset in this directory.")
-    
+        dir_name = dataset.metadata['title'].replace(" ", "_").lower() 
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            transient = True,
+        ) as progress:
+            progress.add_task("Cloning dataset",total=None)
+            dataset.store(f'{path}{dir_name}')
+            print(f"Dataset {dir_name} successfully cloned to {path}{dir_name}")
 
+    except Exception as e: 
+        print("Probably you have already cloned this dataset in this directory.")
+        raise e
+    
 @app.command()
 def list(
     repository: str = typer.Argument("zenodo", help="Repository name"),
@@ -123,7 +129,11 @@ def list(
         pass
 
 @app.command()
-def upload():
+def upload(
+    repo: str = typer.Argument("", help="Repository option argument"),
+    # path: str = typer.Argument("./", help="Path where the dataset will be uploaded"),
+    token: str = typer.Option("", help="Token option argument"),
+):
     '''
     Upload dataset by using a custom token (can be useful for e.g. data stewards)
     >>> fairly dataset upload <path> <repository> --token <token>
@@ -132,8 +142,34 @@ def upload():
     If the dataset was not uploaded before: create remote entry (get id), set metadata, upload all files, upload local manifest to add id
     If the dataset was uploaded (id exists in manifest): update remote metadata, upload added and modified files, delete removed files
     '''
-    # Raise error not implemented
-    raise NotImplementedError
+    # Check that the manifest is placed in the dataset directory
+    # if manifest is not in path, raise error
+    if not os.path.isfile(f"{os.getcwd()}/manifest.yaml"):
+        print(os.path.exists(f"{path}manifest.yaml"))
+        print(os.getcwd())
+        print("manifest.yaml does not exist in the current directory, cannot upload dataset")
+        return None
+            
+    try:
+        path = "../"
+        dataset = fairly.dataset(os.getcwd())
+        client = fairly.client(repo)
+
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            transient = True,
+        ) as progress:
+            progress.add_task(description="Uploading dataset...", total=None)
+            remote_dataset = dataset.upload(client)
+            print(f"Dataset successfully uploaded at {remote_dataset.url}")
+        return None
+
+    except ValueError as e: 
+        # deconstruct the error message
+        print(e)
+        print(dataset.metadata)
+        return None
 
 @app.command()
 def delete():
