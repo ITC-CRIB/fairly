@@ -205,7 +205,7 @@ class LocalDataset(Dataset):
         """
         if not rule in self._regexps:
             regexps = []
-            for part in os.path.split(rule):
+            for part in os.path.normpath(rule).split(os.sep):
                 if part:
                     pattern = re.escape(part).replace("\*", ".*").replace("\?", ".")
                     regexp = re.compile(f"^{pattern}$", re.IGNORECASE)
@@ -213,8 +213,11 @@ class LocalDataset(Dataset):
                     regexp = None
                 regexps.append(regexp)
             self._regexps[rule] = regexps
-        for i, part in enumerate(os.path.split(name)):
-            regexp = self._regexps[rule][i]
+        for i, part in enumerate(os.path.normpath(name).split(os.sep)):
+            try:
+                regexp = self._regexps[rule][i]
+            except:
+                regexp = None
             if part:
                 if not regexp or not regexp.match(part):
                     return False
@@ -243,9 +246,18 @@ class LocalDataset(Dataset):
                     if includes:
                         matched = False
                         for rule in includes:
-                            if self._match_rule(path, rule):
-                                matched = True
-                                break
+                            if isinstance(rule, str):
+                                if self._match_rule(path, rule):
+                                    matched = True
+                                    break
+                            else:
+                                archive = list(rule.keys())[0]
+                                for rule in list(rule.values())[0]:
+                                    if self._match_rule(path, rule):
+                                        matched = True
+                                        break
+                                if matched:
+                                    break
                         if not matched:
                             continue
                     else:
@@ -372,7 +384,7 @@ class LocalDataset(Dataset):
                 break
 
             elif strategy == "archive_folders":
-                name = os.path.split(file.path)[0]
+                name = os.path.normpath(file.path).split(os.sep)[0]
                 if name not in archives:
                     archives[name] = [file]
                 else:

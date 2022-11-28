@@ -882,8 +882,8 @@ class ZenodoClient(Client):
             result, _ = self._request(f"deposit/depositions/{id['id']}", "PUT", data=data)
 
         except HTTPError as err:
-            # TODO: Add error handling
-            # print(err.response.content)
+            if err.response.status_code == 400:
+                raise ValueError(err.response.content)
             raise
 
         # Update details cache
