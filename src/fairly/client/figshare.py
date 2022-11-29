@@ -978,6 +978,7 @@ class FigshareClient(Client):
         return {
             "title": details["title"],
             "url": details["url_public_html"] if "url_public_html" in details else details["url_private_url"],
+            "doi": details["doi"],
             "status": status,
             "size": size,
             "created": dateutil.parser.isoparse(details["created_date"]),

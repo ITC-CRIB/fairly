@@ -89,7 +89,7 @@ class Dataset(ABC):
     @property
     def files(self) -> List[File]:
         """List of files of the dataset"""
-        return self.get_files()
+        return self.get_files(refresh=True)
 
 
     def get_file(self, val: str, refresh: bool=False) -> File:
