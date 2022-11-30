@@ -1,0 +1,12 @@
+example:
+
+Global config
+
+local/user config
+{"4tu": {"token": "1f735f782f51ed06dcd5230bac9abd85c40c5bd2c43918e902bd706e7c7e8ec7a93ac0518c6228dd127703c4b8724e6de8121e552c4c1ed1b289b8a1332cbe12"}, "zenodo": {"token": "Pm8QHNgv02fgmHnx8ltnRI8e2dIA2W5DRnMzcJYJg1OWzI5adOc6hJWq9b61"}}(env) jurra@DESKTOP-PBROJ33:~/projects/fairly$ 
+
+
+save config, example
+
+client = fairly.client(id='', token='')
+client.save_config()

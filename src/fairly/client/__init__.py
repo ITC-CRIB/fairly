@@ -396,6 +396,17 @@ class Client(ABC):
 
 
     def get_account_datasets(self, refresh: bool=False) -> List[RemoteDataset]:
+        """
+        Retrieves basic metadata of all datasets in a user account.
+        Results are cached to a class attribute.
+        Args:
+            refresh: forced connection to the datarepository to retrieve 
+            list of datasets in a user account.
+
+        Examples:
+        >>> fairly.client.get_account_datasets()
+        """
+
         if self._account_datasets is None or refresh:
             datasets = self._get_account_datasets()
             for dataset in datasets:

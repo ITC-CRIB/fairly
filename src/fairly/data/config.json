@@ -1,4 +1,10 @@
 {
+	"fairly": {
+		"orcid_client_id": "APP-IELS3LR4OCLHLELC",
+		"orcid_client_secret": "",
+		"orcid_token": ""
+	},
+
 	"4tu": {
 		"client_id": "figshare",
 		"name": "4TU.ResearchData",
