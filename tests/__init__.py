@@ -29,28 +29,7 @@ with open(os.path.expanduser("~/.fairly/config.json"), "w") as f:
              }
     f.write(json.dumps(config))
 
-# copy existing ~/.fairly/config.json to ~/.fairly/config.json.bak
-# We do this to test the config file creation and loading
-try: 
-    with open(os.path.expanduser("~/.fairly/config.json"), "r") as f:
-        config = json.load(f)
-        with open(os.path.expanduser("~/.fairly/config.json.bak"), "w") as f:
-            json.dump(config, f)
-except FileNotFoundError:
-    print("No config file found, skipping backup")
-
-# Create a dummy dataset
-try:
-    os.mkdir("tests/fixtures/dummy_dataset")
-
-    # Populate with dummy files
-    with open("tests/fixtures/dummy_dataset/test.txt", "w") as f:
-        f.write("test")
-except:
-    print("Dataset already exists, skipping creation")
-
-
-def create_manifest_from_template(template_file: str, path) -> None:
+def create_manifest_from_template(template_path: str, template_file: str,  target_path) -> None:
     """Create a manifest file from a template file
     Parameters
     ----------
@@ -58,7 +37,7 @@ def create_manifest_from_template(template_file: str, path) -> None:
         Name of the template file in yaml format e.g. figshare.yaml
         the file is extracted from the templates folder
     """
-    with open(f"./src/fairly/data/templates/{template_file}", "r") as f:
+    with open(f"{template_path}{template_file}", "r") as f:
         template = f.read()
         template = yaml.safe_load(template)
         template['metadata']['title'] = "My fairly test"
@@ -76,7 +55,7 @@ def create_manifest_from_template(template_file: str, path) -> None:
             # template dates
             template['metadata']['publication_date'] = '2020-01-01'
 
-    with open(f"{path}/manifest.yaml", "w") as f:
+    with open(f"{target_path}/manifest.yaml", "w") as f:
         f.write(yaml.dump(template))
 
 # Set testing flag
