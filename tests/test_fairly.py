@@ -53,15 +53,21 @@ zenodo_client = fairly.client(id="zenodo", token=ZENODO_TOKEN)
 @pytest.mark.parametrize("client", [(figshare_client),
                         (zenodo_client)])
 def test_create_and_upload_dataset(client: fairly.Client):
+    # check that working directory is correct
+    working_dir_name = os.path.basename(os.path.normpath(os.getcwd()))
+    assert working_dir_name == "tests"
+
     # Test except if dummy dataset doesnt exist
     with pytest.raises(NotADirectoryError):
         local_dataset = fairly.dataset("./tests/non_existing_dataset")
 
     # This copies the template for the specific client 
     # and writes it to the dummy dataset directory
-    create_manifest_from_template(f"{client.client_id}.yaml", "tests/fixtures/dummy_dataset")
+    create_manifest_from_template("../src/fairly/data/templates/", 
+                                f"{client.client_id}.yaml", 
+                                "./fixtures/dummy_dataset")
 
-    local_dataset = fairly.dataset("./tests/fixtures/dummy_dataset")
+    local_dataset = fairly.dataset("./fixtures/dummy_dataset")
     assert local_dataset is not None
     assert local_dataset.metadata['title'] == "My fairly test"
     assert local_dataset.files is not None
@@ -77,7 +83,7 @@ def test_create_and_upload_dataset(client: fairly.Client):
     assert remote_dataset.files is not None
     assert len(remote_dataset.files) == 10
     client._delete_dataset(remote_dataset.id)
-    dirs = [d for d in os.listdir('./tests/') if re.match(r'[a-z]*\.dataset', d)]
+    dirs = [d for d in os.listdir('./') if re.match(r'[a-z]*\.dataset', d)]
     for dir in dirs:
         shutil.rmtree(f"./tests/{dir}/")
 
@@ -87,31 +93,37 @@ def test_create_and_upload_dataset(client: fairly.Client):
 @pytest.mark.parametrize("client", [(figshare_client),
                         (zenodo_client)])
 def test_download_dataset(client):
+    # assert that working directory is tests
+    working_dir_name = os.path.basename(os.path.normpath(os.getcwd()))
+    assert working_dir_name == "tests"
+
     # local dataset is created in the tests folder
     # and then deleted after the test is done
-    create_manifest_from_template(f"{client.client_id}.yaml", "tests/fixtures/dummy_dataset")
+    create_manifest_from_template("../src/fairly/data/templates/", 
+                                  f"{client.client_id}.yaml", 
+                                  "./fixtures/dummy_dataset")
 
-    local_dataset = fairly.dataset("./tests/fixtures/dummy_dataset")
+    local_dataset = fairly.dataset("./fixtures/dummy_dataset")
 
     remote_dataset = local_dataset.upload(client, notify=fairly.notify)
     assert remote_dataset is not None
 
     # Raise error if folder to store the dataset is not empty
     with pytest.raises(ValueError):
-        remote_dataset.store("./tests/fixtures/dummy_dataset")
+        remote_dataset.store("./fixtures/dummy_dataset")
 
-    remote_dataset.store(f"./tests/{client.client_id}.dataset")
+    remote_dataset.store(f"./{client.client_id}.dataset")
     # load the dataset from the file
-    local_dataset = fairly.dataset(f"./tests/{client.client_id}.dataset")
+    local_dataset = fairly.dataset(f"./{client.client_id}.dataset")
     
     assert isinstance(local_dataset, Dataset)
     assert len(local_dataset.files) == 10
     
     # delete the dataset from the remote repository
     client._delete_dataset(remote_dataset.id)
-    dirs = [d for d in os.listdir('./tests/') if re.match(r'[a-z]*\.dataset', d)]
+    dirs = [d for d in os.listdir('./') if re.match(r'[a-z]*\.dataset', d)]
     for dir in dirs:
-        shutil.rmtree(f"./tests/{dir}/")
+        shutil.rmtree(f"./{dir}/")
 
 @pytest.mark.vcr(cassette_library_dir='tests/fixtures/vcr_cassettes', filter_headers=['authorization'])
 @pytest.mark.parametrize("client", [(figshare_client),
@@ -123,10 +135,10 @@ def test_get_account_datasets(client):
 
 # CLEAN UP
 # Write back the original config file
-with open(os.path.expanduser("~/.fairly/config.json.bak"), "r") as f:
-    config = json.load(f)
-    with open(os.path.expanduser("~/.fairly/config.json"), "w") as f:
-        json.dump(config, f)
+# with open(os.path.expanduser("~/.fairly/config.json.bak"), "r") as f:
+#     config = json.load(f)
+#     with open(os.path.expanduser("~/.fairly/config.json"), "w") as f:
+#         json.dump(config, f)
 
 # delete the backup
-os.remove(os.path.expanduser("~/.fairly/config.json.bak"))
+# os.remove(os.path.expanduser("~/.fairly/config.json.bak"))
