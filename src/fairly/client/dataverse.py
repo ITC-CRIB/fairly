@@ -51,7 +51,7 @@ class DataverseClient(Client):
         session = super()._create_session()
 
         # Set authentication token
-        if "token" in self.config:
+        if self.config.get("token"):
             session.headers["X-Dataverse-key"] = self.config['token']
 
         return session
@@ -86,7 +86,7 @@ class DataverseClient(Client):
                     raise ValueError("Invalid id")
             else:
                 raise ValueError("Invalid URL address")
-            
+
         else:
             raise ValueError("No identifier")
 
@@ -154,9 +154,9 @@ class DataverseClient(Client):
 
     def _get_metadata(self, id: Dict) -> Dict:
         endpoint = f"datasets/:persistentId/?persistentId=doi:{id['doi']}"
-        
+
         details, _ = self._request(endpoint)
-        
+
         return details
 
 
@@ -239,3 +239,8 @@ class DataverseClient(Client):
             Details dictionary of the dataset.
         """
         raise NotImplementedError
+
+
+    @classmethod
+    def supports_folder(cls) -> bool:
+        return False

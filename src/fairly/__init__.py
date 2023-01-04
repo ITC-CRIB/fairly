@@ -17,45 +17,54 @@ from .dataset.local import LocalDataset
 from .file import File
 
 
-def get_config(prefix: str) -> Dict:
-    """Returns configuration parameters for the specified prefix.
-
-    Configuration parameters are read from the following sources:
-
-    1. Configuration file of the user located at ``~/.fairly/config.json``.
-    2. Environmental variables of the user.
-
-    .. Attention:: Global and user-defined repository configuration files are not considered by this method.
-
-    Args:
-        prefix: Configuration prefix.
-
-    Returns:
-        Dictionary of configuration parameters for the specified prefix.
-
-    Examples:
-        >>> fairly.get_config("orcid")
-        >>> {'client_id': 'id', 'client_secret': 'secret', ...}
-    """
+def get_environment_config(key: str) -> Dict:
     config = {}
 
-    # Read configuration from the user configuration file
-    try:
-        with open(os.path.expanduser("~/.fairly/config.json"), "r") as file:
-            attrs = json.load(file)
-            if prefix in attrs and isinstance(attrs[prefix], dict):
-                config.update(attrs[prefix])
-    except FileNotFoundError:
-        pass
-
-    # Read configuration from the environmental variables
-    prefix = "FAIRLY_" + prefix.upper() + "_"
+    prefix = "FAIRLY_" + key.upper() + "_"
     start = len(prefix)
     for key, val in os.environ.items():
         if not key.startswith(prefix):
             continue
         key = key[start:].lower()
         config[key] = val
+
+    return config
+
+
+def get_config(key: str) -> Dict:
+    """Returns configuration parameters for the specified key.
+
+    Configuration parameters are read from the following sources:
+
+    1. Configuration file of the package located at ``{package_root}/data/config.json``
+    2. Configuration file of the user located at ``~/.fairly/config.json``.
+    3. Environmental variables of the user starting with ``FAIRLY_{KEY}_``.
+
+    Args:
+        key: Configuration key.
+
+    Returns:
+        Dictionary of configuration parameters for the specified key.
+
+    Examples:
+        >>> fairly.get_config("fairly")
+        >>> {'orcid_client_id': 'id', 'orcid_client_secret': 'secret', ...}
+    """
+    config = {}
+
+    # For each config path
+    for path in [os.path.join(__path__[0], "data"), os.path.expanduser("~/.fairly")]:
+        # Read configuration for the config file if available
+        try:
+            with open(os.path.join(path, "config.json"), "r") as file:
+                data = json.load(file)
+                if key in data and isinstance(data[key], dict):
+                    config.update(data[key])
+        except FileNotFoundError:
+            pass
+
+    # Update configuration from the environment variables
+    config.update(get_environment_config(key))
 
     return config
 
@@ -102,6 +111,7 @@ def get_repositories() -> Dict:
         dictionaries (Dict).
 
     Raises:
+        ValueError: If configuration is invalid.
         AttributeError: If a repository has no client id.
         AttributeError: If a repository has invalid client id.
 
@@ -109,35 +119,52 @@ def get_repositories() -> Dict:
         >>> fairly.get_repositories()
         >>> {'4tu': {'client_id': 'figshare', 'name': '4TU.ResearchData', 'url': 'https://data.4tu.nl/', ...}, ...}
     """
-    # For each repository file path
     data = {}
+
+    # For each configuration path
     for path in [os.path.join(__path__[0], "data"), os.path.expanduser("~/.fairly")]:
-        # Read repository file
-        filename = os.path.join(path, "repositories.json")
+        # Read repository configuration from the configuration file
         try:
-            with open(filename, "r") as file:
-                for id, attrs in json.load(file).items():
-                    if id not in data:
-                        data[id] = attrs
+            with open(os.path.join(path, "config.json"), "r") as file:
+                for key, val in json.load(file).items():
+                    if key == "fairly":
+                        continue
+
+                    elif not isinstance(val, dict):
+                        raise ValueError(f"Invalid configuration {path}: {key}")
+
+                    elif key not in data:
+                        data[key] = val
+
                     else:
-                        data[id].update(attrs)
+                        data[key].update(val)
+
         except FileNotFoundError:
             pass
+
+    # Update repository configuration from the environment variables
+    for key in data:
+        data[key].update(get_environment_config(key))
 
     # Create repository dictionary
     repositories = {}
     clients = get_clients()
+
     for id, attrs in data.items():
         repository = {}
+
         repository["id"] = id
+
         if "client_id" not in attrs:
-            raise AttributeError(f"No client id: {id}")
+            raise AttributeError(f"No client id {id}")
         elif attrs["client_id"] not in clients:
-            raise AttributeError(f"Invalid client_id: {id}")
+            raise AttributeError(f"Invalid client_id {id}:{attrs['client_id']}")
         else:
             repository["client_id"] = attrs["client_id"]
+
         client = clients[repository["client_id"]]
         repository.update(client.get_config(**attrs))
+
         repositories[id] = repository
 
     # Return
@@ -256,7 +283,10 @@ def dataset(id: str) -> Dataset:
         >>> dataset = fairly.dataset("10.5281/zenodo.6026285")
         >>> dataset = fairly.dataset("https://zenodo.org/record/6026285")
     """
-    key, val = Client.parse_id(id)
+    if isinstance(id, str):
+        key, val = Client.parse_id(id)
+    else:
+        key = None
 
     if key == "url":
         for repository_id, repository in get_repositories().items():

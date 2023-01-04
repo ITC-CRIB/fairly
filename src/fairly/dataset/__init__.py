@@ -89,7 +89,7 @@ class Dataset(ABC):
     @property
     def files(self) -> List[File]:
         """List of files of the dataset"""
-        return self.get_files()
+        return self.get_files(refresh=True)
 
 
     def get_file(self, val: str, refresh: bool=False) -> File:
@@ -125,34 +125,50 @@ class Dataset(ABC):
 
     def diff_metadata(self, dataset: Dataset):
         diff = Diff()
+
         metadata = self.metadata
         other_metadata = dataset.metadata
+
         for key, val in metadata.items():
+
             if key in other_metadata:
                 if val == other_metadata[key]:
                     pass
                 else:
                     diff.modify(key, val, other_metadata[key])
+
             else:
-                diff.remove()
+                diff.add(key, val)
+
+        for key, val in other_metadata.items():
+            if key not in metadata:
+                diff.remove(key, val)
+
+        return diff
 
 
     def diff_files(self, dataset: Dataset) -> Diff:
         diff = Diff()
+
         files = self.files
         other_files = dataset.files
+
         for path, file in files.items():
             other_file = other_files.get(path)
+
             if other_file:
                 if file.size == other_file.size and file.md5 == other_file.md5:
                     pass
                 else:
                     diff.modify(path, file, other_file)
+
             else:
                 diff.add(path, file)
+
         for path, other_file in other_files.items():
             if path not in files:
                 diff.remove(path, other_file)
+
         return diff
 
 

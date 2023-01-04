@@ -54,6 +54,7 @@ Please cite this software using as follows:
 
 ## Acknowledgements
 
-- [NWO Open Science Fund](https://www.nwo.nl/en/researchprogrammes/open-science/open-science-fund)
+- [NWO Open Science Fund](https://www.nwo.nl/en/researchprogrammes/open-science/open-science-fund/)
+- [Center of Expertise in Big Geodata Science, University of Twente, Faculty ITC](https://itc.nl/big-geodata/)
 - [Digital Competence Centre, TU Delft](https://dcc.tudelft.nl/)
 - [4TU.ResearchData](https://data.4tu.nl/)

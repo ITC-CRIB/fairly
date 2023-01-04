@@ -4,8 +4,12 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      FAIRLY_FIGSHARE_TOKEN: ${{ secrets.FIGSHARE_TOKEN }}
+      FAIRLY_ZENODO_TOKEN: ${{ secrets.ZENODO_TOKEN }}
+
     strategy:
       matrix:
         python-version: ["3.8", "3.9", "3.10"]
@@ -20,12 +24,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e .[dev]
-      - name: Setup dev env and config
-        run: | 
-          cp .github/.env_dev ./.env
-          mkdir ~/.fairly
       - name: Test with pytest
         run: |
-          # flags added to work with vcr cassettes
-          # pytest --record-mode=once -cov=fairly tests/
-          pytest --record-mode=none tests/test_fairly.py
+          # pytest --record-mode=once --cov=fairly tests/
+          pytest --disable-recording

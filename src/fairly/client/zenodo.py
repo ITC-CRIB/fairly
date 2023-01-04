@@ -2,7 +2,7 @@ from typing import Dict, List, Callable
 
 from . import Client
 from ..metadata import Metadata
-from ..person import Person
+from ..person import Person, PersonList
 from ..dataset.remote import RemoteDataset
 from ..file.local import LocalFile
 from ..file.remote import RemoteFile
@@ -171,7 +171,7 @@ class ZenodoClient(Client):
         session = super()._create_session()
 
         # Set authentication token
-        if "token" in self.config:
+        if self.config.get("token"):
             session.headers["Authorization"] = f"Bearer {self.config['token']}"
 
         return session
@@ -424,7 +424,7 @@ class ZenodoClient(Client):
             return details
 
         endpoints = [f"records/{id['id']}"]
-        if "token" in self.config:
+        if self.config.get("token"):
             endpoints.insert(0, f"deposit/depositions/{id['id']}")
 
         details = None
@@ -552,7 +552,7 @@ class ZenodoClient(Client):
 
         query=f"?q=conceptrecid:{details['conceptrecid']}&all_versions=true&sort=version"
         endpoints = [f"records/{query}"]
-        if "token" in self.config:
+        if self.config.get("token"):
             endpoints.insert(0, f"deposit/depositions/{query}")
 
         versions = OrderedDict()
@@ -619,7 +619,7 @@ class ZenodoClient(Client):
         _set("title")
 
         # List of authors
-        attrs["authors"] = [_get_person(item) for item in metadata.get("creators", [])]
+        attrs["authors"] = PersonList([_get_person(item) for item in metadata.get("creators", [])])
 
         # Description
         _set("description")
@@ -882,8 +882,8 @@ class ZenodoClient(Client):
             result, _ = self._request(f"deposit/depositions/{id['id']}", "PUT", data=data)
 
         except HTTPError as err:
-            # TODO: Add error handling
-            # print(err.response.content)
+            if err.response.status_code == 400:
+                raise ValueError(err.response.content)
             raise
 
         # Update details cache
@@ -901,6 +901,9 @@ class ZenodoClient(Client):
 
         if not metadata.get("description"):
             result["description"] = "Description is required."
+
+        if not metadata.get("type"):
+            result["type"] = "Type is required."
 
         if not metadata.get("access_type"):
             result["access_type"] = "Access type is required."
@@ -1078,3 +1081,8 @@ class ZenodoClient(Client):
             "created": datetime.fromisoformat(details["created"]),
             "modified": datetime.fromisoformat(details["modified"]),
         }
+
+
+    @classmethod
+    def supports_folder(cls) -> bool:
+        return False
