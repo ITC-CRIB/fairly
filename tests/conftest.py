@@ -1,3 +1,6 @@
+import os
+import shutil
+
 import pytest
 
 @pytest.fixture(scope="session")
@@ -16,4 +19,14 @@ def cli_testing_tempdir(tmpdir_factory):
     """Create a temporary directory for testing"""
     # Create a temporary directory
     tmpdir = tmpdir_factory.mktemp("cli_testing_tempdir")
+
+    # print working directory
+    print(f"Working directory: {os.getcwd()}")
+
+    # copy the dummy dataset to the temporary directory
+    # shutil.copytree("./fixtures/dummy_dataset/", f"{tmpdir}/dummy_dataset")
     return tmpdir
+
+@pytest.fixture(autouse=True)
+def change_test_dir(request, monkeypatch):
+    monkeypatch.chdir(request.fspath.dirname)
