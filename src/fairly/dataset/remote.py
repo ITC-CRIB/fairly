@@ -95,6 +95,7 @@ class RemoteDataset(Dataset):
             if extract and local_file.is_archive() and local_file.is_simple():
                 files = local_file.extract(path, notify=notify)
                 includes.append({file.path: files})
+                os.remove(local_file.fullpath)
             else:
                 includes.append(file.path)
         dataset.save_files()

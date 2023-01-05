@@ -2,7 +2,7 @@ from typing import Any, List, Dict, Callable
 
 from . import Client
 from ..metadata import Metadata
-from ..person import Person
+from ..person import Person, PersonList
 from ..dataset.remote import RemoteDataset
 from ..file.local import LocalFile
 from ..file.remote import RemoteFile
@@ -75,11 +75,13 @@ class FigshareClient(Client):
     @classmethod
     def get_config(cls, **kwargs) -> Dict:
         config = super().get_config(**kwargs)
+
         for key, val in kwargs.items():
             if key == "token":
                 config["token"] = val
             else:
                 pass
+
         return config
 
 
@@ -87,7 +89,7 @@ class FigshareClient(Client):
         session = super()._create_session()
 
         # Set authentication token
-        if "token" in self.config:
+        if self.config.get("token"):
             session.headers["Authorization"] = f"token {self.config['token']}"
 
         return session
@@ -175,7 +177,7 @@ class FigshareClient(Client):
         else:
             endpoint = f"articles/{id['id']}"
         endpoints.append(endpoint)
-        if "token" in self.config:
+        if self.config.get("token"):
             endpoints.append(f"account/{endpoint}")
 
         details = None
@@ -232,8 +234,16 @@ class FigshareClient(Client):
             List of license dictionaries
         """
         # REMARK: Private endpoint returns both public and private licenses
-        endpoint = "account/licenses" if "token" in self.config else "licenses"
-        items, _ = self._request(endpoint)
+        endpoints = ["account/licenses"] if self.config.get("token") else []
+        endpoints.append("licenses")
+
+        for endpoint in endpoints:
+            try:
+                items, _ = self._request(endpoint)
+                break
+            except HTTPError as err:
+                if err.response.status_code != 403:
+                    raise
 
         licenses = {}
 
@@ -262,7 +272,16 @@ class FigshareClient(Client):
         """
         # REMARK: Private endpoint returns both public and private categories
         # REMARK: Public endpoint does not return parent categories
-        items, _ = self._request("account/categories" if "token" in self.config else "categories")
+        endpoints = ["account/categories"] if self.config.get("token") else []
+        endpoints.append("categories")
+
+        for endpoint in endpoints:
+            try:
+                items, _ = self._request(endpoint)
+                break
+            except HTTPError as err:
+                if err.response.status_code != 403:
+                    raise
 
         categories = {}
 
@@ -326,7 +345,7 @@ class FigshareClient(Client):
         # Common attributes
 
         # Authors (editable)
-        val = []
+        val = PersonList()
         for item in details.get("authors", []):
             person = Person(
                 fullname = item.get("full_name"),
@@ -959,8 +978,14 @@ class FigshareClient(Client):
         return {
             "title": details["title"],
             "url": details["url_public_html"] if "url_public_html" in details else details["url_private_url"],
+            "doi": details["doi"],
             "status": status,
             "size": size,
             "created": dateutil.parser.isoparse(details["created_date"]),
             "modified": dateutil.parser.isoparse(details["modified_date"]),
         }
+
+
+    @classmethod
+    def supports_folder(cls) -> bool:
+        return False

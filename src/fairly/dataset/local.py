@@ -7,12 +7,14 @@ from ..file.local import LocalFile
 
 import os
 import os.path
-import yaml
+from ruamel.yaml import YAML
 import re
 import csv
 import datetime
 import platform
 from functools import cached_property
+import zipfile
+import hashlib
 
 class LocalDataset(Dataset):
     """
@@ -23,6 +25,7 @@ class LocalDataset(Dataset):
         _includes (set): File inclusion rules
         _excludes (set): File exclusion rules
         _md5s (dict): MD5 hash cache of the files
+        _yaml: YAML object
 
     Class Attributes:
         _regexps (dict): Regular expression cache of the file rules
@@ -60,6 +63,8 @@ class LocalDataset(Dataset):
         # Load cached MD5 hashes
         self._load_md5s()
 
+        self._yaml = YAML()
+
 
     def _get_manifest(self) -> Dict:
         """Retrieves dataset manifest
@@ -71,19 +76,24 @@ class LocalDataset(Dataset):
         manifest = None
         if os.path.isfile(self._manifest_path):
             with open(self._manifest_path, "r") as file:
-                # REMARK: safe_load returns None if file is empty
-                manifest = yaml.safe_load(file)
+                # REMARK: ruaml.yaml is used to preserve document structure
+                # https://stackoverflow.com/questions/71024653/how-to-update-yaml-file-without-loss-of-comments-and-formatting-yaml-automatic
+                manifest = self._yaml.load(file)
+
         if not manifest:
             manifest = {}
-        files = manifest.get("files", {})
-        return {
-            "metadata": manifest.get("metadata", {}),
-            "template": manifest.get("template", ""),
-            "files": {
-                "includes": files.get("includes", []),
-                "excludes": files.get("excludes", []),
-            },
+
+        defaults = {
+            "metadata": {},
+            "template": "",
+            "files": {"includes": [], "excludes": []}
         }
+
+        for key, val in defaults.items():
+            if not manifest.get(key):
+                manifest[key] = val
+
+        return manifest
 
 
     @cached_property
@@ -154,13 +164,12 @@ class LocalDataset(Dataset):
 
         with open(self._manifest_path, "w") as file:
             # TODO: Exception handling
-            yaml.emitter.Emitter.process_tag = lambda self, *args, **kw: None
-            yaml.dump(manifest, file, default_flow_style=False)
+            self._yaml.dump(manifest, file)
 
 
     def save_metadata(self) -> None:
         manifest = self._get_manifest()
-        manifest["metadata"] = self.metadata.serialize()
+        manifest["metadata"].update(self.metadata.serialize())
         self._set_manifest(manifest)
 
 
@@ -196,7 +205,7 @@ class LocalDataset(Dataset):
         """
         if not rule in self._regexps:
             regexps = []
-            for part in os.path.split(rule):
+            for part in os.path.normpath(rule).split(os.sep):
                 if part:
                     pattern = re.escape(part).replace("\*", ".*").replace("\?", ".")
                     regexp = re.compile(f"^{pattern}$", re.IGNORECASE)
@@ -204,8 +213,11 @@ class LocalDataset(Dataset):
                     regexp = None
                 regexps.append(regexp)
             self._regexps[rule] = regexps
-        for i, part in enumerate(os.path.split(name)):
-            regexp = self._regexps[rule][i]
+        for i, part in enumerate(os.path.normpath(name).split(os.sep)):
+            try:
+                regexp = self._regexps[rule][i]
+            except:
+                regexp = None
             if part:
                 if not regexp or not regexp.match(part):
                     return False
@@ -234,9 +246,18 @@ class LocalDataset(Dataset):
                     if includes:
                         matched = False
                         for rule in includes:
-                            if self._match_rule(path, rule):
-                                matched = True
-                                break
+                            if isinstance(rule, str):
+                                if self._match_rule(path, rule):
+                                    matched = True
+                                    break
+                            else:
+                                archive = list(rule.keys())[0]
+                                for rule in list(rule.values())[0]:
+                                    if self._match_rule(path, rule):
+                                        matched = True
+                                        break
+                                if matched:
+                                    break
                         if not matched:
                             continue
                     else:
@@ -289,7 +310,39 @@ class LocalDataset(Dataset):
         self._set_manifest(manifest)
 
 
-    def upload(self, repository, notify: Callable=None) -> RemoteDataset:
+    def get_archive_name(self) -> str:
+        # TODO: Support for user-defined or metadata-based (e.g. title) name
+        return "dataset"
+
+
+    def get_archive_method(self) -> str:
+        # TODO: Support for user-defined method
+        return "deflate"
+
+
+    def upload(self, repository, notify: Callable=None, strategy="auto") -> RemoteDataset:
+        """Uploads dataset to the repository.
+
+        Available upload strategies:
+            - auto
+            - mirror
+            - archive_all
+            - archive_folders
+
+        Args:
+            repository: Repository identifier or client.
+            notify: Notification callback function.
+
+        Returns:
+            Remote dataset
+
+        Raises:
+            ValueError("Invalid repository"): If repository argument is invalid.
+            ValueError("Invalid upload strategy"): If upload strategy is invalid.
+            ValueError("Invalid archive method"): If archive method is invalid.
+            ValueError("Invalid archive name"): If archive name is invalid.
+        """
+        # REMARK: Local import to prevent circular import
         import fairly
         from ..client import Client
 
@@ -304,11 +357,92 @@ class LocalDataset(Dataset):
         # Create dataset
         dataset = client.create_dataset(self.metadata)
 
+        files = self.get_files(refresh=True)
+
+        allow_folders = client.supports_folder()
+
+        if not strategy or strategy == "auto":
+            strategy = "mirror" if allow_folders else "archive_folders"
+
+        uploads = []
+        archives = {}
+
+        for file in files.values():
+
+            if file.is_simple():
+                uploads.append(file)
+
+            elif strategy == "mirror":
+                if allow_folders:
+                    uploads.append(file)
+                else:
+                    raise ValueError("Invalid upload strategy")
+
+            elif strategy == "archive_all":
+                uploads = []
+                archives[self.get_archive_name()] = list(files.values())
+                break
+
+            elif strategy == "archive_folders":
+                name = os.path.normpath(file.path).split(os.sep)[0]
+                if name not in archives:
+                    archives[name] = [file]
+                else:
+                    archives[name].append(file)
+
+            else:
+                raise ValueError("Invalid upload strategy")
+
         try:
             # Upload files
-            files = self.get_files(refresh=True)
-            for path, file in files.items():
+            for file in uploads:
                 client.upload_file(dataset, file, notify)
+
+            # Upload archives if required
+            if archives:
+                methods = {
+                    "store": zipfile.ZIP_STORED,
+                    "deflate": zipfile.ZIP_DEFLATED,
+                    "bzip2": zipfile.ZIP_BZIP2,
+                    "lzma": zipfile.ZIP_LZMA,
+                }
+                method = methods.get(self.get_archive_method())
+                if not method:
+                    raise ValueError("Invalid archive method")
+
+                info = {}
+                for name, files in archives.items():
+
+                    path = os.path.join(self.path, f"{name}.zip")
+                    if os.path.exists(path):
+                        raise ValueError("Invalid archive name")
+
+                    token = ""
+                    with zipfile.ZipFile(path, "w", method) as archive:
+                        for file in files:
+                            archive.write(file.fullpath, file.path)
+                            token += file.md5
+                    md5 = hashlib.md5(str.encode(token)).hexdigest()
+
+                    file = LocalFile(path, self.path)
+                    client.upload_file(dataset, file, notify)
+
+                    info[name] = {"md5": file.md5, "content": md5}
+                    os.remove(path)
+
+                # Update manifest
+                if os.path.isfile(self._manifest_path):
+                    with open(self._manifest_path, "r") as file:
+                        manifest = self._yaml.load(file)
+                else:
+                    manifest = {}
+
+                if not isinstance(manifest.get("files"), dict):
+                    manifest["files"] = {}
+                manifest["files"]["archives"] = info
+
+                with open(self._manifest_path, "w") as file:
+                    self._yaml.dump(manifest, file)
 
         except:
             client.delete_dataset(dataset.id)
@@ -321,7 +455,7 @@ class LocalDataset(Dataset):
     def size(self) -> int:
         """Total size of the dataset in bytes."""
         size = 0
-        for file in self.files:
+        for file in self.files.values():
             size += file.size
 
         return size
@@ -353,3 +487,20 @@ class LocalDataset(Dataset):
         timestamp = os.path.getmtime(self._manifest_path)
 
         return datetime.datetime.fromtimestamp(timestamp)
+
+
+    def synchronize(self, source, notify: Callable=None) -> None:
+        # REMARK: Local import to prevent circular import
+        import fairly
+
+        if not isinstance(source, Dataset):
+            source = fairly.dataset(source)
+
+        diff = source.diff_metadata(self)
+        # TODO: Synchronize metadata
+        print(diff)
+
+        diff = source.diff_files(self)
+
+        for file in diff.added.values():
+            pass

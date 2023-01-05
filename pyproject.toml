@@ -1,6 +1,6 @@
 [project]
 name = "fairly"
-version = "0.1.0-beta.3"
+version = "0.2.0"
 authors = [
   { name="Serkan Girgin", email="s.girgin@utwente.nl" },
   { name="Manuel Garcia Alvarez", email="m.g.garciaalvarez@tudelft.nl" },
@@ -14,7 +14,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent", ]
 dependencies = [
-    "PyYAML",
+    "ruamel.yaml",
     "requests_toolbelt",
     "python-dateutil"
     ]
@@ -23,10 +23,10 @@ keywords = ["fairly", "open science", "research data", "data management"]
 [project.optional-dependencies]
 dev = [
     "pytest",
-    "vcrpy==4.2.1",
-    "pytest-recording==0.12.1",
-    "pytest-cov==4.0.0",
-    "python-dotenv==0.20.0",
+    "vcrpy",
+    "pytest-recording",
+    "pytest-cov",
+    "python-dotenv",
     ]
 
 [project.urls]
