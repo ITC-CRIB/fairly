@@ -26,12 +26,4 @@ jobs:
           pip install -e .[dev]
       - name: Test with pytest
         run: |
-<<<<<<< HEAD
-          # flags added to work with vcr cassettes
-          # pytest --record-mode=once -cov=fairly tests/
-          pytest --record-mode=none
-          
-=======
-          # pytest --record-mode=once --cov=fairly tests/
-          pytest --disable-recording
->>>>>>> main
+          pytest -v --record-mode=once --cov=fairly tests/
