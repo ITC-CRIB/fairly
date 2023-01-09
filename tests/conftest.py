@@ -1,6 +1,7 @@
 import os
 import json
 import dotenv
+import shutil
 
 import pytest
 
@@ -38,6 +39,14 @@ def setup(request):
 
     request.addfinalizer(clean)
 
+@pytest.fixture(scope="session")
+def templates(tmpdir_factory):
+    path = tmpdir_factory.mktemp("test_templates")
+    
+    # copy templates to a temporary directory    
+    return shutil.copytree("./src/fairly/data/templates", 
+                           path, dirs_exist_ok=True)  # dirs_exist_ok needs to be True otherwise copytree will raise a FileExistsError
+      
 
 def clean():
     # Write back the original config file and delete backup if exists
@@ -51,16 +60,16 @@ def clean():
     except FileNotFoundError:
         pass
 
-
 @pytest.fixture(scope="session")
-def dummy_dataset(tmpdir_factory):
+def dummy_dataset(tmpdir_factory, templates):
     """Create a dummy dataset for testing.
 
     Returns:
         Dummy dataset path
     """
     path = tmpdir_factory.mktemp("dummy_dataset")
-
+    
+    # Generate dummy files for the dummy dataset
     for i in range(10):
         with open(path / f"file_{i}.txt", "w") as file:
             file.write(f"file_{i}")

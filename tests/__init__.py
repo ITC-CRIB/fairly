@@ -17,6 +17,7 @@ ZENODO_TOKEN = os.environ.get("FAIRLY_ZENODO_TOKEN")
 
 # load clients from supported clients
 TEMPLATES = os.listdir("./src/fairly/data/templates")
+TEMPLATES_DIR = "./src/fairly/data/templates/"
 
 # We generate a unique string that we can use to populate metadata for testing
 ustring = str(uuid.uuid4())
@@ -33,11 +34,21 @@ def create_manifest_from_template(template_path: str, template_file: str,  targe
     """Create a manifest file from a template file
     Parameters
     ----------
+    template_path : str
+        Path
+
     template_file : str
         Name of the template file in yaml format e.g. figshare.yaml
         the file is extracted from the templates folder
+
+    target_path : str
+        Path to the target folder where the manifest file will be created
+
+    Example
+    -------
+    >>> create_manifest_from_template("./src/fairly/data/templates/", "figshare.yaml", "./tests/data/")
     """
-    with open(f"{template_path}{template_file}", "r") as f:
+    with open(f"{template_path}/{template_file}", "r") as f:
         template = f.read()
         template = yaml.safe_load(template)
         template['metadata']['title'] = "My fairly test"
