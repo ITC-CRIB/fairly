@@ -7,7 +7,14 @@ import pytest
 
 # Load environment variables
 dotenv.load_dotenv()
-    
+
+@pytest.fixture(scope="session")
+def bucket(tmpdir_factory):
+    '''A general purpose repository to store dataset clones'''
+    # Create temporary bucket
+    bucket = tmpdir_factory.mktemp("bucket")
+    return bucket
+
 @pytest.fixture(scope="session", autouse=True)
 def setup(request):
     # Create user configuration directory if required
@@ -46,7 +53,6 @@ def templates(tmpdir_factory):
     # copy templates to a temporary directory    
     return shutil.copytree("./src/fairly/data/templates", 
                            path, dirs_exist_ok=True)  # dirs_exist_ok needs to be True otherwise copytree will raise a FileExistsError
-      
 
 def clean():
     # Write back the original config file and delete backup if exists
@@ -61,7 +67,7 @@ def clean():
         pass
 
 @pytest.fixture(scope="session")
-def dummy_dataset(tmpdir_factory, templates):
+def dummy_dataset(tmpdir_factory):
     """Create a dummy dataset for testing.
 
     Returns:

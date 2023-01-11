@@ -18,6 +18,7 @@ ZENODO_TOKEN = os.environ.get("FAIRLY_ZENODO_TOKEN")
 # load clients from supported clients
 TEMPLATES = os.listdir("./src/fairly/data/templates")
 TEMPLATES_DIR = "./src/fairly/data/templates/"
+ROOT_DIR = os.getcwd()
 
 # We generate a unique string that we can use to populate metadata for testing
 ustring = str(uuid.uuid4())

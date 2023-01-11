@@ -1,4 +1,11 @@
 
+5. fighsare is not providing a url for a remote dataset in the webclient
+
+7. Figshare not allowing to delete a dataset,raising raise `ValueError("Operation not permitted")` 
+
+6. Not able to include files succesfully in the metadata for upload
+
+----------------
 bug
 remote_dataset.url is not returning a url
 how to reproduce error:

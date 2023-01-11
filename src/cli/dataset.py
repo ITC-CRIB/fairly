@@ -45,7 +45,6 @@ def show():
 def clone(
     url: str = typer.Option("", help="URL option argument"),
     token: str = typer.Option("", help="Token option argument"),
-    # doi: str = typer.Option("", help="DOI option argument"),
     repo: str = typer.Option("", help="Repository option argument"),
     id: str = typer.Option("", help="ID option argument"),
     path: str = typer.Argument("./", help="Path where the dataset will be downloaded"),
@@ -56,12 +55,13 @@ def clone(
     Examples: \n
         >>> fairly dataset clone <url|doi> \n
         >>> fairly dataset clone https://zenodo.org/record/6026285 \n
-        >>> fairly dataset clone url --token <token>  \n
+        >>> fairly dataset clone --url <url> --token <token>  \n
         >>> fairly dataset clone <repository> <id> \n
         >>> fairly dataset clone --repo zenodo --id 6026285 \n
     '''
-    # Test the connection to the repository by listing account datasets    
+    
     dataset = None
+    
     if url:
         arg = url # (uncomment when doi is implemented) if url else doi
         try:
@@ -81,6 +81,7 @@ def clone(
             print(e)
             print("Please specify the dataset ID")
             return None
+
     try:
         dir_name = dataset.metadata['title'].replace(" ", "_").lower() 
         with Progress(
@@ -89,49 +90,24 @@ def clone(
             transient = True,
         ) as progress:
             progress.add_task("Cloning dataset",total=None)
-            dataset.store(f'{path}{dir_name}')
-            print(f"Dataset {dir_name} successfully cloned to {path}{dir_name}")
+            
+            if path != "./": 
+                dataset.store(f'{path}')
+                print(f"Dataset {dir_name} successfully cloned to {path}")
+            
+            else: 
+                dataset.store(f'{dir_name}')
+                print(f"Dataset {dir_name} successfully cloned to {dir_name}")
+
 
     except Exception as e: 
         print("Probably you have already cloned this dataset in this directory.")
         raise e
-    
-@app.command()
-def list(
-    repository: str = typer.Argument("zenodo", help="Repository name"),
-) -> None:
-    '''List all datasets in the specified repository by doi, title, and publication_date'''
-    # Test the connection to the repository by listing account datasets
-    client = fairly.client(repository)
-    try:
-        # store dataset lists and print the id, url and title
-        list = client.get_account_datasets()
-        if len(list) == 0:
-            print("There are no datasets under this account")
-        else:
-            print("\n")
-            for dataset in list:
-                # get the dataset metadata
-                metadata = dataset.metadata
-                item = {}
-                for i in metadata:
-                    if i == "publication_date": item[i] = metadata[i]
-                    if i == 'title': item[i] = metadata[i]
-                    if i == 'doi': item[i] = metadata[i]
-
-                # pretty print the list of datasets with yaml format
-                yaml.dump(item, sys.stdout)
-                print("------------------")
-        
-        #TODO: Print the test_connection exception message
-        # List datasets in readable format
-    except:
-        pass
+    return None
 
 @app.command()
 def upload(
     repo: str = typer.Argument("", help="Repository option argument"),
-    # path: str = typer.Argument("./", help="Path where the dataset will be uploaded"),
     token: str = typer.Option("", help="Token option argument"),
 ):
     '''
@@ -144,6 +120,8 @@ def upload(
     '''
     # Check that the manifest is placed in the dataset directory
     # if manifest is not in path, raise error
+    path = "../"
+    
     if not os.path.isfile(f"{os.getcwd()}/manifest.yaml"):
         print(os.path.exists(f"{path}manifest.yaml"))
         print(os.getcwd())
@@ -151,9 +129,12 @@ def upload(
         return None
             
     try:
-        path = "../"
         dataset = fairly.dataset(os.getcwd())
-        client = fairly.client(repo)
+
+        if token: 
+            client = fairly.client(repo, token=token)
+        else: 
+            client = fairly.client(repo)
 
         with Progress(
             SpinnerColumn(),
@@ -166,17 +147,37 @@ def upload(
         return None
 
     except ValueError as e: 
-        # deconstruct the error message
         print(e)
         print(dataset.metadata)
         return None
 
 @app.command()
-def delete():
+def delete(
+    repo: str = typer.Argument("", help="Repository option argument"),
+    url: str = typer.Argument("", help="URL argument, url where the dataset to delete is located"),
+):
     '''
     fairly delete (url|doi)
     '''
-    raise NotImplementedError
+    try: 
+        dataset = fairly.dataset(url)
+       
+        # here we get the repository id from the url to create the client that 
+        # will be used to delete the dataset
+        client = fairly.client(dataset._client._client_id)
+
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            transient = True,
+        ) as progress:
+            progress.add_task(description="Deleting dataset...", total=None)
+            client._delete_dataset(dataset.id)
+
+        print(f"Dataset with id: { dataset.id['id'] } successfully deleted from {repo}")
+    
+    except Exception as e:
+        raise
 
 if __name__ == "__main__":
     app()
