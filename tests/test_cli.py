@@ -13,7 +13,7 @@ from cli import app
 from cli.config import app as config_app
 from cli.dataset import app as dataset_app
 
-from .conftest import dummy_dataset
+from .conftest import dummy_dataset, bucket
 from tests import create_manifest_from_template, ROOT_DIR
 
 runner = CliRunner()
@@ -34,24 +34,24 @@ def test_show_config():
     assert result.exit_code == 0
 
 @pytest.fixture(scope="module")
-def dataset_clone_commands(dummy_dataset, templates):
+def dataset_clone_commands(dummy_dataset, templates, bucket):
     local_dataset = fairly.dataset(dummy_dataset.strpath)
     create_manifest_from_template(templates, "zenodo.yaml", local_dataset.path)
     remote_dataset = local_dataset.upload(CLIENT.client_id)
 
     return [
     # fairly dataset clone --url <url>
-    ['dataset', 'clone', '--url', 'https://zenodo.org/record/1234567', 'tmp_1'],
+    ['dataset', 'clone', '--url', 'https://zenodo.org/record/1234567', ],
 
     # fairly dataset clone --doi <doi>
     # TODO: method not implemented yet in fairly package
     # ['dataset', 'clone', '--doi', '10.5281/zenodo.1234567'],
 
     # fairly dataset clone --url <url> --token <token>
-    ['dataset', 'clone', '--url', 'https://zenodo.org/record/7526539', '--token', FAIRLY_ZENODO_TOKEN_II, 'tmp_3'],
+    ['dataset', 'clone', '--url', 'https://zenodo.org/record/7526539', '--token', FAIRLY_ZENODO_TOKEN_II, f'{bucket.strpath}/{remote_dataset.id}'],
 
     # fairly dataset clone --repo <repo> --id <id>
-    ['dataset', 'clone', '--repo', 'zenodo', '--id', remote_dataset.id, 'tmp_2'],
+    ['dataset', 'clone', '--repo', 'zenodo', '--id', remote_dataset.id, f'{bucket.strpath}/{remote_dataset.id}'],
 ]
 
 @pytest.mark.vcr(cassette_library_dir="./tests/fixtures/vcr_cassettes_cli")
