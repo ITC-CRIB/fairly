@@ -32,7 +32,7 @@ def show(
     
 ):
     '''Show config details'''
-        # expand user path
+    # expand user path
     print(f"You can edit the config file located at: {CONFIG_FILE}")
 
     print("FAIRLY CONFIG")
@@ -47,7 +47,7 @@ def update_token(
     id: str = typer.Argument("", help="Repository ID"),
     token: str = typer.Argument("", help="Repository token")
 ):
-    ''' Update a repository token os.path.expanduser('~/.fairly/config.json'''
+    ''' Update a repository token os.path.expanduser('~/.fairly/config.json)'''
     config = {}
     try:
         with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
@@ -62,12 +62,10 @@ def update_token(
         
         with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
             f.write(json.dumps(config, indent=4))
-
-    
+  
     except FileNotFoundError:
         print(f"Config file not found at {CONFIG_FILE}")
         return
-
 
 
 # @app.command()
