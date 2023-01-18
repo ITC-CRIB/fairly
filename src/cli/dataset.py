@@ -30,8 +30,8 @@ def create(
     if os.path.isfile("manifest.yaml"):
         print("manifest.yaml already exists in the current directory, cannot overwrite existing dataset metadata")
     else:
-        template_path = os.path.join(os.path.dirname(fairly.__file__), './data/templates', f'{metadata}.yaml')
-        shutil.copy(template_path, os.path.join(os.getcwd(), "manifest.yaml"))
+        fairly.init_dataset(os.getcwd(), metadata)
+        return None
 
 @app.command()
 def show():
