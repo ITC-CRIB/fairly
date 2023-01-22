@@ -1,12 +1,8 @@
-import dotenv
-
 import pytest
 
-@pytest.fixture(scope="session", autouse=True)
-def setup(request):
-    # Load environment variables
-    dotenv.load_dotenv()
-
+# Load environment variables
+import dotenv
+dotenv.load_dotenv()
 
 @pytest.fixture(scope="session")
 def dummy_dataset(tmpdir_factory):
