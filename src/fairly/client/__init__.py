@@ -317,7 +317,7 @@ class Client(ABC):
 
         """
 
-        if not getattr(fairly, "TESTING", False):
+        if not fairly.is_testing():
             # Patch HTTPConnection block size to improve connection speed
             # ref: https://stackoverflow.com/questions/72977722/python-requests-post-very-slow
             http.client.HTTPConnection.__init__.__defaults__ = tuple(
