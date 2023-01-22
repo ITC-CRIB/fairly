@@ -645,9 +645,6 @@ class ZenodoClient(Client):
 
         # Client-specific attributes
 
-        # Identifier
-        attrs["zenodo_id"] = details["id"]
-
         # Access conditions (if `access_type` == "restricted")
         _set("access_conditions")
 
