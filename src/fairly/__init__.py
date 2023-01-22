@@ -330,10 +330,18 @@ def init_dataset(path: str, template: str = "default", manifest_file: str = "man
     if os.path.exists(manifest_path):
         raise ValueError("Operation not permitted")
 
-    template_path = os.path.join(
-        __path__[0], "data", "templates", f"{template}.yaml")
+    template_path = os.path.join(__path__[0], "data", "templates", f"{template}.yaml")
     if not os.path.exists(template_path):
-        raise ValueError(f"Invalid template name: {template}")
+
+        repository = get_repository(template)
+        if repository:
+
+            template_path = os.path.join(__path__[0], "data", "templates", f"{repository['client_id']}.yaml")
+            if os.path.exists(template_path):
+                template = repository["client_id"]
+
+            else:
+                raise ValueError(f"Invalid template name: {template}")
 
     with open(template_path) as file:
         metadata = file.read()
