@@ -497,10 +497,6 @@ class Client(ABC):
         # Get standard metadata attributes
         attrs = self._get_metadata(id)
 
-        # Append repository attributes
-        if self.repository_id:
-            attrs[f"{self.repository_id}_id"] = id
-
         # Return metadata
         return Metadata(normalize=self.normalize, **attrs)
 
