@@ -1,5 +1,4 @@
 import os
-import json
 from ruamel.yaml import YAML
 import shutil
 from functools import lru_cache
@@ -109,7 +108,7 @@ def test_create_and_upload_dataset(client: fairly.Client, dummy_dataset):
 
     # Notify user that token is not set
     with pytest.raises(ValueError):
-        tokenless_client = fairly.client(id='zenodo', token=None)
+        tokenless_client = fairly.client(client.client_id)
         local_dataset.upload(tokenless_client)
 
     remote_dataset = local_dataset.upload(client, notify=fairly.notify)
