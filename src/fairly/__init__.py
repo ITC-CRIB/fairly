@@ -3,6 +3,7 @@ fairly
 """
 from typing import Dict, List
 
+import sys
 import os
 import json
 import pkgutil
@@ -15,6 +16,10 @@ from .client import Client
 from .dataset import Dataset
 from .dataset.local import LocalDataset
 from .file import File
+
+
+def is_testing() -> bool:
+    return getattr(sys.modules[__name__], "TESTING", False)
 
 
 def get_environment_config(key: str) -> Dict:
@@ -121,8 +126,13 @@ def get_repositories() -> Dict:
     """
     data = {}
 
+    # Set configuration paths
+    paths = [os.path.join(__path__[0], "data")]
+    if not is_testing():
+        paths.append(os.path.expanduser("~/.fairly"))
+
     # For each configuration path
-    for path in [os.path.join(__path__[0], "data"), os.path.expanduser("~/.fairly")]:
+    for path in paths:
         # Read repository configuration from the configuration file
         try:
             with open(os.path.join(path, "config.json"), "r") as file:
@@ -142,9 +152,10 @@ def get_repositories() -> Dict:
         except FileNotFoundError:
             pass
 
-    # Update repository configuration from the environment variables
-    for key in data:
-        data[key].update(get_environment_config(key))
+    # Update repository configuration from the environment variables if not testing
+    if not is_testing():
+        for key in data:
+            data[key].update(get_environment_config(key))
 
     # Create repository dictionary
     repositories = {}
@@ -213,11 +224,11 @@ def get_repository(uid: str) -> Dict:
     repositories = get_repositories()
 
     if uid in repositories:
-        return repositories[uid]
+        return repositories[uid].copy()
 
     for _, repository in repositories.items():
         if uid == repository["url"]:
-            return repository
+            return repository.copy()
 
     return None
 
