@@ -33,12 +33,11 @@ class LocalDataset(Dataset):
 
     _regexps: Dict = {}
 
-    def __init__(self, path: str, manifest_file: str="manifest.yaml"):
+    def __init__(self, path: str):
         """Initializes LocalDataset object.
 
         Args:
             path (str): Path of the dataset
-            manifest_file (str): Name of the dataset manifest file (optional)
 
         Raises:
             NotADirectoryError = Invalid dataset path
@@ -54,7 +53,7 @@ class LocalDataset(Dataset):
         self._path = path
 
         # Set manifest path
-        self._manifest_path = os.path.join(path, manifest_file)
+        self._manifest_path = os.path.join(path, "manifest.yaml")
 
         # Set file rules
         self._includes = None

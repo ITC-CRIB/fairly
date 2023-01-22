@@ -317,7 +317,7 @@ def dataset(id: str) -> Dataset:
     raise ValueError(f"Unknown dataset identifier: {id}")
 
 
-def init_dataset(path: str, template: str = "default", manifest_file: str = "manifest.yaml", create: bool = True) -> LocalDataset:
+def init_dataset(path: str, template: str = "default", create: bool = True) -> LocalDataset:
     if not os.path.exists(path):
         if create:
             os.makedirs(path)
@@ -326,7 +326,7 @@ def init_dataset(path: str, template: str = "default", manifest_file: str = "man
     elif not os.path.isdir(path):
         raise NotADirectoryError
 
-    manifest_path = os.path.join(path, manifest_file)
+    manifest_path = os.path.join(path, "manifest.yaml")
     if os.path.exists(manifest_path):
         raise ValueError("Operation not permitted")
 
