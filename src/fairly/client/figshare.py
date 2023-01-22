@@ -776,6 +776,10 @@ class FigshareClient(Client):
         if id["version"]:
             raise ValueError("Uploading file to a versioned dataset is not supported")
 
+        # REMARK: Figshare does not allow uploading of empty files
+        if not file.size:
+            raise ValueError("Uploading an empty file is not supported")
+
         # Initiate file upload
         result, _ = self._request(
             endpoint=f"account/articles/{id['id']}/files",
