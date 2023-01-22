@@ -7,6 +7,7 @@ from ..dataset.remote import RemoteDataset
 from ..file.local import LocalFile
 from ..file.remote import RemoteFile
 
+import re
 from urllib.parse import urlparse
 from requests import Session
 from requests.exceptions import HTTPError
@@ -203,9 +204,12 @@ class ZenodoClient(Client):
             else:
                 raise ValueError("Invalid URL address")
         elif "doi" in kwargs:
-            # TODO: Find id from DOI
-            # https://docs.figshare.com/#private_articles_search
-            raise NotImplementedError
+            # REMARK: zenodo in the regular expression may not be always valid
+            match = re.search(r"\/zenodo\.(\d+)$", kwargs["doi"])
+            if match:
+                id = match.group(1)
+            else:
+                raise ValueError("Invalid DOI")
         else:
             raise ValueError("No identifier")
         return {"id": id}
