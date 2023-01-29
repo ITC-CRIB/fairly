@@ -8,8 +8,6 @@ import os
 import json
 import pkgutil
 import importlib
-import shutil
-import glob
 from functools import lru_cache
 
 from .client import Client
@@ -19,10 +17,27 @@ from .file import File
 
 
 def is_testing() -> bool:
+    """Returns unit testing state.
+
+    Returns:
+        True if performing unit tests, False otherwise
+    """
     return getattr(sys.modules[__name__], "TESTING", False)
 
 
 def get_environment_config(key: str) -> Dict:
+    """Returns configuration parameters for the specified key from environmental variables.
+
+    Args:
+        key (str): Configuration key.
+
+    Returns:
+        Dictionary of configuration parameters for the specified key.
+
+    Examples:
+        >>> fairly.get_environment_config("fairly")
+        >>> {'orcid_client_id': 'id', ...}
+    """
     config = {}
 
     prefix = "FAIRLY_" + key.upper() + "_"
@@ -46,7 +61,7 @@ def get_config(key: str) -> Dict:
     3. Environmental variables of the user starting with ``FAIRLY_{KEY}_``.
 
     Args:
-        key: Configuration key.
+        key (str): Configuration key.
 
     Returns:
         Dictionary of configuration parameters for the specified key.
@@ -57,9 +72,9 @@ def get_config(key: str) -> Dict:
     """
     config = {}
 
-    # For each config path
+    # For each configuration path
     for path in [os.path.join(__path__[0], "data"), os.path.expanduser("~/.fairly")]:
-        # Read configuration for the config file if available
+        # Read configuration for the configuration file if available
         try:
             with open(os.path.join(path, "config.json"), "r") as file:
                 data = json.load(file)
@@ -209,7 +224,7 @@ def get_repository(uid: str) -> Dict:
     """Returns repository dictionary of the specified repository.
 
     Args:
-        uid: Repository id or URL address.
+        uid (str): Repository id or URL address.
 
     Returns:
         Repository dictionary if a recognized repository, ``None`` otherwise.
@@ -318,11 +333,28 @@ def dataset(id: str) -> Dataset:
 
 
 def init_dataset(path: str, template: str = "default", create: bool = True) -> LocalDataset:
+    """Initializes a local dataset.
+
+    Args:
+        path (str): Local path of the dataset.
+        template: Template of the dataset (default = 'default').
+        create: Set True to create the dataset directory if not exists (default = True)
+
+    Returns:
+        Local dataset object
+
+    Raises:
+        ValueError("Invalid path"): If path is invalid.
+        NotADirectoryError: If path is not a directory path.
+        ValueError("Operation not permitted"): If path is an existing dataset path.
+        ValueError("Invalid template name"): If template name is invalid.
+
+    """
     if not os.path.exists(path):
         if create:
             os.makedirs(path)
         else:
-            raise ValueError(f"Invalid path: {path}")
+            raise ValueError("Invalid path")
     elif not os.path.isdir(path):
         raise NotADirectoryError
 
@@ -341,7 +373,7 @@ def init_dataset(path: str, template: str = "default", create: bool = True) -> L
                 template = repository["client_id"]
 
             else:
-                raise ValueError(f"Invalid template name: {template}")
+                raise ValueError("Invalid template name")
 
     with open(template_path) as file:
         metadata = file.read()
@@ -356,6 +388,14 @@ def init_dataset(path: str, template: str = "default", create: bool = True) -> L
 
 
 def notify(file: File, current_size: int, total_size: int = None, current_total_size: int = None) -> None:
+    """Displays file transfer information.
+
+    Args:
+        file (File): File object.
+        current_size (int): Current size of the file.
+        total_size (int): Total size of the file (optional).
+        current_total_size (int): Current total size of the transfer operation (optional).
+    """
     if total_size:
         if current_size == file.size:
             print(f"{file.path}, {current_total_size}/{total_size}")
