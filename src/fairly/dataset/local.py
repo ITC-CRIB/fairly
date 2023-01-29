@@ -96,11 +96,6 @@ class LocalDataset(Dataset):
 
 
     @cached_property
-    def manifest(self) -> Dict:
-        return self._get_manifest()
-
-
-    @cached_property
     def path(self) -> str:
         """Path of the dataset"""
         return self._path
@@ -109,7 +104,9 @@ class LocalDataset(Dataset):
     @cached_property
     def template(self) -> str:
         """Metadata template of the dataset"""
-        return self.manifest["template"]
+        manifest = self._get_manifest()
+
+        return manifest["template"]
 
 
     @property
