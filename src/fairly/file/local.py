@@ -1,3 +1,17 @@
+""" LocalFile class module.
+
+LocalFile class is used to perform operations on local files.
+
+Usage example:
+
+    >>> file = LocalFile("/path/to/local/file/filename.txt")
+    >>> file.type
+        application/text
+    >>> file.size
+        543
+    >>> file.is_archive()
+        False
+"""
 from . import File
 from typing import Callable, List
 
@@ -10,10 +24,20 @@ import tarfile
 
 
 class LocalFile(File):
+    """LocalFile class.
 
+    Class Attributes:
+        CHUNK_SIZE: Chunk size in bytes to calculate MD5 checksum (default = 65536)
+    """
     CHUNK_SIZE = 2**16
 
+
     def __init__(self, fullpath: str, basepath: str = None, md5: str = None):
+        """Initializes LocalFile object.
+
+        Raises:
+            ValueError("Invalid file path"): If fullpath is not a valid file path
+        """
         if not os.path.isfile(fullpath):
             raise ValueError("Invalid file path")
         self._fullpath = fullpath
@@ -24,18 +48,36 @@ class LocalFile(File):
         self._type = None
         self._md5 = md5
 
+
     @property
     def fullpath(self) -> str:
+        """Full path of the file.
+
+        Returns:
+            Full path of the file (str).
+        """
         return self._fullpath
+
 
     @property
     def type(self) -> str:
+        """MIME type of the file.
+
+        Returns:
+            MIME type of the file (str).
+        """
         if self._type is None:
             self._type, _ = mimetypes.guess_type(self.fullpath)
         return self._type
 
+
     @property
     def md5(self) -> str:
+        """MD5 checksum of the file.
+
+        Returns:
+            MD5 checksum of the file (str).
+        """
         if self._md5 is None:
             with open(self.fullpath, "rb") as file:
                 md5 = hashlib.md5()
@@ -44,10 +86,14 @@ class LocalFile(File):
             self._md5 = md5.hexdigest()
         return self._md5
 
-    def match(self, val: str) -> bool:
-        return True if self.fullpath == val else super().match(val)
 
+    @property
     def is_archive(self) -> bool:
+        """Checks if file is an archive file.
+
+        Returns:
+            True if file is an archive file, False otherwise.
+        """
         if zipfile.is_zipfile(self.fullpath):
             return True
 
@@ -57,9 +103,18 @@ class LocalFile(File):
         else:
             return False
 
-    def extract(self, path: str = None, notify: Callable = None) -> List:
+
+    def match(self, val: str) -> bool:
+        """Checks if file matches the specified file identifier.
+
+        Returns:
+            True if file matches the specified file identifier, False otherwise.
         """
-        Extracts archive file contents to a specified directory
+        return True if self.fullpath == val else super().match(val)
+
+
+    def extract(self, path: str = None, notify: Callable = None) -> List:
+        """Extracts archive file contents to a specified directory.
 
         Args:
             path: Path of the directory to extract to. Default is the
@@ -74,16 +129,17 @@ class LocalFile(File):
                 - total_size (int): Total uncompressed size of the archive
 
         Raises:
-          ValueError: If invalid path.
-          ValueError: If invalid archive file.
+          ValueError("Invalid path"): If path is not a directory path.
+          ValueError("Invalid archive item {name}"): If archive item path is not valid.
+          ValueError("Invalid archive file"): If file is not an archive file.
 
         Returns:
-          List of extracted files.
+          List of names of extracted files (str).
         """
         # Raise exception if invalid path
         if path:
             if not os.path.isdir(path):
-                raise ValueError(f"Invalid path: {path}")
+                raise ValueError("Invalid path")
         else:
             path = ""
 
@@ -136,7 +192,7 @@ class LocalFile(File):
                 for item in items:
 
                     if os.path.normpath(item.name) != os.path.relpath(item.name):
-                        raise ValueError(f"Invalid archive item: {item.name}")
+                        raise ValueError(f"Invalid archive item {item.name}")
 
                 # Extract items
                 # REMARK: extractall() cannot be used as it sets owner attributes
