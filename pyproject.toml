@@ -14,19 +14,20 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent", ]
 dependencies = [
-    "ruamel.yaml",
-    "requests_toolbelt",
-    "python-dateutil"
+    "python-dateutil",
+    "requests",
+		"requests_toolbelt",
+    "ruamel.yaml"
     ]
 keywords = ["fairly", "open science", "research data", "data management"]
 
 [project.optional-dependencies]
 dev = [
     "pytest",
-    "vcrpy",
-    "pytest-recording",
     "pytest-cov",
+    "pytest-recording",
     "python-dotenv",
+    "vcrpy"
     ]
 
 [project.urls]
