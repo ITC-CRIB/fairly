@@ -9,7 +9,7 @@
 project = 'fairly'
 copyright = '2022, Serkan Girgin, Manuel Garcia Alvarez, Jose Urra Llanusa'
 author = 'Serkan Girgin, Manuel Garcia Alvarez, Jose Urra Llanusa'
-release = '0.2'
+release = '0.2.1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
