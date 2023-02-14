@@ -365,7 +365,7 @@ class LocalDataset(Dataset):
 
         for file in files.values():
 
-            if file.is_simple():
+            if file.is_simple:
                 uploads.append(file)
 
             elif strategy == "mirror":

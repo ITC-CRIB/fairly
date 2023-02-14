@@ -92,7 +92,7 @@ class RemoteDataset(Dataset):
         includes = dataset.includes
         for name, file in self.files.items():
             local_file = self._download_file(file, path, notify=notify)
-            if extract and local_file.is_archive() and local_file.is_simple():
+            if extract and local_file.is_archive and local_file.is_simple:
                 files = local_file.extract(path, notify=notify)
                 includes.append({file.path: files})
                 os.remove(local_file.fullpath)

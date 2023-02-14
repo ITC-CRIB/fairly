@@ -9,7 +9,7 @@ Usage example:
         application/text
     >>> file.size
         543
-    >>> file.is_archive()
+    >>> file.is_archive
         False
 """
 from . import File

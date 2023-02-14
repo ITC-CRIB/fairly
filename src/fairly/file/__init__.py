@@ -67,6 +67,7 @@ class File(ABC):
         return True if self.name == val or self.path == val or self.md5 == val else False
 
 
+    @property
     def is_simple(self) -> bool:
         """
         Returns True if the file path does not include directories, i.e. the
