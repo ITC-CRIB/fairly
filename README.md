@@ -119,6 +119,9 @@ Unit tests can be run by using `pytest` command in the root directory.
 
 Read the [guidelines](CONTRIBUTING.md) to know how you can be part of this open source project.
 
+## JupyterLab Extension
+
+An extension for JupyerLab is being developed in a [different repository.](https://github.com/ITC-CRIB/JupyterFAIR)
 
 ## Citation
 
