@@ -33,7 +33,7 @@ MANIFEST
 *.manifest
 *.spec
 *.dataset
-tests/fixture/vcr_cassettes*/
+tests/fixtures/vcr_cassettes*/
 
 
 # Installer logs
