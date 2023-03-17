@@ -17,7 +17,9 @@ dependencies = [
     "python-dateutil",
     "requests",
 		"requests_toolbelt",
-    "ruamel.yaml"
+    "ruamel.yaml",
+    "typer>=0.6.1",
+    "rich"
     ]
 keywords = ["fairly", "open science", "research data", "data management"]
 
