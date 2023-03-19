@@ -1,6 +1,5 @@
 import sys
 import pprint as pp
-import json
 
 import yaml
 import typer
