@@ -1,8 +1,9 @@
 import os
+import sys
 import pprint
 import json
 
-import yaml
+from ruamel.yaml import YAML
 
 import typer
 import fairly
@@ -32,6 +33,7 @@ def show(
     
 ):
     '''Show config details'''
+    yaml = YAML()
     # expand user path
     print(f"You can edit the config file located at: {CONFIG_FILE}")
 
@@ -39,7 +41,7 @@ def show(
     print("--------------------")
 
     repos = fairly.get_repositories()
-    print(yaml.dump(repos, default_flow_style=False))
+    yaml.dump(repos, sys.stdout)
 
 
 @app.command()

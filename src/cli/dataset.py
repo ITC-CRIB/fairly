@@ -1,6 +1,5 @@
 import os
 import pprint
-import yaml
 
 import typer
 from rich.progress import Progress, SpinnerColumn, TextColumn

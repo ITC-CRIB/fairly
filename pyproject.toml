@@ -19,8 +19,7 @@ dependencies = [
 		"requests_toolbelt",
     "ruamel.yaml",
     "typer>=0.6.1",
-    "rich",
-    "pyyaml"
+    "rich"
     ]
 keywords = ["fairly", "open science", "research data", "data management"]
 

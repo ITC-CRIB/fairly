@@ -1,7 +1,7 @@
 import sys
 import pprint as pp
 
-import yaml
+from ruamel.yaml import YAML
 import typer
 import fairly
 
@@ -30,6 +30,7 @@ def list_user_datasets(
     repository: str = typer.Argument("", help="Repository name"),
 ) -> None:
     '''List all datasets in the specified repository by doi, title, and publication_date'''
+    yaml = YAML()
     # Test the connection to the repository by listing account datasets
     try:
         client = fairly.client(repository)
