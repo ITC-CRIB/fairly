@@ -111,11 +111,11 @@ class FigshareClient(Client):
             ValueError("Invalid version")
         """
         version = None
-        if "id" in kwargs:
+        if kwargs.get("id"):
             id = str(kwargs["id"])
             if not id.isnumeric():
                 raise ValueError("Invalid id")
-        elif "url" in kwargs:
+        elif kwargs.get("url"):
             parts = urlparse(kwargs["url"]).path.strip("/").split("/")
             if parts[-1].isnumeric():
                 if parts[-2].isnumeric():
@@ -125,7 +125,7 @@ class FigshareClient(Client):
                     id = parts[-1]
             else:
                 raise ValueError("Invalid URL address")
-        elif "doi" in kwargs:
+        elif kwargs.get("doi"):
             match = re.search(r"(\.figshare\.|\/)(\d+)(\.v(\d+))?$", kwargs["doi"])
             if match:
                 id = match.group(2)
@@ -136,7 +136,7 @@ class FigshareClient(Client):
                 raise NotImplementedError
         else:
             raise ValueError("No identifier")
-        if version is None and "version" in kwargs and kwargs["version"]:
+        if version is None and kwargs.get("version"):
             version = str(kwargs["version"])
             if not version.isnumeric():
                 raise ValueError("Invalid version")
@@ -367,7 +367,11 @@ class FigshareClient(Client):
         # License
         val = details.get("license")
         if val:
-            licenses = self.get_licenses()
+            try:
+                licenses = self.get_licenses()
+            except:
+                licenses = {}
+
             if isinstance(val, dict):
                 if val["value"] in licenses:
                     val = val["name"]
@@ -440,7 +444,10 @@ class FigshareClient(Client):
         # Categories
         # REMARK: Categories can be made human-friendly only if original repository is used
         val = []
-        categories = self.get_categories()
+        try:
+            categories = self.get_categories()
+        except:
+            categories = []
         for item in details.get("categories", []):
             val.append(categories[item["id"]]["name"] if item["id"] in categories else item["id"])
         attrs["categories"] = val
