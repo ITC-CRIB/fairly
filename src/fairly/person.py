@@ -72,7 +72,7 @@ class Person(MutableMapping):
     def __setitem__(self, key, val):
         if bool(val) or isinstance(val, (bool, int, float)):
             self.__dict__[key] = val
-        elif hasattr(self.__dict__, key):
+        elif key in self.__dict__:
             del self.__dict__[key]
 
 

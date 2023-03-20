@@ -50,9 +50,8 @@ class Metadata(MutableMapping):
     def __setitem__(self, key, val):
         if bool(val) or isinstance(val, (bool, int, float)):
             self._attrs[key] = self._normalize(key, val)
-        elif hasattr(self._attrs, key):
+        elif key in self._attrs:
             del self._attrs[key]
-
 
     def __getitem__(self, key):
         return self._attrs[key]
