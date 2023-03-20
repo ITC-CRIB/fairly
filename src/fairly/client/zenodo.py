@@ -385,7 +385,7 @@ class ZenodoClient(Client):
         page = 1
         while True:
             # TODO: Add error handling
-            items, _ = self._request(f"deposit/depositions?page={page}&page_size={self.PAGE_SIZE}")
+            items, _ = self._request(f"deposit/depositions?page={page}&size={self.PAGE_SIZE}")
 
             if not items:
                 break
