@@ -764,7 +764,10 @@ class FigshareClient(Client):
             raise
 
         # Get dataset id
-        id = self.get_dataset_id(result["entity_id"])
+        if result.get("entity_id"):
+            id = self.get_dataset_id(result["entity_id"])
+        else:
+            id = self.get_dataset_id(result["location"])
 
         # Save metadata
         try:
