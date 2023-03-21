@@ -12,7 +12,7 @@ from __future__ import annotations
 from typing import Any, Dict
 from collections.abc import MutableMapping
 
-from .person import Person
+from .person import Person, PersonList
 
 import re
 
@@ -131,8 +131,18 @@ class Metadata(MutableMapping):
         """
         out = self._attrs.copy()
 
-        if out.get("authors"):
-            out["authors"] = [author.serialize() for author in out["authors"]]
+        for key, val in out.items():
+
+            if isinstance(val, Person):
+                val = val.serialize()
+
+            elif isinstance(val, PersonList):
+                val = [person.serialize() for person in val]
+
+            else:
+                continue
+
+            out[key] = val
 
         return out
 

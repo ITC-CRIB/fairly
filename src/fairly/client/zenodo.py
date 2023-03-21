@@ -658,7 +658,7 @@ class ZenodoClient(Client):
         _set("related_identifiers")
 
         # List of contributors
-        attrs["contributors"] = [_get_person(item) for item in metadata.get("contributors", [])]
+        attrs["contributors"] = PersonList([_get_person(item) for item in metadata.get("contributors", [])])
 
         # List of references
         _set("references", [])
@@ -699,7 +699,7 @@ class ZenodoClient(Client):
 
         # Thesis attributes
         if type == "thesis":
-            attrs["thesis_supervisors"] = [_get_person(item) for item in metadata.get("thesis_supervisors", [])]
+            attrs["thesis_supervisors"] = PersonList([_get_person(item) for item in metadata.get("thesis_supervisors", [])])
             _set("thesis_university")
 
         # List of subjects
