@@ -103,7 +103,7 @@ Currently, the package supports the following research data management platforms
 
 - [Zenodo](https://zenodo.org/)
 - [Figshare](https://figshare.com/)
-- [Djehuty](https://github.com/4TUResearchData/djehuty/)
+- [Djehuty](https://github.com/4TUResearchData/djehuty/) (experimental)
 
 All research data repositories based on the listed platforms are supported.
 
