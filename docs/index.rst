@@ -3,15 +3,14 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-fairly's documentation
+Fairly Toolset Documentation
 ==================================
-
 
 .. toctree::
    :maxdepth: 2
    :caption: Fairly Package
 
-   package/installation.rst
+   installation.rst
 
 .. toctree::
    :maxdepth: 1
