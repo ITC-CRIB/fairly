@@ -522,3 +522,8 @@ class LocalDataset(Dataset):
 
         for file in diff.added.values():
             pass
+
+
+    def reproduce(self) -> LocalDataset:
+        """Reproduces an actual copy of the dataset."""
+        return LocalDataset(self.path)

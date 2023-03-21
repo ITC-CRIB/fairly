@@ -167,3 +167,8 @@ class RemoteDataset(Dataset):
         """Last modification date and time of the dataset"""
         # REMARK: Can be better to have a dedicated method to minimize data transfer
         return self._get_detail("modified", refresh=True)
+
+
+    def reproduce(self) -> RemoteDataset:
+        """Reproduces an actual copy of the dataset."""
+        return RemoteDataset(self.client, self.id)

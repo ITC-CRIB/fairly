@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import List, Dict, Union
 from abc import ABC, abstractmethod
-from functools import cached_property
 
 import datetime
 
@@ -140,8 +139,17 @@ class Dataset(ABC):
         return self.get_file(val, refresh=self.is_modified)
 
 
-    def diff_metadata(self, dataset: Dataset):
+    @abstractmethod
+    def reproduce(self) -> Dataset:
+        """Reproduces an actual copy of the dataset."""
+        raise NotImplementedError
+
+
+    def diff_metadata(self, dataset: Dataset=None):
         diff = Diff()
+
+        if dataset is None:
+            dataset = self.reproduce()
 
         metadata = self.metadata
         other_metadata = dataset.metadata
@@ -164,8 +172,11 @@ class Dataset(ABC):
         return diff
 
 
-    def diff_files(self, dataset: Dataset) -> Diff:
+    def diff_files(self, dataset: Dataset=None) -> Diff:
         diff = Diff()
+
+        if dataset is None:
+            dataset = self.reproduce()
 
         files = self.files
         other_files = dataset.files
