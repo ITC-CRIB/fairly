@@ -21,27 +21,14 @@ Fairly Toolset Documentation
    tutorials/python-api
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Quick Start
-
-   package/demo-4tu
-   package/demo-zenodo
-   package/account-token
-   package/account-datasets
-   package/archiving-datasets
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Command Line Interface
+   :maxdepth:  1
+   :caption: Fairly API
    
-   cli/placeholder
+   api/fairly
+   api/fairly.client
+   api/fairly.dataset
+   api/fairly.file
 
-.. toctree::
-   :maxdepth: 2
-   :caption: JupyterLab Extension
-   
-   jupyterlab/placeholder
-   
 Indices and tables
 ==================
 
