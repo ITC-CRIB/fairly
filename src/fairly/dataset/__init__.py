@@ -103,14 +103,18 @@ class Dataset(ABC):
 
     def get_file(self, val: str, refresh: bool=False) -> File:
         # TODO: Implement without using get_files()
-        for key, file in self.get_files(refresh).items():
+        files = self.get_files(refresh)
+
+        if isinstance(val, int):
+            return list(files.values())[val]
+
+        for key, file in files.items():
             if file.match(val):
                 return file
 
         return None
 
 
-    @property
     def file(self, val: str) -> File:
         return self.get_file(val)
 
