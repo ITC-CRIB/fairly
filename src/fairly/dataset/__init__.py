@@ -55,7 +55,7 @@ class Dataset(ABC):
     @property
     def metadata(self) -> Metadata:
         """Metadata of the dataset"""
-        return self.get_metadata()
+        return self.get_metadata(refresh=self.is_modified)
 
 
     def set_metadata(self, **kwargs) -> None:
@@ -117,7 +117,7 @@ class Dataset(ABC):
     @property
     def files(self) -> List[File]:
         """List of files of the dataset"""
-        return self.get_files(refresh=True)
+        return self.get_files(refresh=self.is_modified)
 
 
     def get_file(self, val: str, refresh: bool=False) -> File:
@@ -135,15 +135,7 @@ class Dataset(ABC):
 
 
     def file(self, val: str) -> File:
-        return self.get_file(val)
-
-
-    def add_file(self, file) -> File:
-        raise NotImplementedError
-
-
-    def remove_file(self, file) -> None:
-        raise NotImplementedError
+        return self.get_file(val, refresh=self.is_modified)
 
 
     def diff_metadata(self, dataset: Dataset):
@@ -224,4 +216,9 @@ class Dataset(ABC):
 
     @property
     def is_modified(self) -> bool:
+        """Checks if the existing dataset is modified.
+
+        Returns:
+            True if the existing dataset is modified, False otherwise.
+        """
         return None if self._modified is None else self._modified != self.modified

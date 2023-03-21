@@ -162,4 +162,5 @@ class RemoteDataset(Dataset):
     @property
     def modified(self) -> datetime.datetime:
         """Last modification date and time of the dataset"""
+        # REMARK: Can be better to have a dedicated method to minimize data transfer
         return self._get_detail("modified", refresh=True)
