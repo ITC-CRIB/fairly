@@ -16,13 +16,14 @@ class Dataset(ABC):
     Attributes:
       _metadata (Metadata): Metadata
       _files (list): Files list
-      _modified (datetime.datetime): Known modified date
+      _modified (datetime.datetime): Last known modification date
 
     """
 
     def __init__(self):
         self._metadata = None
         self._files = None
+        self._modified = None
 
 
     @abstractmethod
@@ -46,6 +47,8 @@ class Dataset(ABC):
         """
         if self._metadata is None or refresh:
             self._metadata = self._get_metadata()
+            self._modified = self.modified
+
         return self._metadata
 
 
@@ -65,10 +68,24 @@ class Dataset(ABC):
         raise NotImplementedError
 
 
-    def save_metadata(self) -> None:
-        """Stores dataset metadata if exists"""
+    def save_metadata(self, force: bool=False) -> None:
+        """Stores dataset metadata if exists
+
+        Args:
+            force (bool): Set True to enforce save even if existing dataset is modified
+
+        Returns:
+            None
+
+        Raises:
+            Warning("Existing dataset is modified")
+        """
         if self._metadata is None:
             return
+
+        # REMARK: It can be better to check if metadata is actually changed
+        if self.is_modified and not force:
+            raise Warning("Existing dataset is modified")
 
         self._save_metadata()
 
@@ -92,6 +109,8 @@ class Dataset(ABC):
             for file in self._get_files():
                 files[file.path] = file
             self._files = files
+            self._modified = self.modified
+
         return self._files
 
 
@@ -125,15 +144,6 @@ class Dataset(ABC):
 
     def remove_file(self, file) -> None:
         raise NotImplementedError
-
-
-    def save_files(self) -> None:
-        raise NotImplementedError
-
-
-    def save(self) -> None:
-        self.save_metadata()
-        self.save_files()
 
 
     def diff_metadata(self, dataset: Dataset):
@@ -210,3 +220,8 @@ class Dataset(ABC):
     def modified(self) -> datetime.datetime:
         """Last modification date and time of the dataset."""
         raise NotImplementedError
+
+
+    @property
+    def is_modified(self) -> bool:
+        return None if self._modified is None else self._modified != self.modified

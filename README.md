@@ -93,7 +93,7 @@ dataset.metadata
 
 # Update metadata
 dataset.metadata['keywords'] = ['Landslides', 'precursor']
-dataset.save()
+dataset.save_metadata()
 
 # Store dataset to a local directory (i.e. clone dataset)
 local_dataset = dataset.store('/path/dataset')
