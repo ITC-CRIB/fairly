@@ -160,11 +160,25 @@ class Metadata(MutableMapping):
         """
         updated = {}
 
-        if self.get("authors") and (not attrs or "authors" in attrs):
-            updated["authors"] = {}
-            for key, val in enumerate(self["authors"]):
+        for key, val in self._attrs.items():
+
+            if attrs and key not in attrs:
+                continue
+
+            if isinstance(val, Person):
                 result = val.autocomplete(overwrite=overwrite, **kwargs)
-                if result:
-                    updated["authors"][key] = result
+
+            elif isinstance(val, PersonList):
+                result = {}
+                for index, person in enumerate(val):
+                    res = person.autocomplete(overwrite=overwrite, **kwargs)
+                    if res:
+                        result[key] = res
+
+            else:
+                continue
+
+            if result:
+                updated[key] = result
 
         return updated
