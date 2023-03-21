@@ -20,7 +20,7 @@ Installing from source
 
 Installing *fairly* from source requires `setuptools` version 49.0 or later and `pip`.
 
-1. Clone or download the `source code <https://github.com/ITC-CRIB/JupyterFAIR>`_:
+1. Clone or download the `source code <https://github.com/ITC-CRIB/fairly>`_:
 
 .. code-block:: shell
 
