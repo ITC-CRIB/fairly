@@ -79,11 +79,14 @@ class RemoteDataset(Dataset):
 
 
     def store(self, path: str, notify: Callable=None, extract: bool=False) -> LocalDataset:
+        # REMARK: Local import to prevent circular import
+        import fairly
+
         os.makedirs(path, exist_ok=True)
         if os.listdir(path):
             raise ValueError("Directory is not empty.")
 
-        dataset = LocalDataset(path)
+        dataset = fairly.init_dataset(path)
 
         # TODO: Set metadata directly without serialization
         dataset.set_metadata(**self.metadata)

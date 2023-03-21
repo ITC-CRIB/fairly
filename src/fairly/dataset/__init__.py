@@ -89,6 +89,8 @@ class Dataset(ABC):
 
         self._save_metadata()
 
+        self.get_metadata(refresh=True)
+
 
     @abstractmethod
     def _get_files(self) -> List[File]:

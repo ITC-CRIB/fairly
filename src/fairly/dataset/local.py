@@ -297,10 +297,6 @@ class LocalDataset(Dataset):
             pass
 
 
-    def _save_files(self) -> None:
-        raise NotImplementedError
-
-
     def save_files(self, force: bool=False) -> None:
         """Stores dataset file list if exists
 
@@ -323,6 +319,8 @@ class LocalDataset(Dataset):
             "excludes": self.excludes,
         }
         self._set_manifest(manifest)
+
+        self.get_files(refresh=True)
 
 
     def save(self) -> None:
