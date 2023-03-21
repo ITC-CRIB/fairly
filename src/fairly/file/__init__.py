@@ -10,7 +10,7 @@ class File(ABC):
 
 
     def __repr__(self):
-        return repr(self.path)
+        return f"{{'path': {self.path}, 'size': {self.size}}}"
 
 
     @property
