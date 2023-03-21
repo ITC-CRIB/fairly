@@ -538,10 +538,16 @@ class Client(ABC):
     def download_file(self, file: RemoteFile, path: str=None, name: str=None, notify: Callable=None) -> LocalFile:
         if not file.url:
             raise ValueError("No URL address")
+
         if not path:
             path = os.getcwd()
+
         if not name:
-            name = file.name
+            name = file.path
+            dirs = os.path.dirname(name)
+            if dirs:
+                os.makedirs(dirs, exist_ok=True)
+
         fullpath = os.path.join(path, name)
         current_size = 0
         md5 = hashlib.md5()
