@@ -62,7 +62,7 @@ class RemoteDataset(Dataset):
         return self.client.get_metadata(self.id)
 
 
-    def save_metadata(self) -> None:
+    def _save_metadata(self) -> None:
         return self.client.save_metadata(self.id, self.metadata)
 
 

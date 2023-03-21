@@ -163,7 +163,7 @@ class LocalDataset(Dataset):
             self._yaml.dump(manifest, file)
 
 
-    def save_metadata(self) -> None:
+    def _save_metadata(self) -> None:
         manifest = self._get_manifest()
         manifest["metadata"].update(self.metadata.serialize())
         self._set_manifest(manifest)

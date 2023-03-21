@@ -16,6 +16,7 @@ class Dataset(ABC):
     Attributes:
       _metadata (Metadata): Metadata
       _files (list): Files list
+      _modified (datetime.datetime): Known modified date
 
     """
 
@@ -59,9 +60,17 @@ class Dataset(ABC):
 
 
     @abstractmethod
-    def save_metadata(self) -> None:
+    def _save_metadata(self) -> None:
         """Stores dataset metadata"""
         raise NotImplementedError
+
+
+    def save_metadata(self) -> None:
+        """Stores dataset metadata if exists"""
+        if self._metadata is None:
+            return
+
+        self._save_metadata()
 
 
     @abstractmethod
