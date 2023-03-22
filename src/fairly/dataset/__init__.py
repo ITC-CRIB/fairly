@@ -16,13 +16,15 @@ class Dataset(ABC):
       _metadata (Metadata): Metadata
       _files (list): Files list
       _modified (datetime.datetime): Last known modification date
+      _auto_refresh (bool): Auto-refresh flag
 
     """
 
-    def __init__(self):
+    def __init__(self, auto_refresh: bool=False):
         self._metadata = None
         self._files = None
         self._modified = None
+        self._auto_refresh = auto_refresh
 
 
     @abstractmethod
@@ -54,11 +56,16 @@ class Dataset(ABC):
     @property
     def metadata(self) -> Metadata:
         """Metadata of the dataset"""
-        return self.get_metadata(refresh=self.is_modified)
+        if self._metadata and self._metadata.is_modified:
+            refresh = False
+        else:
+            refresh = self._auto_refresh and self.is_modified
+
+        return self.get_metadata(refresh=refresh)
 
 
     def set_metadata(self, **kwargs) -> None:
-        self.get_metadata().update(kwargs)
+        self.metadata.update(kwargs)
 
 
     @abstractmethod
@@ -235,3 +242,13 @@ class Dataset(ABC):
             True if the existing dataset is modified, False otherwise.
         """
         return None if self._modified is None else self._modified != self.modified
+
+
+    @property
+    def auto_refresh(self) -> bool:
+        return self._auto_refresh
+
+
+    @auto_refresh.setter
+    def auto_refresh(self, val):
+        self._auto_refresh = bool(val)
