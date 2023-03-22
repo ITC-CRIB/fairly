@@ -23,16 +23,16 @@ class RemoteDataset(Dataset):
 
     """
 
-    def __init__(self, client, id=None, details: Dict=None, **kwargs):
+    def __init__(self, client, id=None, auto_refresh: bool=False, details: Dict=None, **kwargs):
         """Initializes RemoteDataset object.
 
         Args:
             client (Client): Client of the dataset
             id: Dataset identifier
-
+            auto_refresh (bool): Set True to auto-refresh dataset information
         """
         # Call parent method
-        super().__init__()
+        super().__init__(auto_refresh=auto_refresh)
         # Set client
         self._client = client
         # Set dataset id

@@ -33,17 +33,18 @@ class LocalDataset(Dataset):
 
     _regexps: Dict = {}
 
-    def __init__(self, path: str):
+    def __init__(self, path: str, auto_refresh: bool=False):
         """Initializes LocalDataset object.
 
         Args:
             path (str): Path of the dataset
+            auto_refresh (bool): Set True to auto-refresh dataset information
 
         Raises:
             NotADirectoryError = Invalid dataset path
         """
         # Call parent method
-        super().__init__()
+        super().__init__(auto_refresh=auto_refresh)
 
         # Throw exception if invalid path
         if not os.path.isdir(path):

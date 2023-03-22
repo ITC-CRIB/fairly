@@ -21,6 +21,11 @@ class Dataset(ABC):
     """
 
     def __init__(self, auto_refresh: bool=False):
+        """Initializes Dataset object.
+
+        Args:
+            auto_refresh (bool): Set True to auto-refresh dataset information
+        """
         self._metadata = None
         self._files = None
         self._modified = None
