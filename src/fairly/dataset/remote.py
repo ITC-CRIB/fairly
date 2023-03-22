@@ -101,6 +101,9 @@ class RemoteDataset(Dataset):
                 includes.append(file.path)
         dataset.save_files()
 
+        if self.client.repository_id:
+            dataset.set_remote_dataset(self)
+
         return dataset
 
 

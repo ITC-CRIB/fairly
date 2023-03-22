@@ -488,11 +488,7 @@ class LocalDataset(Dataset):
 
         # Add remote dataset id to the manifest if known repository
         if client.repository_id:
-            manifest = self._get_manifest()
-            if "remotes" not in manifest:
-                manifest["remotes"] = {}
-            manifest["remotes"][client.repository_id] = dataset.id
-            self._set_manifest(manifest)
+            self.set_remote_dataset(dataset)
 
         return dataset
 
@@ -557,6 +553,23 @@ class LocalDataset(Dataset):
     def reproduce(self) -> LocalDataset:
         """Reproduces an actual copy of the dataset."""
         return LocalDataset(self.path)
+
+
+    def set_remote_dataset(self, dataset) -> None:
+        if not isinstance(dataset, RemoteDataset):
+            dataset = fairly.dataset(dataset)
+            if not isinstance(dataset, RemoteDataset):
+                raise ValueError("Invalid remote dataset")
+
+        id = dataset.client.repository_id
+        if not id:
+            raise ValueError("No repository id")
+
+        manifest = self._get_manifest()
+        if "remotes" not in manifest:
+            manifest["remotes"] = {}
+        manifest["remotes"][id] = dataset.id
+        self._set_manifest(manifest)
 
 
     def get_remote_dataset(self, remote=None) -> RemoteDataset:
