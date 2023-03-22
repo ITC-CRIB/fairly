@@ -1,4 +1,4 @@
-Using the JupterLab Extension
+Using the JupyterLab Extension
 ==============================
 
 This tutorial shows how to use the JupyterLab extension to clone and create research datasets using the graphical inteface of JupyterLab, and how to upload dataset  to popular research data repositories.
@@ -40,7 +40,7 @@ JupyterLab should automatically start on you browser.
 .. image:: ../img/start-jupyterlab.png
 
 
-Part 1: Clonning Dastasets
+Part 1: Cloning Dastasets
 ----------------------------
 
 Public research datasets can be cloned (copy and downloaded) directly to an empty directory, using the dataset **URL** or **DOI**. We will use `this datset <https://data.4tu.nl/articles/dataset/Earthquake_Precursors_detected_by_convolutional_neural_network/21588096>`_ from 4TU.ResearchData an example.
