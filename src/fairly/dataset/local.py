@@ -471,18 +471,9 @@ class LocalDataset(Dataset):
                     os.remove(path)
 
                 # Update manifest
-                if os.path.isfile(self._manifest_path):
-                    with open(self._manifest_path, "r") as file:
-                        manifest = self._yaml.load(file)
-                else:
-                    manifest = {}
-
-                if not isinstance(manifest.get("files"), dict):
-                    manifest["files"] = {}
+                manifest = self._get_manifest()
                 manifest["files"]["archives"] = info
-
-                with open(self._manifest_path, "w") as file:
-                    self._yaml.dump(manifest, file)
+                self._set_manifest(manifest)
 
         except:
             client.delete_dataset(dataset.id)
