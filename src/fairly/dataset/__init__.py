@@ -117,7 +117,7 @@ class Dataset(ABC):
         Returns:
             Dictionary of files of the dataset (key = path, value = File object)
         """
-        if self._files is None or refresh:
+        if self._files is None or refresh or self.auto_refresh:
             files = {}
             for file in self._get_files():
                 files[file.path] = file

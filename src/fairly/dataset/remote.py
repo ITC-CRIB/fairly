@@ -24,7 +24,7 @@ class RemoteDataset(Dataset):
 
     """
 
-    def __init__(self, client, id=None, auto_refresh: bool=False, details: Dict=None, **kwargs):
+    def __init__(self, client, id=None, auto_refresh: bool=True, details: Dict=None, **kwargs):
         """Initializes RemoteDataset object.
 
         Args:

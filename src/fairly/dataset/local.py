@@ -37,7 +37,7 @@ class LocalDataset(Dataset):
 
     _regexps: Dict = {}
 
-    def __init__(self, path: str, auto_refresh: bool=False):
+    def __init__(self, path: str, auto_refresh: bool=True):
         """Initializes LocalDataset object.
 
         Args:
@@ -552,3 +552,82 @@ class LocalDataset(Dataset):
     def reproduce(self) -> LocalDataset:
         """Reproduces an actual copy of the dataset."""
         return LocalDataset(self.path)
+
+
+    def reproduce(self) -> LocalDataset:
+        """Reproduces an actual copy of the dataset."""
+        return LocalDataset(self.path)
+
+
+    def get_remote_dataset(self, remote=None) -> RemoteDataset:
+        if isinstance(remote, RemoteDataset):
+            return remote
+
+        elif not remote and self.metadata.get("doi"):
+            return fairly.dataset(self.metadata["doi"])
+
+        else:
+            remote_datasets = self.remote_datasets
+            if remote in remote_datasets:
+                return  remote_datasets[remote]
+
+            elif remote_datasets:
+                return list(remote_datasets.values())[0]
+
+        return None
+
+
+    def push(self, target=None, notify: Callable=None) -> RemoteDataset:
+        remote = self.get_remote_dataset(target)
+        if not remote:
+            raise ValueError("No target dataset")
+
+        diff = self.diff_metadata(remote)
+        if diff:
+            remote.set_metadata(**self.metadata)
+            remote.save_metadata()
+
+        diff = self.diff_files(remote)
+        if diff:
+            client = remote.client
+            for file in diff.added.values():
+                client.upload_file(remote, file, notify=notify)
+
+            for file in diff.removed.values():
+                client.delete_file(remote, file)
+
+            for file, remote_file in diff.modified.values():
+                client.delete_file(remote, remote_file)
+                client.upload_file(remote, file)
+
+            remote.get_files(refresh=True)
+
+        return remote
+
+
+    def pull(self, source=None, notify: Callable=None) -> None:
+        remote = self.get_remote_dataset(source)
+        if not remote:
+            raise ValueError("No source dataset")
+
+        diff = remote.diff_metadata(self)
+        if diff:
+            self.set_metadata(**remote.metadata)
+            self.save_metadata()
+
+        diff = remote.diff_files(self)
+        if diff:
+            client = remote.client
+            for file in diff.added.values():
+                client.download_file(file, path=self.path, notify=notify)
+
+            for file in diff.removed.values():
+                os.remove(file.fullpath)
+
+            for file, remote_file in diff.modified.values():
+                os.remove(file.fullpath)
+                client.download_file(remote_file, path=self.path, notify=notify)
+
+            self.get_files(refresh=True)
+
+        return remote
