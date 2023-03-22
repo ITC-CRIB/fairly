@@ -343,7 +343,7 @@ class LocalDataset(Dataset):
         return "deflate"
 
 
-    def upload(self, repository, notify: Callable=None, strategy: str="auto") -> RemoteDataset:
+    def upload(self, repository=None, notify: Callable=None, strategy: str="auto") -> RemoteDataset:
         """Uploads dataset to the repository.
 
         Available upload strategies:
@@ -353,7 +353,7 @@ class LocalDataset(Dataset):
             - archive_folders: Create an individual archive file for each folder.
 
         Args:
-            repository: Repository identifier or client.
+            repository: Repository identifier or client. If not specified, template identifier is used.
             notify (Callable): Notification callback function.
             strategy (str): Folder upload strategy (default = "auto")
 
@@ -369,6 +369,10 @@ class LocalDataset(Dataset):
         # REMARK: Local import to prevent circular import
         import fairly
         from ..client import Client
+
+        # Set repository if required
+        if not repository:
+            repository = self.template
 
         # Get client
         if isinstance(repository, str):
