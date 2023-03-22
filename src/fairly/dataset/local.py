@@ -397,7 +397,8 @@ class LocalDataset(Dataset):
             raise ValueError("Invalid repository")
 
         # Prevent upload if a remote version exists and upload is not enforced
-        if client.id in self.remote_datasets and not force:
+        if client.repository_id in self.remote_datasets and not force:
+            # TODO: Check if remote dataset is valid, otherwise force upload
             raise Warning("Remote dataset exists")
 
         # Create dataset
@@ -483,6 +484,14 @@ class LocalDataset(Dataset):
         except:
             client.delete_dataset(dataset.id)
             raise
+
+        # Add remote dataset id to the manifest if known repository
+        if client.repository_id:
+            manifest = self._get_manifest()
+            if "remotes" not in manifest:
+                manifest["remotes"] = {}
+            manifest["remotes"][client.repository_id] = dataset.id
+            self._set_manifest(manifest)
 
         return dataset
 
