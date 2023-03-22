@@ -114,6 +114,19 @@ class LocalDataset(Dataset):
 
 
     @property
+    def remote_datasets(self) -> Dict:
+        """Known remote datasets of the dataset."""
+        manifest = self._get_manifest()
+
+        datasets = {}
+        for key, val in manifest.get("remotes", {}).items():
+            client = fairly.client(key)
+            datasets[key] = RemoteDataset(client, val)
+
+        return datasets
+
+
+    @property
     def includes(self) -> Set:
         """Inclusion rules of the dataset files"""
         if self._includes is None:
