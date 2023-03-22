@@ -3,15 +3,14 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-fairly's documentation
+Fairly Toolset Documentation
 ==================================
-
 
 .. toctree::
    :maxdepth: 2
    :caption: Fairly Package
 
-   package/installation.rst
+   installation.rst
 
 .. toctree::
    :maxdepth: 1
@@ -22,27 +21,14 @@ fairly's documentation
    tutorials/python-api
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Quick Start
-
-   package/demo-4tu
-   package/demo-zenodo
-   package/account-token
-   package/account-datasets
-   package/archiving-datasets
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Command Line Interface
+   :maxdepth:  1
+   :caption: Fairly API
    
-   cli/placeholder
+   modules
+   api/fairly.client
+   api/fairly.dataset
+   api/fairly.file
 
-.. toctree::
-   :maxdepth: 2
-   :caption: JupyterLab Extension
-   
-   jupyterlab/placeholder
-   
 Indices and tables
 ==================
 

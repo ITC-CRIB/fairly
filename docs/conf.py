@@ -6,10 +6,10 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'fairly'
-copyright = '2022, Serkan Girgin, Manuel Garcia Alvarez, Jose Urra Llanusa'
+project = 'Fairly Toolset'
+copyright = '2023, Serkan Girgin, Manuel Garcia Alvarez, Jose Urra Llanusa'
 author = 'Serkan Girgin, Manuel Garcia Alvarez, Jose Urra Llanusa'
-release = '0.3.0'
+release = '1.0.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -32,4 +32,4 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'sphinx_rtd_theme'
-html_static_path = ['_static']
+# html_static_path = ['_static']
