@@ -107,7 +107,7 @@ Currently, the package supports the following research data management platforms
 
 All research data repositories based on the listed platforms are supported.
 
-For more details and examples, consult the [package documentation](https://fairly.readthedocs.io/en/latest/package/installation.html).
+For more details and examples, consult the [package documentation](https://fairly.readthedocs.io/en/latest/installation.html).
 
 
 ## Testing
