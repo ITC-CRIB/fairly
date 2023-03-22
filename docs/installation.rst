@@ -3,13 +3,13 @@
 Installation
 ================
 
-The *Fairly Toolset* provides functionality for the core tasks of prepararing, uploading and donwloading datasets from research data repositories. The package currently provides integration with `Zenodo <https://zenodo.org/>`_, `4TU.ReseachData <https://data.4tu.nl/>`_  and Figshare repositories.
+The *Fairly Toolset* provides functionality for the core tasks of preparing, uploading and downloading datasets from research data repositories. The toolset currently provides integration with data repositories based on `Zenodo <https://zenodo.org/>`_ and `Figshare <https://figshare.com/>`_.
 
 **What's Included:**
 
-* Fairly Python package
+* fairly Python package
 * Command Line Interface (CLI)
-* JupyterLab extension 
+* JupyterLab extension
 
 **Requirements:**
 
@@ -19,12 +19,13 @@ The *Fairly Toolset* provides functionality for the core tasks of prepararing, u
 Installing the Toolset
 ------------------------
 
-You can install the full toolset from PyPI.
+You can install the full toolset by installing the JupyterLab extension from PyPI. fairly package and CLI will be installed automatically.
 
 Linux / MacOS
 '''''''''''''''''''
 
 Install the toolset using `pip`
+
 .. code-block:: shell
 
    pip install jupyter-fairly
@@ -33,9 +34,9 @@ Install the toolset using `pip`
 Windows
 '''''''''''''''''''
 
-1. Download the ZIP file with the `latest release <https://github.com/ITC-CRIB/jupyter-fairly/releases>`_ of the toolset, to a directory.
-2. Unzip the content
-3. Using the **terminal**, go to the unzip directory and then to `jupyter_fairly`
+1. Download the ZIP file with the `latest release <https://github.com/ITC-CRIB/jupyter-fairly/releases>`_ of the JupyterLab extension to a directory.
+2. Unzip the content.
+3. Using the **terminal**, go to the directory where the ZIP file is located and then to the `jupyter_fairly` sub-directory.
 4. Type and run the following command. You need to add Python to the system PATH for this to work.
 
 .. code-block:: shell
@@ -51,7 +52,7 @@ If all you need is the *fairly* Python package and the CLI, you can install them
 Linux / MacOS
 '''''''''''''''''''
 
-On the terminal type: 
+On the terminal type:
 
 .. code-block:: shell
 
@@ -61,28 +62,28 @@ On the terminal type:
 Installing from Source
 '''''''''''''''''''''''''
 
-Installing *fairly* from source requires `setuptool` version 49.0 or later and `pip`. 
+Installing *fairly* from source requires `setuptools` version 49.0 or later and `pip`.
 
 1. Clone or download the `source code <https://github.com/ITC-CRIB/fairly>`_:
-   
+
 .. code-block:: shell
 
    git clone https://github.com/ITC-CRIB/fairly.git
-    
 
-2. Unzip if necessary, and move to the root directory:
+
+2. Unzip if necessary, and go to the `fairly` directory:
 
 .. code-block:: shell
-   
+
    cd fairly/
-    
+
 
 3. Install the package:
 
 .. code-block:: shell
-   
+
    pip install .
-    
+
 .. important::
-   Currently, the toolset only supports the `Zenodo <https://zenodo.org/>`_ and `4TU.ResearchDAata <https://data.4tu.nl/>`_ repositories. For examples on how how to use the Toolset, read the `Tutorials <index.rst>`_
+   Currently, the toolset only supports data repositories based on `Zenodo <https://zenodo.org/>`_ and `Figshare <https://figshare.com/>`_. For examples on how to use the toolset, read the `Tutorials <index.rst>`_
 
