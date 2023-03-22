@@ -165,6 +165,7 @@ class LocalDataset(Dataset):
 
 
     def _save_metadata(self) -> None:
+        """Stores dataset metadata."""
         manifest = self._get_manifest()
         manifest["metadata"].update(self.metadata.serialize())
         self._set_manifest(manifest)
@@ -299,7 +300,7 @@ class LocalDataset(Dataset):
 
 
     def save_files(self, force: bool=False) -> None:
-        """Stores dataset file list if exists
+        """Stores dataset file list if exists.
 
         Args:
             force (bool): Set True to enforce save even if existing dataset is modified
@@ -325,32 +326,36 @@ class LocalDataset(Dataset):
 
 
     def save(self) -> None:
+        """Saves metadata and file inclusion/exclusion rules."""
         self.save_metadata()
         self.save_files()
 
 
     def get_archive_name(self) -> str:
+        """Returns archive name to be used for the dataset."""
         # TODO: Support for user-defined or metadata-based (e.g. title) name
         return "dataset"
 
 
     def get_archive_method(self) -> str:
+        """Returns archiving method to be used for the dataset."""
         # TODO: Support for user-defined method
         return "deflate"
 
 
-    def upload(self, repository, notify: Callable=None, strategy="auto") -> RemoteDataset:
+    def upload(self, repository, notify: Callable=None, strategy: str="auto") -> RemoteDataset:
         """Uploads dataset to the repository.
 
         Available upload strategies:
-            - auto
-            - mirror
-            - archive_all
-            - archive_folders
+            - auto: Mirror if folders are supported, otherwise archive folders individually.
+            - mirror: Upload files and folders as they are.
+            - archive_all: Create a single archive file for all files and folders.
+            - archive_folders: Create an individual archive file for each folder.
 
         Args:
             repository: Repository identifier or client.
-            notify: Notification callback function.
+            notify (Callable): Notification callback function.
+            strategy (str): Folder upload strategy (default = "auto")
 
         Returns:
             Remote dataset
@@ -358,7 +363,7 @@ class LocalDataset(Dataset):
         Raises:
             ValueError("Invalid repository"): If repository argument is invalid.
             ValueError("Invalid upload strategy"): If upload strategy is invalid.
-            ValueError("Invalid archive method"): If archive method is invalid.
+            ValueError("Invalid archiving method"): If archiving method is invalid.
             ValueError("Invalid archive name"): If archive name is invalid.
         """
         # REMARK: Local import to prevent circular import
@@ -427,7 +432,7 @@ class LocalDataset(Dataset):
                 }
                 method = methods.get(self.get_archive_method())
                 if not method:
-                    raise ValueError("Invalid archive method")
+                    raise ValueError("Invalid archiving method")
 
                 info = {}
                 for name, files in archives.items():
