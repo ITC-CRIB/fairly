@@ -359,7 +359,7 @@ class LocalDataset(Dataset):
         return "deflate"
 
 
-    def upload(self, repository=None, notify: Callable=None, strategy: str="auto") -> RemoteDataset:
+    def upload(self, repository=None, notify: Callable=None, strategy: str="auto", force: bool=False) -> RemoteDataset:
         """Uploads dataset to the repository.
 
         Available upload strategies:
@@ -372,6 +372,7 @@ class LocalDataset(Dataset):
             repository: Repository identifier or client. If not specified, template identifier is used.
             notify (Callable): Notification callback function.
             strategy (str): Folder upload strategy (default = "auto")
+            force (bool): Set True to upload dataset even if a remote version exists (default = False)
 
         Returns:
             Remote dataset
@@ -381,6 +382,7 @@ class LocalDataset(Dataset):
             ValueError("Invalid upload strategy"): If upload strategy is invalid.
             ValueError("Invalid archiving method"): If archiving method is invalid.
             ValueError("Invalid archive name"): If archive name is invalid.
+            Warning("Remote dataset exists"): If remote dataset exists.
         """
         # Set repository if required
         if not repository:
@@ -393,6 +395,10 @@ class LocalDataset(Dataset):
             client = repository
         else:
             raise ValueError("Invalid repository")
+
+        # Prevent upload if a remote version exists and upload is not enforced
+        if client.id in self.remote_datasets and not force:
+            raise Warning("Remote dataset exists")
 
         # Create dataset
         dataset = client.create_dataset(self.metadata)
@@ -409,6 +415,10 @@ class LocalDataset(Dataset):
 
         for file in files.values():
 
+            if strategy == "archive_all":
+                archives[self.get_archive_name()] = list(files.values())
+                break
+
             if file.is_simple:
                 uploads.append(file)
 
@@ -417,11 +427,6 @@ class LocalDataset(Dataset):
                     uploads.append(file)
                 else:
                     raise ValueError("Invalid upload strategy")
-
-            elif strategy == "archive_all":
-                uploads = []
-                archives[self.get_archive_name()] = list(files.values())
-                break
 
             elif strategy == "archive_folders":
                 name = os.path.normpath(file.path).split(os.sep)[0]
