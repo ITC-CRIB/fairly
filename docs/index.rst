@@ -24,7 +24,7 @@ Fairly Toolset Documentation
    :maxdepth:  1
    :caption: Fairly API
    
-   api/fairly
+   modules
    api/fairly.client
    api/fairly.dataset
    api/fairly.file
