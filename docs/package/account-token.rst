@@ -4,7 +4,7 @@ Configuring Access Token
 ###########################
 
 
-*fairly* can be used to access datasets owened by a user of a data repository. For 4TU.ReaseachData and Zenodo, we can do data by configuring access tokens.
+*fairly* can be used to access datasets owned by a user of a data repository. For 4TU.ResearchData and Zenodo, we can do that by configuring access tokens.
 
 Creating a personal access token
 =====================================
@@ -19,38 +19,38 @@ Zenodo
 #. Enter a name for your token.
 #. Select the OAuth scopes you need (:guilabel:`deposit:write` and :guilabel:`deposit:actions`).
 #. Click :guilabel:`Create`
-#. An access token will be showned, copy it and store it. **The token will only be showned once.** 
+#. An access token will be shown, copy it and store it. **The token will only be shown once.**
 #. Click on :guilabel:`Save`
 
 
-4TU.ReaseachData
+4TU.ResearchData
 -------------------
 
 1. Register for a Zenodo account if you do not already have one.
 #. Go to your :guilabel:`Applications`, and click on :guilabel:`Create Personal Token`.
-#. Enter short description for your token, for example a namem, and click on :guilabel:`Save`
-#. An access token will be showned, copy it and store it. **The token will only be showned once.** 
+#. Enter short description for your token, for example a name, and click on :guilabel:`Save`
+#. An access token will be shown, copy it and store it. **The token will only be shown once.**
 #. Click on :guilabel:`Done`
 
 Connecting to an Account
 ============================
 
-Connecting to an account is a simple as passign a token when creating a 4TU.ResearchDaata or Zenodo client.
+Connecting to an account is a simple as passing a token when creating a 4TU.ResearchData or Zenodo client.
 
 .. code-block:: python
 
-   from fairly import client
+   import fairly
 
-   # For 4TU.ReseachData 
-   fourtu = client(id="figshare", token="<my-tu-token>" )
+   # For 4TU.ResearchData
+   fourtu = fairly.client("figshare", token="<my-4tu-token>")
 
    # For Zenodo
-   fourtu = client(id="zenodo", token="<my-zenodo-token>" )
+   zenodo = fairly.client("zenodo", token="<my-zenodo-token>" )
 
 Storing Tokens
 ================
 
-To store your Tokens, create a JSON file like the one below and store it at `~/.fairly/repositories.json` You can store tokens for other repositories by addding them to this file as `"<repository-ID>": {"token": <the-token>}`
+To store your tokens, create a JSON file like the one below and store it at `~/.fairly/config.json`. You can store tokens for other repositories by adding them to this file as `"<repository-id>": {"token": "<the-token>"}`
 
 .. code-block:: json
 

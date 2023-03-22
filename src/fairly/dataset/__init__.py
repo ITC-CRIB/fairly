@@ -16,12 +16,14 @@ class Dataset(ABC):
     Attributes:
       _metadata (Metadata): Metadata
       _files (list): Files list
+      _modified (datetime.datetime): Last known modification date
 
     """
 
     def __init__(self):
         self._metadata = None
         self._files = None
+        self._modified = None
 
 
     @abstractmethod
@@ -45,13 +47,15 @@ class Dataset(ABC):
         """
         if self._metadata is None or refresh:
             self._metadata = self._get_metadata()
+            self._modified = self.modified
+
         return self._metadata
 
 
     @property
     def metadata(self) -> Metadata:
         """Metadata of the dataset"""
-        return self.get_metadata()
+        return self.get_metadata(refresh=self.is_modified)
 
 
     def set_metadata(self, **kwargs) -> None:
@@ -59,9 +63,33 @@ class Dataset(ABC):
 
 
     @abstractmethod
-    def save_metadata(self) -> None:
+    def _save_metadata(self) -> None:
         """Stores dataset metadata"""
         raise NotImplementedError
+
+
+    def save_metadata(self, force: bool=False) -> None:
+        """Stores dataset metadata if exists
+
+        Args:
+            force (bool): Set True to enforce save even if existing dataset is modified
+
+        Returns:
+            None
+
+        Raises:
+            Warning("Existing dataset is modified")
+        """
+        if self._metadata is None:
+            return
+
+        # REMARK: It can be better to check if metadata is actually changed
+        if self.is_modified and not force:
+            raise Warning("Existing dataset is modified")
+
+        self._save_metadata()
+
+        self.get_metadata(refresh=True)
 
 
     @abstractmethod
@@ -83,44 +111,33 @@ class Dataset(ABC):
             for file in self._get_files():
                 files[file.path] = file
             self._files = files
+            self._modified = self.modified
+
         return self._files
 
 
     @property
     def files(self) -> List[File]:
         """List of files of the dataset"""
-        return self.get_files(refresh=True)
+        return self.get_files(refresh=self.is_modified)
 
 
     def get_file(self, val: str, refresh: bool=False) -> File:
         # TODO: Implement without using get_files()
-        for key, file in self.get_files(refresh).items():
+        files = self.get_files(refresh)
+
+        if isinstance(val, int):
+            return list(files.values())[val]
+
+        for key, file in files.items():
             if file.match(val):
                 return file
 
         return None
 
 
-    @property
     def file(self, val: str) -> File:
-        return self.get_file(val)
-
-
-    def add_file(self, file) -> File:
-        raise NotImplementedError
-
-
-    def remove_file(self, file) -> None:
-        raise NotImplementedError
-
-
-    def save_files(self) -> None:
-        raise NotImplementedError
-
-
-    def save(self) -> None:
-        self.save_metadata()
-        self.save_files()
+        return self.get_file(val, refresh=self.is_modified)
 
 
     def diff_metadata(self, dataset: Dataset):
@@ -197,3 +214,13 @@ class Dataset(ABC):
     def modified(self) -> datetime.datetime:
         """Last modification date and time of the dataset."""
         raise NotImplementedError
+
+
+    @property
+    def is_modified(self) -> bool:
+        """Checks if the existing dataset is modified.
+
+        Returns:
+            True if the existing dataset is modified, False otherwise.
+        """
+        return None if self._modified is None else self._modified != self.modified

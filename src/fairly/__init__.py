@@ -362,21 +362,25 @@ def init_dataset(path: str, template: str = "default", create: bool = True) -> L
     if os.path.exists(manifest_path):
         raise ValueError("Operation not permitted")
 
-    template_path = os.path.join(__path__[0], "data", "templates", f"{template}.yaml")
-    if not os.path.exists(template_path):
+    if template:
+        template_path = os.path.join(__path__[0], "data", "templates", f"{template}.yaml")
+        if not os.path.exists(template_path):
 
-        repository = get_repository(template)
-        if repository:
+            repository = get_repository(template)
+            if repository:
 
-            template_path = os.path.join(__path__[0], "data", "templates", f"{repository['client_id']}.yaml")
-            if os.path.exists(template_path):
-                template = repository["client_id"]
+                template_path = os.path.join(__path__[0], "data", "templates", f"{repository['client_id']}.yaml")
+                if os.path.exists(template_path):
+                    template = repository["client_id"]
 
-            else:
-                raise ValueError("Invalid template name")
+                else:
+                    raise ValueError("Invalid template name")
 
-    with open(template_path) as file:
-        metadata = file.read()
+        with open(template_path) as file:
+            metadata = file.read()
+
+    else:
+        metadata = "metadata: "
 
     with open(manifest_path, "w") as file:
         file.write(

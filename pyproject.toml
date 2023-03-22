@@ -35,7 +35,7 @@ dev = [
 [project.urls]
 "Homepage" = "https://github.com/ITC-CRIB/fairly"
 "Bug Tracker" = "https://github.com/ITC-CRIB/fairly/issues"
-"Documentation" = "https://jupyterfair.readthedocs.io/en/latest/"
+"Documentation" = "https://fairly.readthedocs.io/en/latest/"
 "Funding" = "https://nwo.nl/en/researchprogrammes/open-science/open-science-fund"
 
 [project.scripts]

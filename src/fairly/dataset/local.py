@@ -163,7 +163,7 @@ class LocalDataset(Dataset):
             self._yaml.dump(manifest, file)
 
 
-    def save_metadata(self) -> None:
+    def _save_metadata(self) -> None:
         manifest = self._get_manifest()
         manifest["metadata"].update(self.metadata.serialize())
         self._set_manifest(manifest)
@@ -297,13 +297,35 @@ class LocalDataset(Dataset):
             pass
 
 
-    def save_files(self) -> None:
+    def save_files(self, force: bool=False) -> None:
+        """Stores dataset file list if exists
+
+        Args:
+            force (bool): Set True to enforce save even if existing dataset is modified
+
+        Returns:
+            None
+
+        Raises:
+            Warning("Existing dataset is modified")
+        """
+        # REMARK: It can be better to check if file list is actually changed
+        if self.is_modified and not force:
+            raise Warning("Existing dataset is modified")
+
         manifest = self._get_manifest()
         manifest["files"] = {
             "includes": self.includes,
             "excludes": self.excludes,
         }
         self._set_manifest(manifest)
+
+        self.get_files(refresh=True)
+
+
+    def save(self) -> None:
+        self.save_metadata()
+        self.save_files()
 
 
     def get_archive_name(self) -> str:

@@ -93,7 +93,7 @@ dataset.metadata
 
 # Update metadata
 dataset.metadata['keywords'] = ['Landslides', 'precursor']
-dataset.save()
+dataset.save_metadata()
 
 # Store dataset to a local directory (i.e. clone dataset)
 local_dataset = dataset.store('/path/dataset')
@@ -103,11 +103,11 @@ Currently, the package supports the following research data management platforms
 
 - [Zenodo](https://zenodo.org/)
 - [Figshare](https://figshare.com/)
-- [Djehuty](https://github.com/4TUResearchData/djehuty/)
+- [Djehuty](https://github.com/4TUResearchData/djehuty/) (experimental)
 
 All research data repositories based on the listed platforms are supported.
 
-For more details and examples, consult the [package documentation](https://jupyterfair.readthedocs.io/en/latest/package/installation.html).
+For more details and examples, consult the [package documentation](https://fairly.readthedocs.io/en/latest/installation.html).
 
 
 ## Testing

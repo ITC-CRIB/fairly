@@ -62,7 +62,7 @@ class RemoteDataset(Dataset):
         return self.client.get_metadata(self.id)
 
 
-    def save_metadata(self) -> None:
+    def _save_metadata(self) -> None:
         return self.client.save_metadata(self.id, self.metadata)
 
 
@@ -79,11 +79,14 @@ class RemoteDataset(Dataset):
 
 
     def store(self, path: str, notify: Callable=None, extract: bool=False) -> LocalDataset:
+        # REMARK: Local import to prevent circular import
+        import fairly
+
         os.makedirs(path, exist_ok=True)
         if os.listdir(path):
             raise ValueError("Directory is not empty.")
 
-        dataset = LocalDataset(path)
+        dataset = fairly.init_dataset(path)
 
         # TODO: Set metadata directly without serialization
         dataset.set_metadata(**self.metadata)
@@ -162,4 +165,5 @@ class RemoteDataset(Dataset):
     @property
     def modified(self) -> datetime.datetime:
         """Last modification date and time of the dataset"""
+        # REMARK: Can be better to have a dedicated method to minimize data transfer
         return self._get_detail("modified", refresh=True)
