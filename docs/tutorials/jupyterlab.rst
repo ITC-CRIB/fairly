@@ -10,16 +10,6 @@ Start JupyterLab
 
 Star JupyterLab with the **fairly** extension. This will start JupterLab in your browser.
 
-Linux / MacOS
-''''''''''''''''
-
-From the terminal, run: 
-
-.. code-block:: shell
-
-   jupyter lab
-
-
 Windows
 ''''''''
 
@@ -33,6 +23,16 @@ On the shell type the following and press `Enter`:
 .. code-block:: shell
    
    jupyter lab
+
+Linux / MacOS
+''''''''''''''''
+
+From the terminal, run: 
+
+.. code-block:: shell
+
+   jupyter lab
+
 
 
 JupyterLab should automatically start on you browser.
@@ -85,9 +85,9 @@ Now, we will show you how can you create and prepare your own dataset using the 
 Include Files in your Dataset
 ''''''''''''''''''''''''''''''''
 
-Add some folders and files the :code:`mydataset` directory. You can add files of your own, but be careful not to include anything that you want to keep confidential. Also consider the total size of the files you will add, the larger the size the longer the upload will take. Also remember that for the current Zenodo API each file should be :code:`100MB` or smaller; this will change in the future.
+Add some files to the :code:`mydataset` directory. You can add files of your own, but be careful not to include anything that you want to keep confidential. Also consider the total size of the files you will add, the larger the size the longer the upload will take. Also remember that for the current Zenodo API each file should be :code:`100MB` or smaller; this will change in the future.
 
-If you do not want to use files from your own, you can download and use the `dumy-data <https://drive.google.com/drive/folders/160N6MCmiKV3g-74idCgyyul9UdoPRO8T?usp=share_link>`_ 
+If you do not want to use files from your own, you can download and use the `dummy-data <https://drive.google.com/drive/folders/160N6MCmiKV3g-74idCgyyul9UdoPRO8T?usp=share_link>`_ 
 
 After you have added some file and/or folders to :code:`mydataset`, JupyterLab should look something like this:
 
@@ -101,7 +101,7 @@ The :code:`manifest.yaml` file contains several sections to describe the medatad
 However, if you are not sure which repository you will use to publish a dataset, use the :guilabel:`Default` template. This template contains the most common sections and fields for the repositories supported by the Fairly Toolset.
 
 .. note::
-   that independently of which template you use to start a dataset, the :code:`manifest.yaml` file is interoperable between data repositories, with very few exceptions. This means that you can use the same manifest file for various data repositories. Different templates are provided only as a guide to indicate what metadata is possible to provide in each data repository. 
+   Independently of which template you use to start a dataset, the :code:`manifest.yaml` file is interoperable between data repositories, with very few exceptions. This means that you can use the same manifest file for various data repositories. Different templates are provided only as a guide to indicate what metadata is possible to provide in each data repository. 
 
 1. Open the :code:`manifest.yaml` file using the context menu, or by doble-clicking on the file
 
@@ -174,7 +174,7 @@ A personal token is a way in which data repositories identify a user. We need to
 Configure Fairly for Uploads
 ''''''''''''''''''''''''''''''''
 
-Now, you configure *fairly* to you your token.
+Now, you will configure *fairly* to use your token.
 
 Windows
 """"""""""""

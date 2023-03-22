@@ -43,6 +43,8 @@ Windows
 
    python -m pip install .
 
+.. warning::
+   For the above to work, you need Pyton in the PATH environment variable on Windows. If your not sure that is the case. Open the Shell, and type :code:`python --version`. You should see the version of Python on the screen. If you see otherwise, follow these steps to `add Python to the PATH on Windows <https://realpython.com/add-python-to-path/#how-to-add-python-to-path-on-windows>`_
 
 Installing Python Package Only
 --------------------------------
