@@ -5,6 +5,7 @@ from . import Dataset
 from ..metadata import Metadata
 from ..file.local import LocalFile
 from .remote import RemoteDataset
+from ..client import Client
 
 import fairly
 
