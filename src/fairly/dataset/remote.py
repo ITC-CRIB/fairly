@@ -84,7 +84,16 @@ class RemoteDataset(Dataset):
         if os.listdir(path):
             raise ValueError("Directory is not empty.")
 
-        dataset = fairly.init_dataset(path)
+
+        templates = fairly.metadata_templates()
+        if self.client.repository_id in templates:
+            template = self.client.repository_id
+        elif self.client.client_id in templates:
+            template = self.client.client_id
+        else:
+            template = None
+
+        dataset = fairly.init_dataset(path, template=template)
 
         # TODO: Set metadata directly without serialization
         dataset.set_metadata(**self.metadata)
