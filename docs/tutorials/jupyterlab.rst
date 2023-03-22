@@ -154,6 +154,7 @@ Part 3: Upload Dataset to Zenodo
 
 In the last part of this tutorial, we explain how to upload a dataset to an existing account in Zenodo. If you do not have an account yet, you can `sign up in this webpage. <https://zenodo.org/signup/>`_
 
+.. _create-token:
 Create Personal Token
 ''''''''''''''''''''''
 
@@ -169,6 +170,7 @@ A personal token is a way in which data repositories identify a user. We need to
 
 .. image:: ../img/zenodo-token.png
 
+.. _configuring-fairly:
 Configure Fairly for Uploads
 ''''''''''''''''''''''''''''''''
 
