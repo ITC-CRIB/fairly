@@ -4,6 +4,9 @@ from typing import List, Dict, Set
 from . import Dataset
 from ..metadata import Metadata
 from ..file.local import LocalFile
+from .remote import RemoteDataset
+
+import fairly
 
 import os
 import os.path
@@ -366,10 +369,6 @@ class LocalDataset(Dataset):
             ValueError("Invalid archiving method"): If archiving method is invalid.
             ValueError("Invalid archive name"): If archive name is invalid.
         """
-        # REMARK: Local import to prevent circular import
-        import fairly
-        from ..client import Client
-
         # Set repository if required
         if not repository:
             repository = self.template
@@ -518,9 +517,6 @@ class LocalDataset(Dataset):
 
 
     def synchronize(self, source, notify: Callable=None) -> None:
-        # REMARK: Local import to prevent circular import
-        import fairly
-
         if not isinstance(source, Dataset):
             source = fairly.dataset(source)
 

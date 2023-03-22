@@ -1,8 +1,9 @@
 from __future__ import annotations
 from typing import List, Dict, Callable
 
+import fairly
+
 from . import Dataset
-from .local import LocalDataset
 from ..metadata import Metadata
 from ..file.local import LocalFile
 from ..file.remote import RemoteFile
@@ -79,9 +80,6 @@ class RemoteDataset(Dataset):
 
 
     def store(self, path: str, notify: Callable=None, extract: bool=False) -> LocalDataset:
-        # REMARK: Local import to prevent circular import
-        import fairly
-
         os.makedirs(path, exist_ok=True)
         if os.listdir(path):
             raise ValueError("Directory is not empty.")
