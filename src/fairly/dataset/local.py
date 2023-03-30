@@ -4,6 +4,10 @@ from typing import List, Dict, Set
 from . import Dataset
 from ..metadata import Metadata
 from ..file.local import LocalFile
+from .remote import RemoteDataset
+from ..client import Client
+
+import fairly
 
 import os
 import os.path
@@ -33,17 +37,18 @@ class LocalDataset(Dataset):
 
     _regexps: Dict = {}
 
-    def __init__(self, path: str):
+    def __init__(self, path: str, auto_refresh: bool=True):
         """Initializes LocalDataset object.
 
         Args:
             path (str): Path of the dataset
+            auto_refresh (bool): Set True to auto-refresh dataset information
 
         Raises:
             NotADirectoryError = Invalid dataset path
         """
         # Call parent method
-        super().__init__()
+        super().__init__(auto_refresh=auto_refresh)
 
         # Throw exception if invalid path
         if not os.path.isdir(path):
@@ -110,6 +115,19 @@ class LocalDataset(Dataset):
 
 
     @property
+    def remote_datasets(self) -> Dict:
+        """Known remote datasets of the dataset."""
+        manifest = self._get_manifest()
+
+        datasets = {}
+        for key, val in manifest.get("remotes", {}).items():
+            client = fairly.client(key)
+            datasets[key] = RemoteDataset(client, val)
+
+        return datasets
+
+
+    @property
     def includes(self) -> Set:
         """Inclusion rules of the dataset files"""
         if self._includes is None:
@@ -163,7 +181,8 @@ class LocalDataset(Dataset):
             self._yaml.dump(manifest, file)
 
 
-    def save_metadata(self) -> None:
+    def _save_metadata(self) -> None:
+        """Stores dataset metadata."""
         manifest = self._get_manifest()
         manifest["metadata"].update(self.metadata.serialize())
         self._set_manifest(manifest)
@@ -297,7 +316,22 @@ class LocalDataset(Dataset):
             pass
 
 
-    def save_files(self) -> None:
+    def save_files(self, force: bool=False) -> None:
+        """Stores dataset file list if exists.
+
+        Args:
+            force (bool): Set True to enforce save even if existing dataset is modified
+
+        Returns:
+            None
+
+        Raises:
+            Warning("Existing dataset is modified")
+        """
+        # REMARK: It can be better to check if file list is actually changed
+        if self.is_modified and not force:
+            raise Warning("Existing dataset is modified")
+
         manifest = self._get_manifest()
         manifest["files"] = {
             "includes": self.includes,
@@ -305,29 +339,41 @@ class LocalDataset(Dataset):
         }
         self._set_manifest(manifest)
 
+        self.get_files(refresh=True)
+
+
+    def save(self) -> None:
+        """Saves metadata and file inclusion/exclusion rules."""
+        self.save_metadata()
+        self.save_files()
+
 
     def get_archive_name(self) -> str:
+        """Returns archive name to be used for the dataset."""
         # TODO: Support for user-defined or metadata-based (e.g. title) name
         return "dataset"
 
 
     def get_archive_method(self) -> str:
+        """Returns archiving method to be used for the dataset."""
         # TODO: Support for user-defined method
         return "deflate"
 
 
-    def upload(self, repository, notify: Callable=None, strategy="auto") -> RemoteDataset:
+    def upload(self, repository=None, notify: Callable=None, strategy: str="auto", force: bool=False) -> RemoteDataset:
         """Uploads dataset to the repository.
 
         Available upload strategies:
-            - auto
-            - mirror
-            - archive_all
-            - archive_folders
+            - auto: Mirror if folders are supported, otherwise archive folders individually.
+            - mirror: Upload files and folders as they are.
+            - archive_all: Create a single archive file for all files and folders.
+            - archive_folders: Create an individual archive file for each folder.
 
         Args:
-            repository: Repository identifier or client.
-            notify: Notification callback function.
+            repository: Repository identifier or client. If not specified, template identifier is used.
+            notify (Callable): Notification callback function.
+            strategy (str): Folder upload strategy (default = "auto")
+            force (bool): Set True to upload dataset even if a remote version exists (default = False)
 
         Returns:
             Remote dataset
@@ -335,12 +381,13 @@ class LocalDataset(Dataset):
         Raises:
             ValueError("Invalid repository"): If repository argument is invalid.
             ValueError("Invalid upload strategy"): If upload strategy is invalid.
-            ValueError("Invalid archive method"): If archive method is invalid.
+            ValueError("Invalid archiving method"): If archiving method is invalid.
             ValueError("Invalid archive name"): If archive name is invalid.
+            Warning("Remote dataset exists"): If remote dataset exists.
         """
-        # REMARK: Local import to prevent circular import
-        import fairly
-        from ..client import Client
+        # Set repository if required
+        if not repository:
+            repository = self.template
 
         # Get client
         if isinstance(repository, str):
@@ -349,6 +396,11 @@ class LocalDataset(Dataset):
             client = repository
         else:
             raise ValueError("Invalid repository")
+
+        # Prevent upload if a remote version exists and upload is not enforced
+        if client.repository_id in self.remote_datasets and not force:
+            # TODO: Check if remote dataset is valid, otherwise force upload
+            raise Warning("Remote dataset exists")
 
         # Create dataset
         dataset = client.create_dataset(self.metadata)
@@ -365,6 +417,10 @@ class LocalDataset(Dataset):
 
         for file in files.values():
 
+            if strategy == "archive_all":
+                archives[self.get_archive_name()] = list(files.values())
+                break
+
             if file.is_simple:
                 uploads.append(file)
 
@@ -373,11 +429,6 @@ class LocalDataset(Dataset):
                     uploads.append(file)
                 else:
                     raise ValueError("Invalid upload strategy")
-
-            elif strategy == "archive_all":
-                uploads = []
-                archives[self.get_archive_name()] = list(files.values())
-                break
 
             elif strategy == "archive_folders":
                 name = os.path.normpath(file.path).split(os.sep)[0]
@@ -404,7 +455,7 @@ class LocalDataset(Dataset):
                 }
                 method = methods.get(self.get_archive_method())
                 if not method:
-                    raise ValueError("Invalid archive method")
+                    raise ValueError("Invalid archiving method")
 
                 info = {}
                 for name, files in archives.items():
@@ -427,22 +478,17 @@ class LocalDataset(Dataset):
                     os.remove(path)
 
                 # Update manifest
-                if os.path.isfile(self._manifest_path):
-                    with open(self._manifest_path, "r") as file:
-                        manifest = self._yaml.load(file)
-                else:
-                    manifest = {}
-
-                if not isinstance(manifest.get("files"), dict):
-                    manifest["files"] = {}
+                manifest = self._get_manifest()
                 manifest["files"]["archives"] = info
-
-                with open(self._manifest_path, "w") as file:
-                    self._yaml.dump(manifest, file)
+                self._set_manifest(manifest)
 
         except:
             client.delete_dataset(dataset.id)
             raise
+
+        # Add remote dataset id to the manifest if known repository
+        if client.repository_id:
+            self.set_remote_dataset(dataset)
 
         return dataset
 
@@ -486,9 +532,6 @@ class LocalDataset(Dataset):
 
 
     def synchronize(self, source, notify: Callable=None) -> None:
-        # REMARK: Local import to prevent circular import
-        import fairly
-
         if not isinstance(source, Dataset):
             source = fairly.dataset(source)
 
@@ -500,3 +543,104 @@ class LocalDataset(Dataset):
 
         for file in diff.added.values():
             pass
+
+
+    def reproduce(self) -> LocalDataset:
+        """Reproduces an actual copy of the dataset."""
+        return LocalDataset(self.path)
+
+
+    def reproduce(self) -> LocalDataset:
+        """Reproduces an actual copy of the dataset."""
+        return LocalDataset(self.path)
+
+
+    def set_remote_dataset(self, dataset) -> None:
+        if not isinstance(dataset, RemoteDataset):
+            dataset = fairly.dataset(dataset)
+            if not isinstance(dataset, RemoteDataset):
+                raise ValueError("Invalid remote dataset")
+
+        id = dataset.client.repository_id
+        if not id:
+            raise ValueError("No repository id")
+
+        manifest = self._get_manifest()
+        if "remotes" not in manifest:
+            manifest["remotes"] = {}
+        manifest["remotes"][id] = dataset.id
+        self._set_manifest(manifest)
+
+
+    def get_remote_dataset(self, remote=None) -> RemoteDataset:
+        if isinstance(remote, RemoteDataset):
+            return remote
+
+        elif not remote and self.metadata.get("doi"):
+            return fairly.dataset(self.metadata["doi"])
+
+        else:
+            remote_datasets = self.remote_datasets
+            if remote in remote_datasets:
+                return  remote_datasets[remote]
+
+            elif remote_datasets:
+                return list(remote_datasets.values())[0]
+
+        return None
+
+
+    def push(self, target=None, notify: Callable=None) -> RemoteDataset:
+        remote = self.get_remote_dataset(target)
+        if not remote:
+            raise ValueError("No target dataset")
+
+        diff = self.diff_metadata(remote)
+        if diff:
+            remote.set_metadata(**self.metadata)
+            remote.save_metadata()
+
+        diff = self.diff_files(remote)
+        if diff:
+            client = remote.client
+            for file in diff.added.values():
+                client.upload_file(remote, file, notify=notify)
+
+            for file in diff.removed.values():
+                client.delete_file(remote, file)
+
+            for file, remote_file in diff.modified.values():
+                client.delete_file(remote, remote_file)
+                client.upload_file(remote, file)
+
+            remote.get_files(refresh=True)
+
+        return remote
+
+
+    def pull(self, source=None, notify: Callable=None) -> None:
+        remote = self.get_remote_dataset(source)
+        if not remote:
+            raise ValueError("No source dataset")
+
+        diff = remote.diff_metadata(self)
+        if diff:
+            self.set_metadata(**remote.metadata)
+            self.save_metadata()
+
+        diff = remote.diff_files(self)
+        if diff:
+            client = remote.client
+            for file in diff.added.values():
+                client.download_file(file, path=self.path, notify=notify)
+
+            for file in diff.removed.values():
+                os.remove(file.fullpath)
+
+            for file, remote_file in diff.modified.values():
+                os.remove(file.fullpath)
+                client.download_file(remote_file, path=self.path, notify=notify)
+
+            self.get_files(refresh=True)
+
+        return remote

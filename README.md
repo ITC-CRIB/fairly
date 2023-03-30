@@ -6,7 +6,7 @@ A package to create, publish and clone research datasets.
 
 ## Installation
 
-*fairly* requires Python 3.8 or later, and it can be installed directly using PIP.
+*fairly* requires Python 3.8 or later, and it can be installed directly using pip.
 
 ```shell
 pip install fairly
@@ -26,7 +26,7 @@ pip install fairly
     cd fairly/
     ```
 
-3. Compile and install using PIP:
+3. Compile and install using pip:
 
     ```shell
     pip install .
@@ -93,7 +93,7 @@ dataset.metadata
 
 # Update metadata
 dataset.metadata['keywords'] = ['Landslides', 'precursor']
-dataset.save()
+dataset.save_metadata()
 
 # Store dataset to a local directory (i.e. clone dataset)
 local_dataset = dataset.store('/path/dataset')
@@ -103,11 +103,11 @@ Currently, the package supports the following research data management platforms
 
 - [Zenodo](https://zenodo.org/)
 - [Figshare](https://figshare.com/)
-- [Djehuty](https://github.com/4TUResearchData/djehuty/)
+- [Djehuty](https://github.com/4TUResearchData/djehuty/) (experimental)
 
 All research data repositories based on the listed platforms are supported.
 
-For more details and examples, consult the [package documentation](https://jupyterfair.readthedocs.io/en/latest/package/installation.html).
+For more details and examples, consult the [package documentation](https://fairly.readthedocs.io/en/latest/).
 
 
 ## Testing
@@ -121,7 +121,7 @@ Read the [guidelines](CONTRIBUTING.md) to know how you can be part of this open 
 
 ## JupyterLab Extension
 
-An extension for JupyerLab is being developed in a [different repository.](https://github.com/ITC-CRIB/JupyterFAIR)
+An extension for JupyerLab is being developed in a [different repository.](https://github.com/ITC-CRIB/jupyter-fairly)
 
 ## Citation
 

@@ -1,8 +1,9 @@
 from __future__ import annotations
 from typing import List, Dict, Callable
 
+import fairly
+
 from . import Dataset
-from .local import LocalDataset
 from ..metadata import Metadata
 from ..file.local import LocalFile
 from ..file.remote import RemoteFile
@@ -23,16 +24,16 @@ class RemoteDataset(Dataset):
 
     """
 
-    def __init__(self, client, id=None, details: Dict=None, **kwargs):
+    def __init__(self, client, id=None, auto_refresh: bool=True, details: Dict=None, **kwargs):
         """Initializes RemoteDataset object.
 
         Args:
             client (Client): Client of the dataset
             id: Dataset identifier
-
+            auto_refresh (bool): Set True to auto-refresh dataset information
         """
         # Call parent method
-        super().__init__()
+        super().__init__(auto_refresh=auto_refresh)
         # Set client
         self._client = client
         # Set dataset id
@@ -62,7 +63,7 @@ class RemoteDataset(Dataset):
         return self.client.get_metadata(self.id)
 
 
-    def save_metadata(self) -> None:
+    def _save_metadata(self) -> None:
         return self.client.save_metadata(self.id, self.metadata)
 
 
@@ -83,7 +84,16 @@ class RemoteDataset(Dataset):
         if os.listdir(path):
             raise ValueError("Directory is not empty.")
 
-        dataset = LocalDataset(path)
+
+        templates = fairly.metadata_templates()
+        if self.client.repository_id in templates:
+            template = self.client.repository_id
+        elif self.client.client_id in templates:
+            template = self.client.client_id
+        else:
+            template = None
+
+        dataset = fairly.init_dataset(path, template=template)
 
         # TODO: Set metadata directly without serialization
         dataset.set_metadata(**self.metadata)
@@ -99,6 +109,9 @@ class RemoteDataset(Dataset):
             else:
                 includes.append(file.path)
         dataset.save_files()
+
+        if self.client.repository_id:
+            dataset.set_remote_dataset(self)
 
         return dataset
 
@@ -162,4 +175,10 @@ class RemoteDataset(Dataset):
     @property
     def modified(self) -> datetime.datetime:
         """Last modification date and time of the dataset"""
+        # REMARK: Can be better to have a dedicated method to minimize data transfer
         return self._get_detail("modified", refresh=True)
+
+
+    def reproduce(self) -> RemoteDataset:
+        """Reproduces an actual copy of the dataset."""
+        return RemoteDataset(self.client, self.id)

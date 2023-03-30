@@ -15,6 +15,7 @@ from collections.abc import MutableMapping
 from .person import Person, PersonList
 
 import re
+import copy
 
 class Metadata(MutableMapping):
     """Metadata class.
@@ -22,6 +23,7 @@ class Metadata(MutableMapping):
     Attributes:
         _normalize (Callable): Attribute normalization method.
         _attrs (Dict): Metadata attributes.
+        _basis (Dict): Basis of metadata attributes.
 
     Class Attributes:
         REGEXP_DOI: Regular expression to validate DOI.
@@ -46,12 +48,15 @@ class Metadata(MutableMapping):
             if bool(val) or isinstance(val, (bool, int, float)):
                 self._attrs[key] = self._normalize(key, val)
 
+        self.rebase()
+
 
     def __setitem__(self, key, val):
         if bool(val) or isinstance(val, (bool, int, float)):
             self._attrs[key] = self._normalize(key, val)
         elif key in self._attrs:
             del self._attrs[key]
+
 
     def __getitem__(self, key):
         return self._attrs[key]
@@ -75,6 +80,15 @@ class Metadata(MutableMapping):
 
     def __repr__(self):
         return "Metadata({})".format(self._attrs)
+
+
+    def rebase(self):
+        self._basis = copy.deepcopy(self._attrs)
+
+
+    @property
+    def is_modified(self):
+        return self._attrs != self._basis
 
 
     @classmethod
@@ -160,11 +174,25 @@ class Metadata(MutableMapping):
         """
         updated = {}
 
-        if self.get("authors") and (not attrs or "authors" in attrs):
-            updated["authors"] = {}
-            for key, val in enumerate(self["authors"]):
+        for key, val in self._attrs.items():
+
+            if attrs and key not in attrs:
+                continue
+
+            if isinstance(val, Person):
                 result = val.autocomplete(overwrite=overwrite, **kwargs)
-                if result:
-                    updated["authors"][key] = result
+
+            elif isinstance(val, PersonList):
+                result = {}
+                for index, person in enumerate(val):
+                    res = person.autocomplete(overwrite=overwrite, **kwargs)
+                    if res:
+                        result[key] = res
+
+            else:
+                continue
+
+            if result:
+                updated[key] = result
 
         return updated
