@@ -349,7 +349,6 @@ def init_dataset(path: str, template: str = "default", create: bool = True) -> L
         NotADirectoryError: If path is not a directory path.
         ValueError("Operation not permitted"): If path is an existing dataset path.
         ValueError("Invalid template name"): If template name is invalid.
-
     """
     if not os.path.exists(path):
         if create:
@@ -409,6 +408,21 @@ def notify(file: File, current_size: int, total_size: int = None, current_total_
                 f"{file.path}, {current_size}/{file.size}, {current_total_size}/{total_size}")
     else:
         print(f"{file.path}, {current_size}/{file.size}")
+
+
+def store(id: str, path: str=None, notify: Callable=None, extract: bool=False) -> LocalDataset:
+    """Stores remote dataset locally
+
+    Args:
+        id (str): Dataset identifier.
+        path (str): Local path to store the dataset (optional).
+        notify (Callable): Notification callback function.
+        extract (bool): Set True to extract dataset archives (default = False)
+
+    Returns:
+        Local dataset object
+    """
+    return dataset(id).store(path, notify=notify, extract=extract)
 
 
 if __name__ == "__main__":
