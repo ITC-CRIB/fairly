@@ -79,7 +79,14 @@ class RemoteDataset(Dataset):
         return self.client.download_file(file, path, name, notify)
 
 
-    def store(self, path: str, notify: Callable=None, extract: bool=False) -> LocalDataset:
+    def store(self, path: str=None, notify: Callable=None, extract: bool=False) -> LocalDataset:
+        if not path:
+            path = self.doi
+            if not path:
+                raise ValueError("No path.")
+            for sep in ["/", "\\"]:
+                path = path.replace(sep, "_")
+
         os.makedirs(path, exist_ok=True)
         if os.listdir(path):
             raise ValueError("Directory is not empty.")
