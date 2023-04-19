@@ -83,14 +83,13 @@ class RemoteDataset(Dataset):
         if not path:
             path = self.doi
             if not path:
-                raise ValueError("No path.")
+                raise ValueError("Empty path.")
             for sep in ["/", "\\"]:
                 path = path.replace(sep, "_")
 
         os.makedirs(path, exist_ok=True)
         if os.listdir(path):
             raise ValueError("Directory is not empty.")
-
 
         templates = fairly.metadata_templates()
         if self.client.repository_id in templates:
