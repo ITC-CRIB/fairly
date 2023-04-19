@@ -314,7 +314,6 @@ class Client(ABC):
 
         Returns:
           Returned content and response
-
         """
 
         if not fairly.is_testing():
@@ -536,6 +535,21 @@ class Client(ABC):
 
 
     def download_file(self, file: RemoteFile, path: str=None, name: str=None, notify: Callable=None) -> LocalFile:
+        """Downloads a remote file.
+
+        Args:
+            file (RemoteFile): Remote file.
+            path (str): Local path of the file (optional).
+            name (str): Local name of the file (optional).
+            notify (Callable): Notification callback method (optional).
+
+        Returns:
+            Local file object.
+
+        Raises:
+            ValueError("No URL address"): If remote file has no URL address.
+            IOError("Invalid MD5 checksum"): If MD5 checksum is invalid.
+        """
         if not file.url:
             raise ValueError("No URL address")
 
@@ -546,7 +560,7 @@ class Client(ABC):
             name = file.path
             dirs = os.path.dirname(name)
             if dirs:
-                os.makedirs(dirs, exist_ok=True)
+                os.makedirs(os.path.join(path, dirs), exist_ok=True)
 
         fullpath = os.path.join(path, name)
         current_size = 0
