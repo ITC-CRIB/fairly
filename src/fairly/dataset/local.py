@@ -68,6 +68,8 @@ class LocalDataset(Dataset):
         self._load_md5s()
 
         self._yaml = YAML()
+        self._yaml.allow_unicode = True
+        self._yaml.encoding = "utf-8"
 
 
     def _get_manifest(self) -> Dict:
@@ -79,7 +81,7 @@ class LocalDataset(Dataset):
         # TODO: Add exception handling
         manifest = None
         if os.path.isfile(self._manifest_path):
-            with open(self._manifest_path, "r") as file:
+            with open(self._manifest_path, "r", encoding="utf-8") as file:
                 # REMARK: ruaml.yaml is used to preserve document structure
                 # https://stackoverflow.com/questions/71024653/how-to-update-yaml-file-without-loss-of-comments-and-formatting-yaml-automatic
                 manifest = self._yaml.load(file)
@@ -176,7 +178,7 @@ class LocalDataset(Dataset):
                 "excludes": [],
             }
 
-        with open(self._manifest_path, "w") as file:
+        with open(self._manifest_path, "w", encoding="utf-8") as file:
             # TODO: Exception handling
             self._yaml.dump(manifest, file)
 
