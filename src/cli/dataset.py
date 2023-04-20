@@ -15,12 +15,12 @@ def create(
     metadata: str = typer.Argument(..., help="Metadata specification to be used for the dataset, for example figshare or zenodo."),
 ) -> None:
     '''Create a local dataset under path with default template
-    
+
     fairly dataset create <path>
 
     Create a local dataset under path with the specified template
     <template> = 'zeondo, 4tu, default'
-    
+
     fairly dataset create <path> --template <template>
     '''
     # Check that the manifest is not placed in the dataset directory
@@ -48,7 +48,7 @@ def clone(
 ) -> None:
     '''
     Clones a dataset by using its URL address, DOI or ID among other arguments
-    
+
     Examples: \n
         >>> fairly dataset clone <url|doi> \n
         >>> fairly dataset clone https://zenodo.org/record/6026285 \n
@@ -56,15 +56,15 @@ def clone(
         >>> fairly dataset clone <repository> <id> \n
         >>> fairly dataset clone --repo zenodo --id 6026285 \n
     '''
-    
+
     dataset = None
-    
+
     if url:
         arg = url # (uncomment when doi is implemented) if url else doi
         try:
             if token: dataset = fairly.dataset(arg, token=token)
             else: dataset = fairly.dataset(arg)
-        except Exception as e: 
+        except Exception as e:
             print(e)
             return None
 
@@ -74,30 +74,32 @@ def clone(
         except Exception as e: print(e)
 
         try: dataset = client.get_dataset(id)
-        except Exception as e: 
+        except Exception as e:
             print(e)
             print("Please specify the dataset ID")
             return None
 
     try:
-        dir_name = dataset.metadata['title'].replace(" ", "_").lower() 
+        dir_name = dataset.doi]
+        for sep in ["/", "\\"]:
+            dir_name = dir_name.replace(sep, "_")
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
             transient = True,
         ) as progress:
             progress.add_task("Cloning dataset",total=None)
-            
-            if path != "./": 
+
+            if path != "./":
                 dataset.store(f'{path}')
                 print(f"Dataset {dir_name} successfully cloned to {path}")
-            
-            else: 
+
+            else:
                 dataset.store(f'{dir_name}')
                 print(f"Dataset {dir_name} successfully cloned to {dir_name}")
 
 
-    except Exception as e: 
+    except Exception as e:
         print("Probably you have already cloned this dataset in this directory.")
         raise e
     return None
@@ -111,26 +113,26 @@ def upload(
     Upload dataset by using a custom token (can be useful for e.g. data stewards)
     >>> fairly dataset upload <path> <repository> --token <token>
     >>> fairly upload <path> <repository> --token <token>
-    
+
     If the dataset was not uploaded before: create remote entry (get id), set metadata, upload all files, upload local manifest to add id
     If the dataset was uploaded (id exists in manifest): update remote metadata, upload added and modified files, delete removed files
     '''
     # Check that the manifest is placed in the dataset directory
     # if manifest is not in path, raise error
     path = "../"
-    
+
     if not os.path.isfile(f"{os.getcwd()}/manifest.yaml"):
         print(os.path.exists(f"{path}manifest.yaml"))
         print(os.getcwd())
         print("manifest.yaml does not exist in the current directory, cannot upload dataset")
         return None
-            
+
     try:
         dataset = fairly.dataset(os.getcwd())
 
-        if token: 
+        if token:
             client = fairly.client(repo, token=token)
-        else: 
+        else:
             client = fairly.client(repo)
 
         with Progress(
@@ -143,7 +145,7 @@ def upload(
             print(f"Dataset successfully uploaded at {remote_dataset.url}")
         return None
 
-    except ValueError as e: 
+    except ValueError as e:
         print(e)
         print(dataset.metadata)
         return None
@@ -156,10 +158,10 @@ def delete(
     '''
     fairly delete (url|doi)
     '''
-    try: 
+    try:
         dataset = fairly.dataset(url)
-       
-        # here we get the repository id from the url to create the client that 
+
+        # here we get the repository id from the url to create the client that
         # will be used to delete the dataset
         client = fairly.client(dataset._client._client_id)
 
@@ -172,7 +174,7 @@ def delete(
             client._delete_dataset(dataset.id)
 
         print(f"Dataset with id: { dataset.id['id'] } successfully deleted from {repo}")
-    
+
     except Exception as e:
         raise
 
