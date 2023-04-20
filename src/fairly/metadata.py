@@ -16,6 +16,8 @@ from .person import Person, PersonList
 
 import re
 import copy
+import sys
+from ruamel.yaml import YAML
 
 class Metadata(MutableMapping):
     """Metadata class.
@@ -196,3 +198,8 @@ class Metadata(MutableMapping):
                 updated[key] = result
 
         return updated
+
+
+    def print(self):
+        yaml = YAML()
+        yaml.dump(self.serialize(), sys.stdout)
