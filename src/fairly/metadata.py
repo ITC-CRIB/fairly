@@ -17,7 +17,7 @@ from .person import Person, PersonList
 import re
 import copy
 import sys
-from ruamel.yaml import YAML
+import ruamel.yaml
 
 class Metadata(MutableMapping):
     """Metadata class.
@@ -200,6 +200,30 @@ class Metadata(MutableMapping):
         return updated
 
 
+    def _remove_comments(self, d):
+        # REMARK: https://stackoverflow.com/questions/60080325/how-to-delete-all-comments-in-ruamel-yaml
+        if isinstance(d, dict):
+            for k, v in d.items():
+                self._remove_comments(k)
+                self._remove_comments(v)
+
+        elif isinstance(d, list):
+            for elem in d:
+                self._remove_comments(elem)
+
+        try:
+             # literal scalarstring might have comment associated with them
+             attr = 'comment' if isinstance(d, ruamel.yaml.scalarstring.ScalarString) \
+                      else ruamel.yaml.comments.Comment.attrib
+             delattr(d, attr)
+        except AttributeError:
+            pass
+
+
     def print(self):
-        yaml = YAML()
-        yaml.dump(self.serialize(), sys.stdout)
+        yaml = ruamel.yaml.YAML()
+
+        out = self.serialize()
+        self._remove_comments(out)
+
+        yaml.dump(out, sys.stdout)
