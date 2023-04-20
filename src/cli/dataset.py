@@ -80,7 +80,7 @@ def clone(
             return None
 
     try:
-        dir_name = dataset.doi]
+        dir_name = dataset.doi
         for sep in ["/", "\\"]:
             dir_name = dir_name.replace(sep, "_")
         with Progress(
