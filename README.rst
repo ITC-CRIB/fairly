@@ -1,3 +1,53 @@
+.. list-table::
+   :widths: 25 25
+   :header-rows: 1
+
+   * - `fair-software.nl <https://fair-software.nl>`_ recommendations
+     - Badges
+   * - \1. Code repository
+     - |GitHub Badge|
+   * - \2. License
+     - |License Badge|
+   * - \3. Community Registry
+     - |PyPI Badge|
+   * - \4. Enable Citation
+     - |Zenodo Badge|
+   * - **Other best practices**
+     -
+   * - Continuous integration
+     - |Python Build| |Python Publish|
+   * - Documentation
+     - |Documentation Status|
+
+.. |GitHub Badge| image:: https://img.shields.io/github/v/release/ITC-CRIB/fairly
+   :target: https://github.com/ITC-CRIB/fairly
+   :alt: GitHub Badge
+
+.. |License Badge| image:: https://img.shields.io/badge/License-MIT-yellow.svg
+   :target: https://opensource.org/licenses/MIT
+   :alt: License Badge
+
+.. |PyPI Badge| image:: https://img.shields.io/pypi/v/fairly?colorB=blue
+   :target: https://pypi.org/project/fairly/
+   :alt: PyPI Badge
+
+.. |Zenodo Badge| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.7759648.svg
+   :target: https://doi.org/10.5281/zenodo.7759648
+   :alt: Zenodo Badge
+
+.. |Python Build| image:: https://img.shields.io/github/actions/workflow/status/ITC-CRIB/fairly/test_workflow.yaml
+   :target: https://github.com/ITC-CRIB/fairly/actions/workflows/test_workflow.yaml
+   :alt: Python Build
+
+.. |Python Publish| image:: https://img.shields.io/github/actions/workflow/status/ITC-CRIB/fairly/publish.yaml
+   :target: https://github.com/ITC-CRIB/fairly/actions/workflows/publish.yaml
+   :alt: Python Publish
+
+.. |Documentation Status| image:: https://readthedocs.org/projects/fairly/badge/?version=latest
+   :target: https://fairly.readthedocs.io/en/latest/
+   :alt: Documentation Status
+
+
 fairly
 ======
 
