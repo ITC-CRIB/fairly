@@ -13,10 +13,10 @@ Star JupyterLab with the **fairly** extension. This will start JupterLab in your
 Windows
 ''''''''
 
-You will us the Shell Terminal to start JupyterLab.
+You will use the Shell Terminal to start JupyterLab.
 
 .. important::
-   For the following to work, you need Pyton in the PATH environment variable on Windows. If your not sure that is the case. Open the Shell, and type :code:`python --version`. You should see the version of Python on the screen. If you see otherwise, follow these steps to `add Python to the PATH on Windows <https://realpython.com/add-python-to-path/#how-to-add-python-to-path-on-windows>`_
+   For the following to work, you need Pyton in the PATH environment variable on Windows. If you are not sure that is the case. Open the Shell, and type :code:`python --version`. You should see the version of Python on the screen. If you see otherwise, follow these steps to `add Python to the PATH on Windows <https://realpython.com/add-python-to-path/#how-to-add-python-to-path-on-windows>`_
 
 On the shell type the following and press `Enter`:
 
@@ -110,6 +110,7 @@ However, if you are not sure which repository you will use to publish a dataset,
 2. Edit the dataset metadata by typing in :code:`manifest.yaml` file, as follows. Here, we use only a small set of fields that are possible for Zenodo.
 
 .. code-block:: yaml
+   
    metadata:
      type: dataset
      publication_date: '2023-03-22'
