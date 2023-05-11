@@ -12,14 +12,15 @@ app = typer.Typer(pretty_exceptions_show_locals=False)
 
 @app.command()
 def create(
-    metadata: str = typer.Argument(..., help="Metadata specification to be used for the dataset, for example figshare or zenodo."),
+    path: str = typer.Argument("", help="Path where the dataset will be created"),
+    template: str = typer.Option("default", help="Metadata template to be used for the dataset"),
 ) -> None:
-    '''Create a local dataset under path with default template
+    '''Create a local dataset under path with default template\n
 
-    fairly dataset create <path>
+    fairly dataset create <path>\n
 
-    Create a local dataset under path with the specified template
-    <template> = 'zeondo, 4tu, default'
+    Create a local dataset under path with the specified template\n
+    <template> = 'zeondo, 4tu, default'\n
 
     fairly dataset create <path> --template <template>
     '''
@@ -27,16 +28,8 @@ def create(
     if os.path.isfile("manifest.yaml"):
         print("manifest.yaml already exists in the current directory, cannot overwrite existing dataset metadata")
     else:
-        fairly.init_dataset(os.getcwd(), metadata)
+        fairly.init_dataset(path, template=template)
         return None
-
-@app.command()
-def show():
-    '''Show information about the specified local dataset
-    show some metadata + handy info about the dataset
-    fairly dataset show <path>
-    '''
-    raise NotImplementedError
 
 @app.command()
 def clone(
