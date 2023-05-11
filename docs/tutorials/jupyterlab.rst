@@ -13,10 +13,10 @@ Star JupyterLab with the **fairly** extension. This will start JupterLab in your
 Windows
 ''''''''
 
-You will us the Shell Terminal to start JupyterLab.
+You will use the Shell Terminal to start JupyterLab.
 
 .. important::
-   For the following to work, you need Pyton in the PATH environment variable on Windows. If your not sure that is the case. Open the Shell, and type :code:`python --version`. You should see the version of Python on the screen. If you see otherwise, follow these steps to `add Python to the PATH on Windows <https://realpython.com/add-python-to-path/#how-to-add-python-to-path-on-windows>`_
+   For the following to work, you need Pyton in the PATH environment variable on Windows. If you are not sure that is the case. Open the Shell, and type :code:`python --version`. You should see the version of Python on the screen. If you see otherwise, follow these steps to `add Python to the PATH on Windows <https://realpython.com/add-python-to-path/#how-to-add-python-to-path-on-windows>`_
 
 On the shell type the following and press `Enter`:
 
@@ -110,29 +110,29 @@ However, if you are not sure which repository you will use to publish a dataset,
 2. Edit the dataset metadata by typing in :code:`manifest.yaml` file, as follows. Here, we use only a small set of fields that are possible for Zenodo.
 
 .. code-block:: yaml
-
+   
    metadata:
-   type: dataset
-   publication_date: "2023-03-22"
-   title: "My Dataset"
-   authors: 
-       - fullname: Your-Surname, Your-Name
-         affilication: Your institution
-   description: A dataset from the Fairly Toolset workshop
-   access_type: open
-   license: CC0-1.0
-   doi: ""
-   prereserve_doi:
-   keywords:
-   - workshop
-   - dummy data
-   notes: ""
-   related_identifiers: []
-   communities: []
-   grants: []
-   subjects: []
-   version: 1.0.0
-   language: eng
+     type: dataset
+     publication_date: '2023-03-22'
+     title: My Title
+     authors:
+     - fullname: Surname, FirstName
+       affiliation: Your institution
+     description: A dataset from the Fairly Toolset workshop
+     access_type: open
+     license: CC0-1.0
+     doi: ''
+     prereserve_doi:
+     keywords:
+     - workshop
+     - dummy data
+     notes: ''
+     related_identifiers: []
+     communities: []
+     grants: []
+     subjects: []
+     version: 1.0.0
+     language: eng
    template: zenodo
    files:
      includes:
@@ -141,9 +141,9 @@ However, if you are not sure which repository you will use to publish a dataset,
      - my_code.py
      - Survey_AI.csv
      - wind-mill.jpg
-     - wind-mill.jpg
-   excludes: []
-   
+     excludes: []
+
+
 
 .. note:: 
    The :code:`includes`  field must list the files you want to include as part of the dataset. They will be uploaded to the research data repository. The :code:`excludes` field can be use when you want to explicitly indicate what files you don't want to include as part of the datasets, for example, files that contain sensitive information.
@@ -179,7 +179,7 @@ Now, you will configure *fairly* to use your token.
 Windows
 """"""""""""
 
-1. Using the Windows File Explorer, go to :code:`C:\Users\<You-user-name>\`
+1. Using the Windows File Explorer, go to **C:\Users\<You-user-name>**
 2. Create a directory called :code:`.fairly`
 3. Inside :code:`~/.fairly`, create a file file called :code:`config.json`. You may need to change the explorer settings to show the file extension or *fairly* will not be able to read the token.
 4. Copy the following test into this file, and add your token under **zenodo**
