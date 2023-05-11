@@ -40,11 +40,12 @@ def show():
 
 @app.command()
 def clone(
-    url: str = typer.Option("", help="URL option argument"),
     token: str = typer.Option("", help="Token option argument"),
     repo: str = typer.Option("", help="Repository option argument"),
-    id: str = typer.Option("", help="ID option argument"),
-    path: str = typer.Argument("./", help="Path where the dataset will be downloaded"),
+    notify: bool = typer.Option(False, help="Enable process notification"),
+    extract: bool = typer.Option(False, help="Extract archive files"),
+    id: str = typer.Argument("", help="Dataset identifier (URL, DOI, or ID)"),
+    path: str = typer.Argument("", help="Path where the dataset will be downloaded"),
 ) -> None:
     '''
     Clones a dataset by using its URL address, DOI or ID among other arguments
@@ -52,56 +53,43 @@ def clone(
     Examples: \n
         >>> fairly dataset clone <url|doi> \n
         >>> fairly dataset clone https://zenodo.org/record/6026285 \n
-        >>> fairly dataset clone --url <url> --token <token>  \n
         >>> fairly dataset clone <repository> <id> \n
-        >>> fairly dataset clone --repo zenodo --id 6026285 \n
+        >>> fairly dataset clone --repo zenodo 6026285 \n
     '''
 
-    dataset = None
-
-    if url:
-        arg = url # (uncomment when doi is implemented) if url else doi
+    if repo:
         try:
-            if token: dataset = fairly.dataset(arg, token=token)
-            else: dataset = fairly.dataset(arg)
+            client = fairly.client(repo)
         except Exception as e:
             print(e)
             return None
 
-    elif repo:
-        # Make sure that client is a valid client
-        try: client = fairly.client(repo)
-        except Exception as e: print(e)
-
-        try: dataset = client.get_dataset(id)
-        except Exception as e:
-            print(e)
-            print("Please specify the dataset ID")
-            return None
+        dataset = client.get_dataset(id, token=token)
+    
+    else:
+        dataset = fairly.dataset(id)
 
     try:
-        dir_name = dataset.doi
-        for sep in ["/", "\\"]:
-            dir_name = dir_name.replace(sep, "_")
+        if not path:
+            path = dataset.doi if dataset.doi else "dataset"
+       
+            for sep in ["/", "\\"]:
+                path = path.replace(sep, "_")
+        
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
             transient = True,
         ) as progress:
-            progress.add_task("Cloning dataset",total=None)
+            progress.add_task("Cloning dataset", total=None)
 
-            if path != "./":
-                dataset.store(f'{path}')
-                print(f"Dataset {dir_name} successfully cloned to {path}")
-
-            else:
-                dataset.store(f'{dir_name}')
-                print(f"Dataset {dir_name} successfully cloned to {dir_name}")
-
+            dataset.store(path, notify=fairly.notify if notify else None, extract=extract)
+            print(f"Dataset is successfully cloned to {path}")
 
     except Exception as e:
-        print("Probably you have already cloned this dataset in this directory.")
-        raise e
+        print(e)
+        return None
+        
     return None
 
 @app.command()
