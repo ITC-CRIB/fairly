@@ -179,7 +179,7 @@ Now, you will configure *fairly* to use your token.
 Windows
 """"""""""""
 
-1. Using the Windows File Explorer, go to :code:`C:\Users\<You-user-name>\`
+1. Using the Windows File Explorer, go to **C:\Users\<You-user-name>**
 2. Create a directory called :code:`.fairly`
 3. Inside :code:`~/.fairly`, create a file file called :code:`config.json`. You may need to change the explorer settings to show the file extension or *fairly* will not be able to read the token.
 4. Copy the following test into this file, and add your token under **zenodo**
