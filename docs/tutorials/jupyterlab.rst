@@ -110,29 +110,28 @@ However, if you are not sure which repository you will use to publish a dataset,
 2. Edit the dataset metadata by typing in :code:`manifest.yaml` file, as follows. Here, we use only a small set of fields that are possible for Zenodo.
 
 .. code-block:: yaml
-
    metadata:
-   type: dataset
-   publication_date: "2023-03-22"
-   title: "My Dataset"
-   authors: 
-       - fullname: Your-Surname, Your-Name
-         affilication: Your institution
-   description: A dataset from the Fairly Toolset workshop
-   access_type: open
-   license: CC0-1.0
-   doi: ""
-   prereserve_doi:
-   keywords:
-   - workshop
-   - dummy data
-   notes: ""
-   related_identifiers: []
-   communities: []
-   grants: []
-   subjects: []
-   version: 1.0.0
-   language: eng
+     type: dataset
+     publication_date: '2023-03-22'
+     title: My Title
+     authors:
+     - fullname: Surname, FirstName
+       affiliation: Your institution
+     description: A dataset from the Fairly Toolset workshop
+     access_type: open
+     license: CC0-1.0
+     doi: ''
+     prereserve_doi:
+     keywords:
+     - workshop
+     - dummy data
+     notes: ''
+     related_identifiers: []
+     communities: []
+     grants: []
+     subjects: []
+     version: 1.0.0
+     language: eng
    template: zenodo
    files:
      includes:
@@ -141,9 +140,9 @@ However, if you are not sure which repository you will use to publish a dataset,
      - my_code.py
      - Survey_AI.csv
      - wind-mill.jpg
-     - wind-mill.jpg
-   excludes: []
-   
+     excludes: []
+
+
 
 .. note:: 
    The :code:`includes`  field must list the files you want to include as part of the dataset. They will be uploaded to the research data repository. The :code:`excludes` field can be use when you want to explicitly indicate what files you don't want to include as part of the datasets, for example, files that contain sensitive information.
