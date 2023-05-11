@@ -124,8 +124,8 @@ However, if you are not sure which repository you will use to publish a dataset,
    doi: ""
    prereserve_doi:
    keywords:
-   - workshop
-   - dummy data
+      - workshop
+      - dummy data
    notes: ""
    related_identifiers: []
    communities: []
