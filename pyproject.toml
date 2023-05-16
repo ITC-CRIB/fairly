@@ -27,7 +27,7 @@ keywords = ["fairly", "open science", "research data", "data management"]
 dev = [
     "pytest",
     "pytest-cov",
-    "pytest-recording",
+    # "pytest-recording",
     "python-dotenv"
     # FIXME: Patches used by vcrpy is not compatible with the latest urllib3
     # "vcrpy"
