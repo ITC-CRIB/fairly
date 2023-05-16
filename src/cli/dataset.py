@@ -87,6 +87,7 @@ def clone(
 
 @app.command()
 def upload(
+    path: str = typer.Argument("", help="Path where the dataset is located"),
     repo: str = typer.Argument("", help="Repository option argument"),
     token: str = typer.Option("", help="Token option argument"),
 ):
@@ -98,18 +99,8 @@ def upload(
     If the dataset was not uploaded before: create remote entry (get id), set metadata, upload all files, upload local manifest to add id
     If the dataset was uploaded (id exists in manifest): update remote metadata, upload added and modified files, delete removed files
     '''
-    # Check that the manifest is placed in the dataset directory
-    # if manifest is not in path, raise error
-    path = "../"
-
-    if not os.path.isfile(f"{os.getcwd()}/manifest.yaml"):
-        print(os.path.exists(f"{path}manifest.yaml"))
-        print(os.getcwd())
-        print("manifest.yaml does not exist in the current directory, cannot upload dataset")
-        return None
-
     try:
-        dataset = fairly.dataset(os.getcwd())
+        dataset = fairly.dataset(path)
 
         if token:
             client = fairly.client(repo, token=token)
