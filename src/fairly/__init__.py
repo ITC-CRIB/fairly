@@ -168,10 +168,9 @@ def get_repositories() -> Dict:
         except FileNotFoundError:
             pass
 
-    # Update repository configuration from the environment variables if not testing
-    if not is_testing():
-        for key in data:
-            data[key].update(get_environment_config(key))
+    # Update repository configuration from the environment variables
+    for key in data:
+        data[key].update(get_environment_config(key))
 
     # Create repository dictionary
     repositories = {}
