@@ -49,10 +49,7 @@ class DjehutyClient(FigshareClient):
             Standard dataset identifier
 
         Raises:
-            ValueError("Invalid id")
             ValueError("Invalid URL address")
-            ValueError("No identifier")
-            ValueError("Invalid version")
         """
         version = None
 
