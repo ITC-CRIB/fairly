@@ -1,81 +1,23 @@
-import os
-from ruamel.yaml import YAML
-import yaml
-import shutil
-from functools import lru_cache
-
 import pytest
-# FIXME: Patches used by vcrpy is not compatible with the latest urllib3
-# import vcr
+from tests.conftest import *
 
 import fairly
-from fairly.dataset import Dataset
+
+from fairly.dataset.local import LocalDataset
+from fairly.dataset.remote import RemoteDataset
+
 from fairly.client.figshare import FigshareClient
 from fairly.client.zenodo import ZenodoClient
 
-# We generate a string that we can use to populate metadata for testing
-dummy_string = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-
 # Set testing flag
 fairly.TESTING = True
-ROOT_DIR = os.getcwd()
 
 
-
-@lru_cache(maxsize=None)
-def params_clients():
-    return [
-        fairly.client(id="figshare", token=os.environ.get("FAIRLY_FIGSHARE_TOKEN")),
-        fairly.client(id="zenodo", token=os.environ.get("FAIRLY_ZENODO_TOKEN"))
-    ]
-
-
-@lru_cache(maxsize=None)
 def params_create_client():
     return [
         ("figshare", FigshareClient),
         ("zenodo", ZenodoClient)
     ]
-
-
-def create_manifest_from_template(template_path: str, template_file: str,  target_path) -> None:
-    """Create a manifest file from a template file
-    Parameters
-    ----------
-    template_path : str
-        Path
-
-    template_file : str
-        Name of the template file in yaml format e.g. figshare.yaml
-        the file is extracted from the templates folder
-
-    target_path : str
-        Path to the target folder where the manifest file will be created
-
-    Example
-    -------
-    >>> create_manifest_from_template("./src/fairly/data/templates/", "figshare.yaml", "./tests/data/")
-    """
-    with open(f"{template_path}/{template_file}", "r") as f:
-        template = f.read()
-        template = yaml.safe_load(template)
-        template['metadata']['title'] = "My fairly test"
-        template['metadata']['description'] = dummy_string
-        # Add files key to the manifest so that files are added to the dataset object
-        template['files'] = { 'excludes': [], 'includes': ["*.txt"] }
-        if template_file == "figshare.yaml":
-            template['metadata']['authors'] = [ dummy_string ]
-        if template_file == "zenodo.yaml":
-            template['metadata']['creators'] = [ { "name": dummy_string } ]
-            template['metadata']['authors'] = [ {"name" : dummy_string } ]
-            template['metadata']['description'] = dummy_string
-            template['metadata']['license'] = 'cc-by-nc-4.0'
-            template['metadata']['type'] = 'dataset'
-            # template dates
-            template['metadata']['publication_date'] = '2020-01-01'
-
-    with open(f"{target_path}/manifest.yaml", "w") as f:
-        f.write(yaml.dump(template))
 
 
 def test_load_config():
@@ -101,78 +43,83 @@ def test_create_client(client_id, client_class):
     assert client.client_id == client_id
 
 
-# FIXME: Patches used by vcrpy is not compatible with the latest urllib3
-# @pytest.mark.vcr(cassette_library_dir='tests/fixtures/vcr_cassettes', filter_headers=['authorization'])
-@pytest.mark.parametrize("client", params_clients())
-def test_create_and_upload_dataset(templates, client: fairly.Client, dummy_dataset):
-    """
-    Test the procedure of creating a local dataset and uploading it to various
-    remote repositories.
-    """
-    # Test exception if dummy dataset does not exist
-    with pytest.raises(NotADirectoryError):
-        local_dataset = fairly.dataset("./tests/non_existing_dataset")
+@pytest.mark.parametrize("repository_id", fairly.get_repositories())
+def test_dataset_upload_delete(repository_id, tmpdir):
+    '''Test dataset upload to the recognized repositories.'''
 
-    # This copies the template for the specific client
-    # and writes it to the dummy dataset directory
-    create_manifest_from_template(templates, f"{client.client_id}.yaml", dummy_dataset)
+    repository = fairly.get_repository(repository_id)
+    if not repository.get("token"):
+        pytest.skip("No access token")
 
-    local_dataset = fairly.dataset(dummy_dataset)
-    assert local_dataset is not None
-    assert local_dataset.metadata['title'] == "My fairly test"
+    create_dummy_dataset(tmpdir)
+
+    result = runner.invoke(app, ["dataset", "upload", str(tmpdir), repository_id])
+    assert result.exit_code == 0, result.stdout
+
+    match = re.search(r"(https?://[^\s]+)", result.stdout)
+    assert match
+
+    url = match[0]
+
+    result = runner.invoke(app, ["dataset", "delete", url])
+    assert result.exit_code == 0, result.stdout
+
+
+@pytest.mark.parametrize("repository_id", fairly.get_repositories())
+def test_dataset_upload_delete(repository_id, tmpdir):
+    '''Test dataset upload to the recognized repositories.'''
+
+    repository = fairly.get_repository(repository_id)
+    if not repository.get("token"):
+        pytest.skip("No access token")
+
+    create_dummy_dataset(tmpdir)
+
+    local_dataset = fairly.dataset(str(tmpdir))
+    assert isinstance(local_dataset, LocalDataset)
     assert local_dataset.files is not None
 
-    # Notify user that token is not set
-    with pytest.raises(ValueError):
-        tokenless_client = fairly.client(client.client_id)
-        local_dataset.upload(tokenless_client)
+    remote_dataset = local_dataset.upload(repository_id)
+    assert isinstance(remote_dataset, RemoteDataset)
+    assert len(remote_dataset.files) == len(local_dataset.files)
 
-    remote_dataset = local_dataset.upload(client, notify=fairly.notify)
-    assert remote_dataset is not None
-    assert remote_dataset.metadata['title'] == "My fairly test"
-    assert remote_dataset.files is not None
-    assert len(remote_dataset.files) == 10
-    client._delete_dataset(remote_dataset.id)
+    remote_dataset.client.delete_dataset(remote_dataset.id)
 
 
-# FIXME: Patches used by vcrpy is not compatible with the latest urllib3
-# @pytest.mark.vcr(cassette_library_dir='tests/fixtures/vcr_cassettes', filter_headers=['authorization'])
-@pytest.mark.parametrize("client", params_clients())
-def test_download_dataset(templates, client: fairly.Client, dummy_dataset):
-    """Test the download of the different datasets created."""
-    # Local dataset is created in the tests folder
-    # and then deleted after the test is done
-    create_manifest_from_template(templates, f"{client.client_id}.yaml", dummy_dataset)
+@pytest.mark.parametrize("id", remote_dataset_ids())
+def test_dataset_clone(id, tmpdir):
+    '''Test the dataset cloning by using dataset URL address, DOI or ID.'''
 
-    local_dataset = fairly.dataset(dummy_dataset)
+    remote_dataset = fairly.dataset(id)
+    assert isinstance(remote_dataset, RemoteDataset)
 
-    remote_dataset = local_dataset.upload(client, notify=fairly.notify)
-    assert remote_dataset is not None
-
-    # Raise error if folder to store the dataset is not empty
-    with pytest.raises(ValueError):
-        remote_dataset.store(dummy_dataset)
-
-    local_path = f"{dummy_dataset}/{client.client_id}.dataset"
-
-    local_dataset = remote_dataset.store(local_path)
-    assert isinstance(local_dataset, Dataset)
-    assert len(local_dataset.files) == 10
-
-    local_dataset = fairly.dataset(local_path)
-    assert len(local_dataset.files) == 10
-
-    # Delete the dataset from the remote repository
-    client._delete_dataset(remote_dataset.id)
-
-    # Delete the local dataset
-    shutil.rmtree(local_path)
+    local_dataset = remote_dataset.store(tmpdir)
+    assert isinstance(local_dataset, LocalDataset)
+    assert len(local_dataset.files) == len(remote_dataset.files)
 
 
-# FIXME: Patches used by vcrpy is not compatible with the latest urllib3
-# @pytest.mark.vcr(cassette_library_dir='tests/fixtures/vcr_cassettes', filter_headers=['authorization'])
-@pytest.mark.parametrize("client", params_clients())
-def test_get_account_datasets(client: fairly.Client):
-    # Get all datasets from the account
+@pytest.mark.parametrize("template", fairly.metadata_templates())
+def test_dataset_create(template, tmpdir):
+    '''Tests creation of a new dataset.'''
+
+    dataset = fairly.init_dataset(str(tmpdir), template=template)
+    assert isinstance(dataset, LocalDataset)
+    assert dataset.template == template
+
+    # Should raise an exception if dataset already exists
+    with pytest.raises(Exception):
+        assert isinstance(fairly.init_dataset(str(tmpdir)), Exception)
+
+
+@pytest.mark.parametrize("repository_id", fairly.get_repositories())
+def test_get_account_datasets(repository_id):
+
+    repository = fairly.get_repository(repository_id)
+
+    if not repository.get("token"):
+        pytest.skip("No access token")
+
+    client = fairly.client(repository_id)
+
     datasets = client.get_account_datasets()
     assert datasets is not None
