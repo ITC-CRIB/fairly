@@ -5,7 +5,8 @@ import shutil
 from functools import lru_cache
 
 import pytest
-import vcr
+# FIXME: Patches used by vcrpy is not compatible with the latest urllib3
+# import vcr
 
 import fairly
 from fairly.dataset import Dataset
@@ -93,14 +94,15 @@ def test_get_clients():
 
 
 @pytest.mark.parametrize("client_id, client_class", params_create_client())
-def test_create_client(client_id, client_class):    
+def test_create_client(client_id, client_class):
     """Test client creation."""
     client = fairly.client(client_id)
     assert isinstance(client, client_class)
     assert client.client_id == client_id
 
 
-@pytest.mark.vcr(cassette_library_dir='tests/fixtures/vcr_cassettes', filter_headers=['authorization'])
+# FIXME: Patches used by vcrpy is not compatible with the latest urllib3
+# @pytest.mark.vcr(cassette_library_dir='tests/fixtures/vcr_cassettes', filter_headers=['authorization'])
 @pytest.mark.parametrize("client", params_clients())
 def test_create_and_upload_dataset(templates, client: fairly.Client, dummy_dataset):
     """
@@ -111,7 +113,7 @@ def test_create_and_upload_dataset(templates, client: fairly.Client, dummy_datas
     with pytest.raises(NotADirectoryError):
         local_dataset = fairly.dataset("./tests/non_existing_dataset")
 
-    # This copies the template for the specific client 
+    # This copies the template for the specific client
     # and writes it to the dummy dataset directory
     create_manifest_from_template(templates, f"{client.client_id}.yaml", dummy_dataset)
 
@@ -133,7 +135,8 @@ def test_create_and_upload_dataset(templates, client: fairly.Client, dummy_datas
     client._delete_dataset(remote_dataset.id)
 
 
-@pytest.mark.vcr(cassette_library_dir='tests/fixtures/vcr_cassettes', filter_headers=['authorization'])
+# FIXME: Patches used by vcrpy is not compatible with the latest urllib3
+# @pytest.mark.vcr(cassette_library_dir='tests/fixtures/vcr_cassettes', filter_headers=['authorization'])
 @pytest.mark.parametrize("client", params_clients())
 def test_download_dataset(templates, client: fairly.Client, dummy_dataset):
     """Test the download of the different datasets created."""
@@ -151,22 +154,23 @@ def test_download_dataset(templates, client: fairly.Client, dummy_dataset):
         remote_dataset.store(dummy_dataset)
 
     local_path = f"{dummy_dataset}/{client.client_id}.dataset"
-    
+
     local_dataset = remote_dataset.store(local_path)
     assert isinstance(local_dataset, Dataset)
     assert len(local_dataset.files) == 10
-    
+
     local_dataset = fairly.dataset(local_path)
     assert len(local_dataset.files) == 10
-    
+
     # Delete the dataset from the remote repository
     client._delete_dataset(remote_dataset.id)
-    
+
     # Delete the local dataset
     shutil.rmtree(local_path)
 
 
-@pytest.mark.vcr(cassette_library_dir='tests/fixtures/vcr_cassettes', filter_headers=['authorization'])
+# FIXME: Patches used by vcrpy is not compatible with the latest urllib3
+# @pytest.mark.vcr(cassette_library_dir='tests/fixtures/vcr_cassettes', filter_headers=['authorization'])
 @pytest.mark.parametrize("client", params_clients())
 def test_get_account_datasets(client: fairly.Client):
     # Get all datasets from the account

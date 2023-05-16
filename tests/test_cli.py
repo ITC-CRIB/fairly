@@ -53,7 +53,8 @@ def dataset_clone_commands(dummy_dataset, templates, bucket):
     ['dataset', 'clone', '--repo', 'zenodo', '--id', remote_dataset.id, f'{bucket.strpath}/{remote_dataset.id}'],
 ]
 
-@pytest.mark.vcr(cassette_library_dir="./tests/fixtures/vcr_cassettes_cli")
+# FIXME: Patches used by vcrpy is not compatible with the latest urllib3
+# @pytest.mark.vcr(cassette_library_dir="./tests/fixtures/vcr_cassettes_cli")
 def test_dataset_clone(dataset_clone_commands, bucket):
     '''Test the upload of a dataset by using its URL address, DOI or ID
     We test this with the same dummy dataset
@@ -62,15 +63,16 @@ def test_dataset_clone(dataset_clone_commands, bucket):
     _test_commands(dataset_clone_commands)
     os.chdir(ROOT_DIR)
 
-@pytest.mark.vcr(cassette_library_dir="./tests/fixtures/vcr_cassettes_cli",
-                filter_headers=["authorization"], allow_playback_repeats=True)
+# FIXME: Patches used by vcrpy is not compatible with the latest urllib3
+# @pytest.mark.vcr(cassette_library_dir="./tests/fixtures/vcr_cassettes_cli",
+#                 filter_headers=["authorization"], allow_playback_repeats=True)
 def test_dataset_create(templates, dummy_dataset):
     '''The dataset creation with the cli simply means creating a manifest file
     in the directory that we want to be turn into a dataset'''
-    
+
     # chdir to the dummy dataset otherwise the command will be executed in the src folder
     os.chdir(dummy_dataset.strpath)
-    
+
     # Create a manifest file from the template in the current working directory
     runner.invoke(app, ["dataset", "create", "zenodo"])
 
@@ -79,7 +81,7 @@ def test_dataset_create(templates, dummy_dataset):
     create_manifest_from_template(templates,"zenodo.yaml", dummy_dataset.strpath)
 
     #TODO: Check that all the files are added to the manifest
-    
+
     # Reads the manifest file that makes the directory a dataset'
     dataset = fairly.dataset(dummy_dataset.strpath)
     assert dataset is not None
@@ -87,8 +89,8 @@ def test_dataset_create(templates, dummy_dataset):
 
     # Should raise an exception if the manifest file already exists
     with pytest.raises(Exception):
-        assert isinstance(runner.invoke(dataset_app, ["create", "zenodo"]), Exception) 
-    
+        assert isinstance(runner.invoke(dataset_app, ["create", "zenodo"]), Exception)
+
     # change to root directory
     os.chdir(ROOT_DIR)
 
@@ -104,16 +106,16 @@ def test_dataset_upload(dataset_upload_commands, dummy_dataset):
     We test this with the same dummy dataset
     '''
     os.chdir(dummy_dataset.strpath)
-    
+
     # Classify the testing datasets so that they can be deleted without causing problems
     _test_commands(dataset_upload_commands)
     os.chdir(ROOT_DIR)
 
 def test_delete_dataset():
     '''Test the deletion of datasets from the cli'''
-    
+
     repos = ['zenodo', '4tu']
-    
+
     for repo in repos:
         client = fairly.client(repo)
         datasets = client.get_account_datasets()

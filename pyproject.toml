@@ -28,8 +28,9 @@ dev = [
     "pytest",
     "pytest-cov",
     "pytest-recording",
-    "python-dotenv",
-    "vcrpy"
+    "python-dotenv"
+    # FIXME: Patches used by vcrpy is not compatible with the latest urllib3
+    # "vcrpy"
     ]
 
 [project.urls]
