@@ -58,7 +58,7 @@ A package to create, publish and clone research datasets.
 Installation
 ------------
 
-*fairly* requires Python 3.8 or later, and it can be installed directly
+*fairly* requires Python 3.8 or later, and `ruamel.yaml` version *0.17.26* or later.  It can be installed directly
 using pip.
 
 .. code:: shell

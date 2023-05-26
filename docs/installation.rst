@@ -15,6 +15,7 @@ The *Fairly Toolset* provides functionality for the core tasks of preparing, upl
 
 * Python 3.8 or higher
 * pip 20.0 or higher
+* ruamel.yaml 0.17.26 or higher 
 
 Installing the Toolset
 ------------------------
