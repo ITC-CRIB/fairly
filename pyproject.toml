@@ -1,6 +1,6 @@
 [project]
 name = "fairly"
-version = "0.3.0"
+version = "0.4.0"
 authors = [
   { name="Serkan Girgin", email="s.girgin@utwente.nl" },
   { name="Manuel Garcia Alvarez", email="m.g.garciaalvarez@tudelft.nl" },
@@ -17,7 +17,7 @@ dependencies = [
     "python-dateutil",
     "requests",
 		"requests_toolbelt",
-    "ruamel.yaml",
+    "ruamel.yaml>=0.17.26",
     "typer>=0.9.0",
     "rich"
     ]
@@ -27,10 +27,7 @@ keywords = ["fairly", "open science", "research data", "data management"]
 dev = [
     "pytest",
     "pytest-cov",
-    # "pytest-recording",
     "python-dotenv"
-    # FIXME: Patches used by vcrpy is not compatible with the latest urllib3
-    # "vcrpy"
     ]
 
 [project.urls]
