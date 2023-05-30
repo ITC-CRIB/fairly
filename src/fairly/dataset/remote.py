@@ -72,6 +72,11 @@ class RemoteDataset(Dataset):
 
 
     def get_versions(self) -> List[RemoteDataset]:
+        """Returns all available versions of the dataset.
+
+        Returns:
+            List of remote datasets of all available versions.
+        """
         return self.client.get_versions(self.id)
 
 
@@ -80,16 +85,33 @@ class RemoteDataset(Dataset):
 
 
     def store(self, path: str=None, notify: Callable=None, extract: bool=False) -> LocalDataset:
+        """Stores the dataset to a local directory.
+
+        If no path is provided, DOI is used by replacing slashes and backslashes with underscores.
+        Local directory is created if it does not exist.
+
+        Args:
+            path (str): Path to the local directory (optional).
+            notify (Callable): Notification callback method (optional).
+            extract (bool): Set True to extract archive files (default = False).
+
+        Returns:
+            LocalDataset object of the stored local dataset.
+
+        Raises:
+            ValueError("Empty path")
+            ValueError("Directory is not empty")
+        """
         if not path:
             path = self.doi
             if not path:
-                raise ValueError("Empty path.")
+                raise ValueError("Empty path")
             for sep in ["/", "\\"]:
                 path = path.replace(sep, "_")
 
         os.makedirs(path, exist_ok=True)
         if os.listdir(path):
-            raise ValueError("Directory is not empty.")
+            raise ValueError("Directory is not empty")
 
         templates = fairly.metadata_templates()
         if self.client.repository_id in templates:
