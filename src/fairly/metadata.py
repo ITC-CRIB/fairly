@@ -89,7 +89,12 @@ class Metadata(MutableMapping):
 
 
     @property
-    def is_modified(self):
+    def is_modified(self) -> bool:
+        """Checks if metadata is modified.
+
+        Returns:
+            True is metadata is modified, False otherwise.
+        """
         return self._attrs != self._basis
 
 
@@ -167,7 +172,7 @@ class Metadata(MutableMapping):
         """Completes missing metadata attributes by using the available information.
 
         Args:
-            overwrite: If True existing attributes are overwritten.
+            overwrite: Set True to overwrite existing attributes.
             attrs: List of attributes to be completed.
             **kwargs: Arguments for the specific autocomplete methods.
 
@@ -201,6 +206,8 @@ class Metadata(MutableMapping):
 
 
     def _remove_comments(self, d):
+        """Removes comments from a YAML dictionary recursively."""
+
         # REMARK: https://stackoverflow.com/questions/60080325/how-to-delete-all-comments-in-ruamel-yaml
         if isinstance(d, dict):
             for k, v in d.items():
@@ -221,6 +228,8 @@ class Metadata(MutableMapping):
 
 
     def print(self):
+        """Pretty prints metadata."""
+
         yaml = ruamel.yaml.YAML()
 
         out = self.serialize()
