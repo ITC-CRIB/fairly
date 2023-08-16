@@ -7,7 +7,7 @@ from . import Dataset
 from ..metadata import Metadata
 from ..file.local import LocalFile
 from ..file.remote import RemoteFile
-# FIXME: Importing Client results in circular dependency
+# FIXME: Importing Client or LocalDataset results in circular dependency
 # from ..client import Client
 
 import os
@@ -88,7 +88,12 @@ class RemoteDataset(Dataset):
                 path = path.replace(sep, "_")
 
         os.makedirs(path, exist_ok=True)
-        if os.listdir(path):
+
+        # check if directory is empty,
+        # while ignoring hidden files or directories
+        entries = os.listdir(path)
+        visible_entries = [entry for entry in entries if not entry.startswith(".")]
+        if len(visible_entries) > 0:
             raise ValueError("Directory is not empty.")
 
         templates = fairly.metadata_templates()
