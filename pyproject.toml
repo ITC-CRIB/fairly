@@ -16,7 +16,7 @@ classifiers = [
 dependencies = [
     "python-dateutil",
     "requests",
-		"requests_toolbelt",
+		"requests_toolbelt>=1.0.0",
     "ruamel.yaml>=0.17.26",
     "typer>=0.9.0",
     "rich"
