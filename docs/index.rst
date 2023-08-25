@@ -10,7 +10,8 @@ Fairly Toolset Documentation
    :maxdepth: 2
    :caption: Fairly Package
 
-   installation.rst
+   osf2023
+   installation
 
 .. toctree::
    :maxdepth: 1
