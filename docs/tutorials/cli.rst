@@ -106,13 +106,14 @@ The :code:`manifest.yaml` file contains several sections to describe the medatad
 
 However, if you are not sure which repository you will use to publish a dataset, use the :guilabel:`default` option. This template contains the most common sections and fields for the repositories supported by *fairly*
 
-.. note::
-   Independently of which template you use to start a dataset, the :code:`manifest.yaml` file is interoperable between data repositories, with very few exceptions. This means that you can use the same manifest file for various data repositories. Different templates are provided only as a guide to indicate what metadata is possible to provide in each data repository. 
+.. tip::
+   Independently of which template you use to start a dataset, the :code:`manifest.yaml` file is interoperable between data repositories, with very few exceptions. This means that you can use the same manifest file for various data repositories. Different templates are provided only as a guide to indicate what metadata is more relevant for each data repository. 
+
 
 1. Open the :code:`manifest.yaml` using a text editor. On Linux/MacOS you can use **nano** or **vim**. On Windows use the **notepad**
 
-2. Edit the dataset metadata by typing in :code:`manifest.yaml` file, as follows. Here, we use only a small set of fields that are possible for Zenodo.
-
+2. Substitute the content of the :code:`manifest.yaml` with the text below.  *Here, we use only a small set of fields that are possible for Zenodo.*
+   
 .. code-block:: yaml
 
    metadata:
@@ -147,12 +148,13 @@ However, if you are not sure which repository you will use to publish a dataset,
      - wind-mill.jpg
      excludes: []
 
- 
 
-.. note:: 
-   The :code:`includes`  field must list the files you want to include as part of the dataset. They will be uploaded to the research data repository. The :code:`excludes` field can be use when you want to explicitly indicate what files you don't want to include as part of the datasets, for example, files that contain sensitive information.
+3. Edit the dataset metadata by typing the information you want to add. For example, you can change the title, authors, description, etc. Save the file when you are done.
 
-3. Save the changes to the :code:`manifest.yaml`
+.. important:: 
+   * The :code:`includes`  field must list the files  and directories (folders) you want to include as part of the dataset. *Included files and directories will be uploaded to the the data repository* 
+   * The :code:`excludes` field can be used for explicitly indicating what files or directories you **don't want to be part  of the dataset**, for example, files that contain sensitive information. Excluded files and directories will never be uploaded to the data repository. 
+   * Files and directories that are not listed in either :code:`includes` or :code:`excludes` will be ignored by *fairly*.
 
 
 Upload Dataset to Data Repository
@@ -160,7 +162,7 @@ Upload Dataset to Data Repository
 
 Here, we explain how to upload a dataset to an existing account in Zenodo. If you do not have an account yet, you can `sign up in this webpage. <https://zenodo.org/signup/>`_
 
-For this, you first need to :ref:`create-token` and :ref:`configuring-fairly`.
+For this, you first need to :ref:`create-token` and register it manually or :ref:`via JupyterLab <configuring-fairly>`.
 
 Upload Dataset
 ''''''''''''''''
@@ -176,8 +178,8 @@ Upload Dataset
 .. image:: ../img/zenodo-cli-upload.png
 
 
-Explore the dataset and notice that all the files and metadata you added in JupyterLab has been automatically added to the new dataset. You should also notice that the dataset is not **published**, this is on purpose. This gives you the oportunity to review the dataset before deciding to publish. In this way we also prevent a user to publish dataset by mistake.
+Explore the dataset and notice that all the files and metadata you added in JupyterLab has been automatically added to the new dataset. You should also notice that the dataset is not **published**, this is on purpose. This gives you the oportunity to review the dataset before deciding to publish if, and if necessary to make changes. In this way we also prevent users to publish dataset by mistake.
 
 .. note:: 
-   Notice that in the current version of the JupyterLab extension, repeating the steps to upload a dataset will create a new entry in the repository. In the future, we will develop the CLI to allow to update existing datasets and sincronize changes.
-
+   If you try to upload the dataset again, you will get an error message. This is because the dataset already exists in Zenodo. You can see this reflected in the :code:`manifest.yaml` file;  the section :code:`remotes:` is added to the file after succesfully uploading a dataset. It lists the names and ids of the repositories where the dataset has been uploaded.
+   In the future, we will add a feature to allow users to update and sync datasets between repositories.
