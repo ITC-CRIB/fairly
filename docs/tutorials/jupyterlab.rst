@@ -44,7 +44,12 @@ Part 1: Cloning Dastasets
 
 Public research datasets can be cloned (copy and downloaded) directly to an empty directory, using the dataset's **URL** or **DOI**. We will use `this datset <https://data.4tu.nl/articles/dataset/Earthquake_Precursors_detected_by_convolutional_neural_network/21588096>`_ from 4TU.ResearchData as an example.
 
+This are other datasets that you can try:
 
+* https://zenodo.org/record/4302600
+* https://zenodo.org/record/8273524
+  
+ 
 Using the JupyterLab interface, create a new directory called :code:`workshop`. *Notice that the content of your main directory would be different.*
 
 .. image:: ../img/create-directory.png
