@@ -5,13 +5,6 @@ Installation
 
 The *Fairly Toolset* provides functionality for the core tasks of preparing, uploading and downloading datasets from research data repositories. The toolset currently provides integration with data repositories based on `Zenodo <https://zenodo.org/>`_ and `Figshare <https://figshare.com/>`_.
 
-
-.. important:: 
-
-   A **new release** of Fairly and its JupyterLab extension is schedule to August 30th, 2023. This will inlcude some bug fixes, and new features. 
-   *The Fairly Team*
-
-
 **What's Included:**
 
 * fairly Python package
