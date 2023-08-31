@@ -23,11 +23,12 @@ The *Fairly Toolset* provides functionality for the core tasks of preparing, upl
 * Python 3.8 or higher
 * pip 20.0 or higher
 * ruamel.yaml 0.17.26 or higher 
+* JupyterLablab 3.x
 
 Installing the Toolset
 ------------------------
 
-You can install the full toolset by installing the JupyterLab extension from PyPI. fairly package and CLI will be installed automatically.
+You can install the full toolset by installing the JupyterLab extension from PyPI. The fairly package and CLI will be installed automatically.
 
 Linux / MacOS
 '''''''''''''''''''
