@@ -1,3 +1,4 @@
+fairly==0.4.1
 alabaster==0.7.12
 asttokens==2.0.8
 attrs==22.1.0
@@ -13,7 +14,6 @@ defusedxml==0.7.1
 docutils==0.17.1
 entrypoints==0.4
 executing==1.0.0
-fairly>=0.4.1
 fastjsonschema==2.16.1
 idna==3.3
 imagesize==1.4.1
