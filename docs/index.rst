@@ -30,12 +30,6 @@ Fairly Toolset Documentation
    api/fairly.dataset
    api/fairly.file
 
-.. toctree::
-   :maxdepth:  1
-   :caption: Workshop
-
-   tutorials/workshop
-
 
 Indices and tables
 ==================
