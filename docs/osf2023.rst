@@ -47,5 +47,5 @@ On the day of the workshop, you can access the virtual machine using a remote de
 
 2. Click on the **Connect** button **(2)**. A file with the extension **OpenScienceFestival.rdp** will be downloaded to your computer.
 
-3. On your computer, double-click on the downloaded file. You will be asked to connect to your virtual machine using a username and password. **The username and password for this step will be provided during the workshop.**
+3. On your computer, double-click on the downloaded file. You will be asked to connect to your virtual machine using a username and password. **The username and password for this step will be provided also by email.**
  
