@@ -13,7 +13,7 @@ defusedxml==0.7.1
 docutils==0.17.1
 entrypoints==0.4
 executing==1.0.0
-fairly>=0.4.1
+fairly
 fastjsonschema==2.16.1
 idna==3.3
 imagesize==1.4.1
