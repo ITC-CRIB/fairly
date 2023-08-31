@@ -1,14 +1,14 @@
 Using the CLI
 =====================
 
-This tutorial shows how to use the *fairly* Command Line Interface to clone, and create datasets, and to edit their metadata.
+This tutorial shows how to use the *fairly* Command Line Interface (CLI) to clone, and create datasets, and to edit their metadata.
 
 .. important::
    **Windows Users.** For the following to work, you need Pyton in the PATH environment variable on Windows. If your not sure that is the case. Open the Shell, and type :code:`python --version`. You should see the version of Python on the screen. If you see otherwise, follow these steps to `add Python to the PATH on Windows <https://realpython.com/add-python-to-path/#how-to-add-python-to-path-on-windows>`_
 
 1. Open a *Terminal* or *Shell*
 
-2. Test the *fairly* CLI is accessible in your terminal, by calling the help command
+2. Test the *fairly* CLI is accessible in your terminal, by calling the help command:
 
 .. code:: shell
    
@@ -97,12 +97,12 @@ Include Files in your Dataset
 
 Add some folders and files the :code:`mydataset-cli` directory.  You can do this using the file explorer/browser. You can add files of your own, but be careful not to include anything that you want to keep confidential. Also consider the total size of the files you will add, the larger the size the longer the upload will take. Also remember that for the current Zenodo API each file should be :code:`100MB` or smaller; this will change in the future.
 
-If you do not want to use files from your own, you can download and use the `dumy-data <https://drive.google.com/drive/folders/160N6MCmiKV3g-74idCgyyul9UdoPRO8T?usp=share_link>`_ 
+If you do not want to use files from your own, you can download and use the `dummy-data <https://drive.google.com/drive/folders/160N6MCmiKV3g-74idCgyyul9UdoPRO8T?usp=share_link>`_ 
 
 Editing the Manifest
 ''''''''''''''''''''''
 
-The :code:`manifest.yaml` file contains several sections to describe the medatadata of a dataset. Some of the sections and fiels are compulsory (they are required by the researh data repository), others are optional. In this example you started a *fairly* dataset using the template for the Zenodo repository, but you could also do so 4TU.ResearchData. 
+The :code:`manifest.yaml` file contains several sections to describe the medatadata of a dataset. Some of the sections and fields are compulsory (they are required by the data repository), others are optional. In this example, you started a *fairly* dataset using the template for the Zenodo repository, but you could also do so for 4TU.ResearchData. 
 
 However, if you are not sure which repository you will use to publish a dataset, use the :guilabel:`default` option. This template contains the most common sections and fields for the repositories supported by *fairly*
 
