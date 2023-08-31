@@ -1,3 +1,5 @@
+.. _`appi`:
+
 fairly package
 ==============
 
