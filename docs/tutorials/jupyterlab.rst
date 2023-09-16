@@ -159,9 +159,10 @@ However, if you are not sure which repository you will use to publish a dataset,
 Part 3: Upload Dataset to Repository
 -------------------------------------
 
-In the last part of this tutorial, we explain how to upload a dataset to an existing account in Zenodo. If you do not have an account yet, you can `sign up in this webpage. <https://zenodo.org/signup/>`_
+This part explains how to upload a dataset to an existing account in Zenodo. If you do not have an account yet, you can `sign up in this webpage. <https://zenodo.org/signup/>`_
 
 .. _create-token:
+
 Create Personal Token
 ''''''''''''''''''''''
 
@@ -178,6 +179,7 @@ A personal token is a way in which data repositories identify a user. We need to
 .. image:: ../img/zenodo-token.png
 
 .. _configuring-fairly:
+
 Register Personal Token
 ''''''''''''''''''''''''''''''''
 
@@ -215,3 +217,36 @@ Explore the dataset and notice that all the files and metadata you added in Jupy
 .. note:: 
    If you try to upload the dataset again, you will get an error message. This is because the dataset already exists in Zenodo. You can see this reflected in the :code:`manifest.yaml` file;  the section :code:`remotes:` is added to the file after succesfully uploading a dataset. It lists the names and ids of the repositories where the dataset has been uploaded.
    In the future, we will add a feature to allow users to update and sync datasets between repositories.
+
+
+Part 4: Pushing Changes to Data Repository
+--------------------------------------------
+
+In the last part of this tutorial, we will show you how to push changes to a dataset that has already been uploaded to a data repository. For this, we will use the dataset we created in the previous part.
+
+
+.. attention:: 
+
+   To be able to push updates to an existing dataset in a repository, you need to have write access to the dataset. For most of the repositories this requires you to be the **owner** of the dataset. Most data repositories prevent updates if a dataset is "published" (i.e. editing is limited to datasets that are not yet published).
+
+You can make changes to the files in a local dataset as you would normally do. For example, you can add new files, edit existing files, or delete files. You can also edit the :code:`manifest.yaml` file to update the metadata of the dataset. 
+If file inclusion or exclusion rules are defined using patterns (e.g. `'*.txt'`), then the extension  automatically identifies added, removed, or modified files.
+Otherwise, you need to explicitly indicate what needs to be *included* or *excluded* by updating the :code:`includes` and `excludes` fields in the :code:`manifest.yaml` file.
+
+
+.. image:: ../img/add-filles.png
+
+Once you have made and **shaved** the changes, you can do the following upload the changes to the data repository.
+
+1. On the left panel, do right-click,
+2. click :guilabel:`Push` option from the list,
+3. confirm that you want to push the changes and click :guilabel:`Push` button. A notification on the bottom-right corner will let you know that changes are in progress and when they are completed.
+
+.. image:: ../img/push-menu.png
+
+.. image:: ../img/push-confirm.png
+
+
+.. tip:: 
+   
+   To push change to a dataset that you own, but you did not create using the Fairly Toolset, all you have to do is to clone it first, using the :guilabel:`Clone Dataset` option from the context menu. Then you will be able to make changes to the dataset and push them back to the data repository.
