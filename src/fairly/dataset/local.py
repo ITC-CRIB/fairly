@@ -6,6 +6,7 @@ from ..metadata import Metadata
 from ..file.local import LocalFile
 from .remote import RemoteDataset
 from ..client import Client
+from typing import Callable
 
 import fairly
 
@@ -552,11 +553,6 @@ class LocalDataset(Dataset):
         return LocalDataset(self.path)
 
 
-    def reproduce(self) -> LocalDataset:
-        """Reproduces an actual copy of the dataset."""
-        return LocalDataset(self.path)
-
-
     def set_remote_dataset(self, dataset) -> None:
         if not isinstance(dataset, RemoteDataset):
             dataset = fairly.dataset(dataset)
@@ -593,6 +589,23 @@ class LocalDataset(Dataset):
 
 
     def push(self, target=None, notify: Callable=None) -> RemoteDataset:
+        """
+        Pushes local changes to metadata and files the data repository to 
+        update a remote dataset. Dataset must exits in data repository.
+
+        Args:
+            target: Target repository identifier or client. If not specified, 
+            identifier in manifest is used.
+            notify (Callable): Notification callback function.
+
+        Returns:
+            Remote dataset
+        
+        Raises:
+            ValueError("No target dataset"): If target dataset is not specified.
+
+        """
+
         remote = self.get_remote_dataset(target)
         if not remote:
             raise ValueError("No target dataset")
@@ -621,6 +634,23 @@ class LocalDataset(Dataset):
 
 
     def pull(self, source=None, notify: Callable=None) -> None:
+        """
+        Pulls changes made to metadata and files from the data repository
+        to update the local dataset. Dataset must exits in data repository.
+
+        Args:
+            source: Source repository identifier or client. If not specified, 
+            identifier in manifest is used.
+            notify (Callable): Notification callback function.
+        
+        Returns:
+            Remote dataset
+
+        Raises:
+            ValueError("No source dataset"): If source dataset is not specified.
+            
+        """
+
         remote = self.get_remote_dataset(source)
         if not remote:
             raise ValueError("No source dataset")
