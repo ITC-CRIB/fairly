@@ -645,6 +645,9 @@ class LocalDataset(Dataset):
         
         Returns:
             Remote dataset
+
+        Raises:
+            ValueError("No source dataset"): If source dataset is not specified.
             
         """
 
