@@ -552,11 +552,6 @@ class LocalDataset(Dataset):
         return LocalDataset(self.path)
 
 
-    def reproduce(self) -> LocalDataset:
-        """Reproduces an actual copy of the dataset."""
-        return LocalDataset(self.path)
-
-
     def set_remote_dataset(self, dataset) -> None:
         if not isinstance(dataset, RemoteDataset):
             dataset = fairly.dataset(dataset)
@@ -635,9 +630,14 @@ class LocalDataset(Dataset):
             client = remote.client
             for file in diff.added.values():
                 client.download_file(file, path=self.path, notify=notify)
+                self.includes.append(file.path)
 
             for file in diff.removed.values():
                 os.remove(file.fullpath)
+                if file.path in self.includes:
+                    self.includes.remove(file.path)
+                else:
+                    self.excludes.append(file.path)
 
             for file, remote_file in diff.modified.values():
                 os.remove(file.fullpath)
