@@ -921,27 +921,40 @@ class ZenodoClient(Client):
 
     def get_files(self, id: Dict) -> List[RemoteFile]:
         details = self._get_dataset_details(id)
+
         if "files" not in details:
             return []
+
         files = []
+
         for item in details["files"]:
-            # REMARK: Depending on the endpoint file information differs
-            if "id" in item:
-                file = RemoteFile(
-                    id=item["id"],
-                    url=item["links"]["download"],
-                    path=item["filename"],
-                    size=item["filesize"],
-                    md5=item["checksum"],
+
+            args = {
+                "id": item.get("id"),
+                "path": item.get("filename", item.get("key")),
+                "size": item.get("filesize", item.get("size")),
+                "md5": item.get("checksum"),
+                "url": item["links"]["self"]
+            }
+
+            # Fix invalid download link if required
+            if "download" in item["links"]:
+                # args["url"] = item["links"]["download"]
+                args["url"] = (
+                    args["url"][:args["url"].find("/files/")]
+                    +
+                    item["links"]["download"][item["links"]["download"].find("/files/"):]
                 )
-            else:
-                file = RemoteFile(
-                    url=item["links"]["self"],
-                    path=item["key"],
-                    size=item["size"],
-                    md5=item["checksum"][4:],
-                )
+
+            # Remove 'md5:' prefix from the checksum if required
+            # REMARK: string.removeprefix() method can be used for Python 3.9+
+            if args["md5"] and args["md5"].startswith("md5:"):
+                args["md5"] = args["md5"][4:]
+
+            file = RemoteFile(**args)
+
             files.append(file)
+
         return files
 
 
