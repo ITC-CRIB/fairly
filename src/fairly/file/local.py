@@ -27,10 +27,16 @@ class LocalFile(File):
     """LocalFile class.
 
     Class Attributes:
-        CHUNK_SIZE: Chunk size in bytes to calculate MD5 checksum (default = 65536)
+        CHUNK_SIZE: Chunk size in bytes to calculate MD5 checksum (default = 65536).
+        NO_EXTRACT: List of file extensions which should not be extracted.
     """
     CHUNK_SIZE = 2**16
 
+    NO_EXTRACT = [
+        ".docx",
+        ".xlsx",
+        ".pptx",
+    ]
 
     def __init__(self, fullpath: str, basepath: str = None, md5: str = None):
         """Initializes LocalFile object.
@@ -94,6 +100,9 @@ class LocalFile(File):
         Returns:
             True if file is an archive file, False otherwise.
         """
+        if self.NO_EXTRACT and (self.extension in self.NO_EXTRACT):
+            return False
+
         if zipfile.is_zipfile(self.fullpath):
             return True
 
