@@ -3,7 +3,7 @@
 		"client_id": "djehuty",
 		"name": "4TU.ResearchData",
 		"url": "https://data.4tu.nl/",
-		"api_url": "https://data.4tu.nl/v2/",
+		"api_url": "https://data.4tu.nl/",
 		"doi_prefixes": ["10.4121/"]
 	},
 	"figshare": {
