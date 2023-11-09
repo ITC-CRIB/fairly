@@ -166,7 +166,7 @@ class DjehutyClient(Client):
                 raise ValueError("Invalid id")
 
         elif kwargs.get("doi"):
-            match = re.search(r"(\/)(\d+)(\.v(\d+))?$", kwargs["doi"])
+            match = re.search(r"(\/)(\d+|[\da-f-]+)(\.v(\d+))?$", kwargs["doi"])
             if match:
                 id = match.group(2)
                 version = match.group(4)
