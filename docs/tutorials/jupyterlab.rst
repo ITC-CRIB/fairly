@@ -3,12 +3,12 @@ Using the JupyterLab Extension
 
 This tutorial shows how to use the JupyterLab extension to clone and create research datasets using the graphical inteface of JupyterLab, and how to upload dataset  to popular research data repositories.
 
-If you haven not done so, `install the full toolset. <https://fairly.readthedocs.io/en/latest/installation.html>`_
+If you haven not done so, :ref:`install the full toolset. <installation>`
 
 Start JupyterLab
 ------------------
 
-Star JupyterLab with the **fairly** extension. This will start JupterLab in your browser.
+Star JupyterLab with the **jupyter-fairly** extension. This will start JupterLab in your browser.
 
 Windows
 ''''''''
@@ -34,7 +34,6 @@ From the terminal, run:
    jupyter lab
 
 
-
 JupyterLab should automatically start on you browser.
 
 .. image:: ../img/start-jupyterlab.png
@@ -43,10 +42,15 @@ JupyterLab should automatically start on you browser.
 Part 1: Cloning Dastasets
 ----------------------------
 
-Public research datasets can be cloned (copy and downloaded) directly to an empty directory, using the dataset **URL** or **DOI**. We will use `this datset <https://data.4tu.nl/articles/dataset/Earthquake_Precursors_detected_by_convolutional_neural_network/21588096>`_ from 4TU.ResearchData an example.
+Public research datasets can be cloned (copy and downloaded) directly to an empty directory, using the dataset's **URL** or **DOI**. We will use `this datset <https://data.4tu.nl/articles/dataset/Earthquake_Precursors_detected_by_convolutional_neural_network/21588096>`_ from 4TU.ResearchData as an example.
 
+This are other datasets that you can try:
 
-Using the JupyterLab inteface create a new directory called :code:`workshop`. Notice that the contents of your main directory would be different.
+* https://zenodo.org/record/4302600
+* https://zenodo.org/record/8273524
+  
+ 
+Using the JupyterLab interface, create a new directory called :code:`workshop`. *Notice that the content of your main directory would be different.*
 
 .. image:: ../img/create-directory.png
 
@@ -60,7 +64,7 @@ Using the JupyterLab inteface create a new directory called :code:`workshop`. No
 
 .. image:: ../img/clone2.png
 
-After a few seconds, you should see a list of files on JupyterLab. All the files, except for :code:`manifest.yaml` are files that belong to the dataset in the research repository. The file :code:`manifest.yaml` is automatically created by the Fairly Toolset, and it contains metadata from the research data repository, such as:
+A notification on the bottom-right corner will let you know when the *cloning* is complete, and you should see a list of files on JupyterLab. All the files, except for :code:`manifest.yaml` are files that belong to the dataset in the research repository. The file :code:`manifest.yaml` is automatically created by the Fairly Toolset, and it contains metadata from the research data repository, such as:
 
 - Authors 
 - Keywords
@@ -72,22 +76,23 @@ After a few seconds, you should see a list of files on JupyterLab. All the files
 Part 2: Create a Fairly Dataset
 ---------------------------------------------
 
-Now, we will show you how can you create and prepare your own dataset using the JupyterLab extension of *fairly*.
+Here, we show you how can you create and prepare your own dataset using the JupyterLab extension of *fairly*.
 
    1. Create a new directory called :code:`mydataset` inside the *workshop directory*.
    2. Inside :code:`workshop/mydataset/`. Open the context menu and click on :guilabel:`Create Fairly Dataset`
-   3. Select :guilabel:`Zenodo` as template from the drop-down list.
-   4. Click :guilabel:`Create`. A :code:`manifest.yaml` file will add to the *mydataset* directory
+   3. Select :guilabel:`Zenodo` as template from the drop-down list. *Notice that there are templates for other data repositories*. 
+   4. Click :guilabel:`Create`. A :code:`manifest.yaml` file will be add to the *dummy-data* directory. This file contains a list of fields that you can edit to add metadata to your dataset. 
 
 .. image:: ../img/create-dataset1.png
 .. image:: ../img/create-dataset2.png
 
+
 Include Files in your Dataset
 ''''''''''''''''''''''''''''''''
 
-Add some files to the :code:`mydataset` directory. You can add files of your own, but be careful not to include anything that you want to keep confidential. Also consider the total size of the files you will add, the larger the size the longer the upload will take. Also remember that for the current Zenodo API each file should be :code:`100MB` or smaller; this will change in the future.
+Add some files to the :code:`mydataset` directory. You can add files of your own, but be careful not to include anything that you want to keep confidential. Also consider the size of the files you will add, the larger the size the longer the upload will take. Also remember that for the current Zenodo API each file should be :code:`100MB` or smaller; this will change in the future.
 
-If you do not want to use files from your own, you can download and use the `dummy-data <https://drive.google.com/drive/folders/160N6MCmiKV3g-74idCgyyul9UdoPRO8T?usp=share_link>`_ 
+If you do not want to use your own files, you can download and use the `dummy-data <https://drive.google.com/drive/folders/160N6MCmiKV3g-74idCgyyul9UdoPRO8T?usp=share_link>`_ 
 
 After you have added some file and/or folders to :code:`mydataset`, JupyterLab should look something like this:
 
@@ -96,24 +101,24 @@ After you have added some file and/or folders to :code:`mydataset`, JupyterLab s
 Editing the Manifest
 ''''''''''''''''''''''
 
-The :code:`manifest.yaml` file contains several sections to describe the medatadata of a dataset. Some of the sections and fiels are compulsory (they are required by the researh data repository), others are optional. In this example you started a *fairly* dataset using the template for the Zenodo repository, but you could also do so 4TU.ResearchData. 
+The :code:`manifest.yaml` file contains several sections to describe the medatadata of a dataset. Some of the sections and fiels are compulsory (they are required by the researh data repository), others are optional. In this example you started a *fairly* dataset using the template for the Zenodo repository, but you could also do so for 4TU.ResearchData. 
 
 However, if you are not sure which repository you will use to publish a dataset, use the :guilabel:`Default` template. This template contains the most common sections and fields for the repositories supported by the Fairly Toolset.
 
-.. note::
-   Independently of which template you use to start a dataset, the :code:`manifest.yaml` file is interoperable between data repositories, with very few exceptions. This means that you can use the same manifest file for various data repositories. Different templates are provided only as a guide to indicate what metadata is possible to provide in each data repository. 
+.. tip::
+   Independently of which template you use to start a dataset, the :code:`manifest.yaml` file is interoperable between data repositories, with very few exceptions. This means that you can use the same manifest file for various data repositories. Different templates are provided only as a guide to indicate what metadata is more relevant for each data repository. 
 
 1. Open the :code:`manifest.yaml` file using the context menu, or by doble-clicking on the file
 
 .. image:: ../img/open-metadata.png
 
-2. Edit the dataset metadata by typing in :code:`manifest.yaml` file, as follows. Here, we use only a small set of fields that are possible for Zenodo.
+2. Substitute the content of the :code:`manifest.yaml` with the text below.  *Here, we use only a small set of fields that are possible for Zenodo.*
 
 .. code-block:: yaml
    
    metadata:
      type: dataset
-     publication_date: '2023-03-22'
+     publication_date: '2023-08-31'
      title: My Title
      authors:
      - fullname: Surname, FirstName
@@ -124,7 +129,8 @@ However, if you are not sure which repository you will use to publish a dataset,
      doi: ''
      prereserve_doi:
      keywords:
-     - workshop
+     - fairly-toolset
+     - tutorial
      - dummy data
      notes: ''
      related_identifiers: []
@@ -143,105 +149,104 @@ However, if you are not sure which repository you will use to publish a dataset,
      - wind-mill.jpg
      excludes: []
 
+3. Edit the dataset metadata by typing the information you want to add. For example, you can change the title, authors, description, etc. Save the file when you are done.
 
+.. important:: 
+   * The :code:`includes`  field must list the files  and directories (folders) you want to include as part of the dataset. *Included files and directories will be uploaded to the the data repository* 
+   * The :code:`excludes` field can be used for explicitly indicating what files or directories you **don't want to be part  of the dataset**, for example, files that contain sensitive information. Excluded files and directories will never be uploaded to the data repository. 
+   * Files and directories that are not listed in either :code:`includes` or :code:`excludes` will be ignored by *fairly*.
 
-.. note:: 
-   The :code:`includes`  field must list the files you want to include as part of the dataset. They will be uploaded to the research data repository. The :code:`excludes` field can be use when you want to explicitly indicate what files you don't want to include as part of the datasets, for example, files that contain sensitive information.
+Part 3: Upload Dataset to Repository
+-------------------------------------
 
-
-Part 3: Upload Dataset to Zenodo
----------------------------------
-
-In the last part of this tutorial, we explain how to upload a dataset to an existing account in Zenodo. If you do not have an account yet, you can `sign up in this webpage. <https://zenodo.org/signup/>`_
+This part explains how to upload a dataset to an existing account in Zenodo. If you do not have an account yet, you can `sign up in this webpage. <https://zenodo.org/signup/>`_
 
 .. _create-token:
+
 Create Personal Token
 ''''''''''''''''''''''
 
-A personal token is a way in which data repositories identify a user. We need to set a token for creating datasets in the repository and uploading files to an specific account.
+A personal token is a way in which data repositories identify a user. We need to register a personal token for creating datasets in the repository and uploading files to an specific account.
 
 1. Sign in to Zenodo. 
 2. On the top-right corner click on drop-down arrow, then :guilabel:`Applicaitons`.
 3. On the section :guilabel:`Personal access tokens`, click the :guilabel:`New token` button.
 4. Enter a name for your token, for example: :code:`workshop`
 5. For scopes, check all three boxes, and click :guilabel:`Create`
-6. Copy the token (list of characters in red) to somewhere secure. You will only see the token once.
+6. Copy the token (list of characters in red) to somewhere secure. **You will only see the token once.**
 7. Under :guilabel:`Scopes`, check all three boxes once more. Then click :guilabel:`Save`
 
 .. image:: ../img/zenodo-token.png
 
 .. _configuring-fairly:
-Configure Fairly for Uploads
+
+Register Personal Token
 ''''''''''''''''''''''''''''''''
 
-Now, you will configure *fairly* to use your token.
+To register a personal token to the Fairly Toolset, do the following in JupyterLab:
 
-Windows
-""""""""""""
+1. Open the :guilabel:`Fairly` menu on the top menu bar, and click on :guilabel:`Add Repository Token`
+2. Select :guilabel:`Zenodo` from the drop-down list.
+3. Paste the token you copied from Zenodo in the previous step.
+4. Click :guilabel:`Add Token`
 
-1. Using the Windows File Explorer, go to **C:\Users\<You-user-name>**
-2. Create a directory called :code:`.fairly`
-3. Inside :code:`~/.fairly`, create a file file called :code:`config.json`. You may need to change the explorer settings to show the file extension or *fairly* will not be able to read the token.
-4. Copy the following test into this file, and add your token under **zenodo**
+.. important:: 
+   * You can register tokens for other repositories supporte by *fairly* in the same way. Tokens added in this way are global, and will be used by by the JupyterLab extension, the Python package and the CLI.
+   * Tokens are stored in a file called :code:`config.json` in your user home directory. This file is created automatically by *fairly* when you register a token. For Windows the file is located in :code:`C:\\Users\\<You-user-name>\\.fairly\\config.json`, and for Linux/MacOS in :code:`~/.fairly/config.json`. 
+   * To **update a token**, simply register a new token with the same name. The old token will be replaced by the new one. To **remove a token**, simply repeate the process, but type a random character in the token field.
 
-.. code-block:: json
+.. warning::
+   If you are using the Fairly Toolset in a shared computer, make sure that you **remove your tokens** from the JupterLab extension. Otherwise, other users of the computer will be able to use your token to create datasets in your account.
 
-   {
-    "fairly": {
-            "orcid_client_id":"APP-IELS3LR4OCLHLELC",
-            "orcid_clien_secret": "",
-            "orcid_token": ""
-    },
-    "4tu": {
-    "token": "<your-token>"
-    },
-    "zenodo": {
-    "token":"<your-token>"
-    }
-   }
-   
-5. Save the changes to the file
-
-
-Linux/MacOS
-""""""""""""""""
-
-1. In your user home directory :code:`~/`, create hidden directory called :code:`.fairly`
-2. Inside :code:`~/.fairly`, create a file file called :code:`config.json`
-3. Copy the following test into this file, and add your token under **zenodo**
-
-.. code-block:: json
-
-   {
-    "fairly": {
-            "orcid_client_id":"APP-IELS3LR4OCLHLELC",
-            "orcid_clien_secret": "",
-            "orcid_token": ""
-    },
-    "4tu": {
-    "token": "<your-token>"
-    },
-    "zenodo": {
-    "token":"<your-token>"
-    }
-   }
-
-4. Save the changes to the file
+.. note::
+   Windows users might need to re-start JupyterLab for the tokens to work correctly when uploading datasets.
 
 Upload Dataset
 ''''''''''''''''
 
-Go back to JupyterLab and navigate to the  :code:`mydataset` directory. 
-
 1. On the left panel, do right-click, and then click :guilabel:`Upload Dataset`
 2. Select Zenodo from the dowp-down list, and click :guilabel:`Continue`
 3. Confirm that you want to upload the dataset to Zenodo by ticking the checkbox.
-4. Click :guilabel:`OK`. The download will take a moment to complete.
-5. Go to your Zenodo and click on :guilabel:`Upload`. The `my dataset` dataset should be there. 
+4. Click :guilabel:`OK`. A notification on the bottom-right corner will let you know that the upload is in progress and when it is complete.
+5. Go to your Zenodo account and click on :guilabel:`Upload`. The `my dataset` dataset should be there. 
 
 .. image:: ../img/zenodo-upload.png
 
-Explore the dataset and notice that all the files and metadata you added in JupyterLab has been automatically added to the new dataset. You should also notice that the dataset is not **published**, this is on purpose. This gives you the oportunity to review the dataset before deciding to publish. In this way we also prevent a user to publish dataset by mistake.
+Explore the dataset and notice that all the files and metadata you added in JupyterLab has been automatically added to the new dataset. You should also notice that the dataset is not **published**, this is on purpose. This gives you the oportunity to review the dataset before deciding to publish if, and if necessary to make changes. In this way we also prevent users to publish dataset by mistake.
 
 .. note:: 
-   Notice that in the current version of the JupyterLab extension, repeating the steps to upload a dataset will create a new entry in the repository. In the future we will develop the extension further to allow to update existing datasets and sincronize changes.
+   If you try to upload the dataset again, you will get an error message. This is because the dataset already exists in Zenodo. You can see this reflected in the :code:`manifest.yaml` file;  the section :code:`remotes:` is added to the file after succesfully uploading a dataset. It lists the names and ids of the repositories where the dataset has been uploaded.
+   In the future, we will add a feature to allow users to update and sync datasets between repositories.
+
+
+Part 4: Pushing Changes to Data Repository
+--------------------------------------------
+
+In the last part of this tutorial, we will show you how to push changes to a dataset that has already been uploaded to a data repository. For this, we will use the dataset we created in the previous part.
+
+
+.. attention:: 
+
+   To be able to push updates to an existing dataset in a repository, you need to have write access to the dataset. For most of the repositories this requires you to be the **owner** of the dataset. Most data repositories prevent updates if a dataset is "published" (i.e. editing is limited to datasets that are not yet published).
+
+You can make changes to the files in a local dataset as you would normally do. For example, you can add new files, edit existing files, or delete files. You can also edit the :code:`manifest.yaml` file to update the metadata of the dataset. 
+If file inclusion or exclusion rules are defined using patterns (e.g. `'*.txt'`), then the extension  automatically identifies added, removed, or modified files.
+Otherwise, you need to explicitly indicate what needs to be *included* or *excluded* by updating the :code:`includes` and `excludes` fields in the :code:`manifest.yaml` file.
+
+
+.. image:: ../img/add-filles.png
+
+Once you have made and **shaved** the changes, you can do the following upload the changes to the data repository.
+
+1. On the left panel, do right-click,
+2. click :guilabel:`Push` option from the list,
+3. confirm that you want to push the changes and click :guilabel:`Push` button. A notification on the bottom-right corner will let you know that changes are in progress and when they are completed.
+
+.. image:: ../img/push-menu.png
+
+.. image:: ../img/push-confirm.png
+
+
+.. tip:: 
+   
+   To push change to a dataset that you own, but you did not create using the Fairly Toolset, all you have to do is to clone it first, using the :guilabel:`Clone Dataset` option from the context menu. Then you will be able to make changes to the dataset and push them back to the data repository.

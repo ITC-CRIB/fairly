@@ -10,7 +10,6 @@ Fairly Toolset Documentation
    :maxdepth: 2
    :caption: Fairly Package
 
-   osf2023
    installation
 
 .. toctree::
@@ -29,12 +28,6 @@ Fairly Toolset Documentation
    api/fairly.client
    api/fairly.dataset
    api/fairly.file
-
-.. toctree::
-   :maxdepth:  1
-   :caption: Workshop
-
-   tutorials/workshop
 
 
 Indices and tables
