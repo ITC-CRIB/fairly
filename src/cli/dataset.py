@@ -97,7 +97,7 @@ def upload(
         progress.add_task(description=f"Uploading dataset {path}", total=None)
         remote_dataset = dataset.upload(client, notify=notify)
 
-    print(f"Dataset {path} is successfully uploaded at {remote_dataset.url}")
+    print(f"Dataset {path} is successfully uploaded at {remote_dataset.url or remote_dataset.doi}")
 
 
 @app.command()
