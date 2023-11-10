@@ -607,13 +607,16 @@ class ZenodoClient(Client):
         # Common attributes
 
         # Record type
-        type = metadata["upload_type"]
+        type = metadata.get("upload_type", metadata["resource_type"].get("type"))
+
         if type == "publication":
             if metadata["publication_type"] != "other":
                 type = metadata["publication_type"]
+
         elif type == "image":
             if metadata["image_type"] != "other":
                 type = metadata["image_type"]
+
         attrs["type"] = type
 
         # Date of publication in ISO8601 format (YYYY-MM-DD)
@@ -664,7 +667,7 @@ class ZenodoClient(Client):
         _set("references", [])
 
         # List of communities the record appear
-        attrs["communities"] = [item["identifier"] for item in metadata.get("communities", [])]
+        attrs["communities"] = [item.get("identifier", item.get("id")) for item in metadata.get("communities", [])]
 
         # List of OpenAIRE-supported grants that funded the research
         attrs["grants"] = [item["id"] for item in metadata.get("grants", [])]
@@ -1084,7 +1087,7 @@ class ZenodoClient(Client):
         # Calculate data size
         size = 0
         for file in details.get("files", []):
-            size += file["filesize"]
+            size += file.get("filesize", file.get("size"))
 
         return {
             "title": details["title"],
