@@ -607,9 +607,9 @@ class ZenodoClient(Client):
         # Common attributes
 
         # Record type
-        type = metadata.get("upload_type", metadata["resource_type"].get("type"))
+        type = metadata["upload_type"] if "upload_type" in metadata else metadata["resource_type"]["type"]
 
-        if type == "publication":
+        if type == "publication" and ("publication_type" in metadata):
             if metadata["publication_type"] != "other":
                 type = metadata["publication_type"]
 
