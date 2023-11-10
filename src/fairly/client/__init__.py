@@ -15,6 +15,8 @@ import json
 import requests
 import hashlib
 import http.client
+import uuid
+
 
 class Client(ABC):
     """
@@ -555,37 +557,54 @@ class Client(ABC):
         if not path:
             path = os.getcwd()
 
-        if not name:
-            name = file.path
-            dirs = os.path.dirname(name)
-            if dirs:
-                os.makedirs(os.path.join(path, dirs), exist_ok=True)
+        fullpath = os.path.join(path, name or file.path)
 
-        fullpath = os.path.join(path, name)
+        while True:
+            temppath = os.path.join(path, "." + uuid.uuid4().hex)
+            if not os.path.isfile(temppath):
+                break
+
         current_size = 0
         md5 = hashlib.md5()
         if self._session is None:
             self._session = self._create_session()
+
         try:
             with self._session.get(file.url, stream=True) as response:
                 response.raise_for_status()
-                os.makedirs(os.path.dirname(fullpath), exist_ok=True)
-                with open(fullpath, "wb") as local_file:
+
+                # Create directories if required
+                # TODO: Store the list of directories for a potential clean-up
+                os.makedirs(os.path.dirname(temppath), exist_ok=True)
+
+                # Download file
+                with open(temppath, "wb") as local_file:
                     for chunk in response.iter_content(self.CHUNK_SIZE):
                         local_file.write(chunk)
                         md5.update(chunk)
                         current_size += len(chunk)
                         if notify:
                             notify(file, current_size)
+
+                # Rename file
+                os.rename(temppath, fullpath)
+
+            # Validate checksum
             md5 = md5.hexdigest()
             if file.md5 and file.md5 != md5:
                 raise IOError("Invalid MD5 checksum")
+
         except:
             # Clean up if incomplete download
             # TODO: Remove created directories
+            if os.path.isfile(temppath):
+                os.remove(temppath)
+
             if os.path.isfile(fullpath):
                 os.remove(fullpath)
+
             raise
+
         return LocalFile(fullpath, basepath=path, md5=md5)
 
 
