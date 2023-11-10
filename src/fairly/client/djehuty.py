@@ -845,9 +845,7 @@ class DjehutyClient(Client):
         # TODO: Add response code check if required (201 = Created)
 
         # Get file id
-        
-        print(result)
-        
+
         file_id = result["location"].split("/")[-1]
         if not re.match(DjehutyClient.REGEXP_UUID, file_id) and not file_id.isnumeric():
             raise ValueError("Invalid file id")
@@ -856,9 +854,7 @@ class DjehutyClient(Client):
         result, _ = self._request(f"v2/account/articles/{id['id']}/files/{file_id}")
 
         return
-        
-        print(result)
-        
+
         # REMARK: Upload URL includes the upload token
         upload_url = result["upload_url"]
 
@@ -873,8 +869,6 @@ class DjehutyClient(Client):
                 response.raise_for_status()
 
                 info = response.json()
-
-                print(info)
 
                 done = True
                 locked = False

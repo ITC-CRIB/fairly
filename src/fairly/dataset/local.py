@@ -540,7 +540,6 @@ class LocalDataset(Dataset):
 
         diff = source.diff_metadata(self)
         # TODO: Synchronize metadata
-        print(diff)
 
         diff = source.diff_files(self)
 
@@ -590,17 +589,17 @@ class LocalDataset(Dataset):
 
     def push(self, target=None, notify: Callable=None) -> RemoteDataset:
         """
-        Pushes local changes to metadata and files the data repository to 
+        Pushes local changes to metadata and files the data repository to
         update a remote dataset. Dataset must exits in data repository.
 
         Args:
-            target: Target repository identifier or client. If not specified, 
+            target: Target repository identifier or client. If not specified,
             identifier in manifest is used.
             notify (Callable): Notification callback function.
 
         Returns:
             Remote dataset
-        
+
         Raises:
             ValueError("No target dataset"): If target dataset is not specified.
 
@@ -639,16 +638,16 @@ class LocalDataset(Dataset):
         to update the local dataset. Dataset must exits in data repository.
 
         Args:
-            source: Source repository identifier or client. If not specified, 
+            source: Source repository identifier or client. If not specified,
             identifier in manifest is used.
             notify (Callable): Notification callback function.
-        
+
         Returns:
             Remote dataset
 
         Raises:
             ValueError("No source dataset"): If source dataset is not specified.
-            
+
         """
 
         remote = self.get_remote_dataset(source)
