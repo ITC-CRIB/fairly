@@ -264,7 +264,7 @@ class DjehutyClient(Client):
             for item in items:
                 id = self.get_dataset_id(**item)
                 # TODO: Add other useful details
-                dataset = RemoteDataset(self, id, {
+                dataset = RemoteDataset(self, id, details={
                     "title": item.get("title"),
                     "url": item.get("url_public_html", item.get("url_private_html")),
                     "doi": item.get("doi"),

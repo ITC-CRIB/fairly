@@ -423,7 +423,7 @@ class Client(ABC):
             for key in ["url", "doi"]:
                 if kwargs.get(key):
                     details[key] = kwargs[key]
-            self._datasets[hash] = RemoteDataset(self, id, details)
+            self._datasets[hash] = RemoteDataset(self, id, details=details)
 
         # Return dataset
         return self._datasets[hash]
@@ -587,6 +587,7 @@ class Client(ABC):
                             notify(file, current_size)
 
                 # Rename file
+                os.makedirs(os.path.dirname(fullpath), exist_ok=True)
                 os.rename(temppath, fullpath)
 
             # Validate checksum
