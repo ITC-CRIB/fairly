@@ -53,28 +53,6 @@ def test_dataset_upload_delete(repository_id, tmpdir):
 
     create_dummy_dataset(tmpdir)
 
-    result = runner.invoke(app, ["dataset", "upload", str(tmpdir), repository_id])
-    assert result.exit_code == 0, result.stdout
-
-    match = re.search(r"(https?://[^\s]+)", result.stdout)
-    assert match
-
-    url = match[0]
-
-    result = runner.invoke(app, ["dataset", "delete", url])
-    assert result.exit_code == 0, result.stdout
-
-
-@pytest.mark.parametrize("repository_id", fairly.get_repositories())
-def test_dataset_upload_delete(repository_id, tmpdir):
-    '''Test dataset upload to the recognized repositories.'''
-
-    repository = fairly.get_repository(repository_id)
-    if not repository.get("token"):
-        pytest.skip("No access token")
-
-    create_dummy_dataset(tmpdir)
-
     local_dataset = fairly.dataset(str(tmpdir))
     assert isinstance(local_dataset, LocalDataset)
     assert local_dataset.files is not None
