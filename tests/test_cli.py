@@ -55,10 +55,10 @@ def test_dataset_upload_delete(repository_id, tmpdir):
     result = runner.invoke(app, ["dataset", "upload", str(tmpdir), repository_id])
     assert result.exit_code == 0, result.stdout
 
-    match = "successfully uploaded" in result.stdout
+    match = re.search(r"uploaded at (.+)", result.stdout)
     assert match
 
-    url = match[0]
+    url = match[1]
 
     result = runner.invoke(app, ["dataset", "delete", url])
     assert result.exit_code == 0, result.stdout
