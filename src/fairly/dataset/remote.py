@@ -11,6 +11,7 @@ from ..file.remote import RemoteFile
 # from ..client import Client
 
 import os
+import os.path
 import datetime
 from functools import cached_property
 
@@ -80,10 +81,6 @@ class RemoteDataset(Dataset):
         return self.client.get_versions(self.id)
 
 
-    def _download_file(self, file: RemoteFile, path: str=None, name: str=None, notify: Callable=None) -> LocalFile:
-        return self.client.download_file(file, path, name, notify)
-
-
     def store(self, path: str=None, notify: Callable=None, extract: bool=False) -> LocalDataset:
         """Stores the dataset to a local directory.
 
@@ -118,31 +115,58 @@ class RemoteDataset(Dataset):
         if len(visible_entries) > 0:
             raise ValueError("Directory is not empty.")
 
+        # Set dataset template
         templates = fairly.metadata_templates()
+
         if self.client.repository_id in templates:
             template = self.client.repository_id
+
         elif self.client.client_id in templates:
             template = self.client.client_id
+
         else:
             template = None
 
+        # Initialize dataset
         dataset = fairly.init_dataset(path, template=template)
 
+        # Save metadata
         # TODO: Set metadata directly without serialization
         dataset.set_metadata(**self.metadata)
         dataset.save_metadata()
 
-        includes = dataset.includes
+        # For each dataset file
         for name, file in self.files.items():
-            local_file = self._download_file(file, path, notify=notify)
+
+            # Download file
+            local_file = self.client.download_file(file, path, notify=notify)
+
+            # Check if file should be extracted
             if extract and local_file.is_archive and local_file.is_simple:
-                files = local_file.extract(path, notify=notify)
-                includes.append({file.path: files})
-                os.remove(local_file.fullpath)
+
+                # Start extraction loop
+                while True:
+                    files = local_file.extract(path, notify=notify)
+                    os.remove(local_file.fullpath)
+
+                    if len(files) == 1:
+                        inner_file = LocalFile(os.path.join(path, files[0]))
+                        if inner_file.is_archive:
+                            local_file = inner_file
+                            continue
+
+                    break
+
+                dataset.includes.append({file.path: files})
+
             else:
-                includes.append(file.path)
+                dataset.includes.append(file.path)
+
+        # Save file information
         dataset.save_files()
 
+        # Set remote dataset id if possible
+        # REMARK: It might be possible to store configuration for custom clients.
         if self.client.repository_id:
             dataset.set_remote_dataset(self)
 
