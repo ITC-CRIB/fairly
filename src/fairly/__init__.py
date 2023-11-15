@@ -9,6 +9,8 @@ import os
 import json
 import pkgutil
 import importlib
+import requests
+import re
 from functools import lru_cache
 
 from .client import Client
@@ -422,6 +424,31 @@ def store(id: str, path: str=None, notify: Callable=None, extract: bool=False) -
         Local dataset object
     """
     return dataset(id).store(path, notify=notify, extract=extract)
+
+
+def resolveDOI(doi: str) -> str:
+    """Returns URL address to a DOI.
+
+    Args:
+        doi (str): Digital object identifier
+
+    Returns:
+        URL address of the DOI or None if invalid DOI.
+
+    Raises:
+        ValueError("Invalid DOI"): If DOI is invalid.
+    """
+
+    match = re.match(r"(doi:|https?://doi\.org/)?(10\..+)$", doi, flags=re.IGNORECASE)
+    if not match:
+        raise ValueError("Invalid DOI")
+
+    response = requests.head("https://doi.org/" + match[2])
+
+    if response.status_code != 302:
+        raise ValueError("Invalid DOI")
+
+    return response.headers.get("location")
 
 
 if __name__ == "__main__":
