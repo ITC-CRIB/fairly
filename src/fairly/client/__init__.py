@@ -31,7 +31,7 @@ class Client(ABC):
     Class Attributes:
         REGEXP_URL: Regular expression to validate URL address.
         REQUEST_FORMAT: Request data format
-        CHUCK_SIZE: Data transfer chuck size
+        CHUNK_SIZE: Chunk size in bytes to transfer data (default = 65536)
     """
 
     REGEXP_URL = re.compile(r"^[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$", re.IGNORECASE)

@@ -13,7 +13,9 @@ from ..file.remote import RemoteFile
 import os
 import os.path
 import datetime
+import multiprocessing
 from functools import cached_property
+
 
 class RemoteDataset(Dataset):
     """
@@ -81,7 +83,33 @@ class RemoteDataset(Dataset):
         return self.client.get_versions(self.id)
 
 
-    def store(self, path: str=None, notify: Callable=None, extract: bool=False) -> LocalDataset:
+    def _store_file(self, file, path, extract, notify):
+        # Download file
+        local_file = self.client.download_file(file, path, notify=notify)
+
+        # Check if file should be extracted
+        if extract and local_file.is_archive and local_file.is_simple:
+
+            # Start extraction loop
+            while True:
+                files = local_file.extract(path, notify=notify)
+                os.remove(local_file.fullpath)
+
+                if len(files) == 1:
+                    inner_file = LocalFile(os.path.join(path, files[0]))
+                    if inner_file.is_archive:
+                        local_file = inner_file
+                        continue
+
+                break
+
+            return {file.path: files}
+
+        else:
+            return file.path
+
+
+    def store(self, path: str=None, notify: Callable=None, extract: bool=False, parallel: int=None) -> LocalDataset:
         """Stores the dataset to a local directory.
 
         If no path is provided, DOI is used by replacing slashes and backslashes with underscores.
@@ -99,6 +127,11 @@ class RemoteDataset(Dataset):
             ValueError("Empty path")
             ValueError("Directory is not empty")
         """
+        # Set number of parallel downloads if required
+        if not parallel:
+            parallel = fairly.get_parallel()
+
+        # Set path based on DOI if required
         if not path:
             path = self.doi
             if not path:
@@ -106,6 +139,7 @@ class RemoteDataset(Dataset):
             for sep in ["/", "\\"]:
                 path = path.replace(sep, "_")
 
+        # Create path
         os.makedirs(path, exist_ok=True)
 
         # check if directory is empty,
@@ -135,32 +169,17 @@ class RemoteDataset(Dataset):
         dataset.set_metadata(**self.metadata)
         dataset.save_metadata()
 
-        # For each dataset file
-        for name, file in self.files.items():
+        with multiprocessing.Pool(processes=parallel) as pool:
 
-            # Download file
-            local_file = self.client.download_file(file, path, notify=notify)
+            results = []
 
-            # Check if file should be extracted
-            if extract and local_file.is_archive and local_file.is_simple:
+            for _, file in self.files.items():
+                results.append(
+                    pool.apply_async(self._store_file, (file, path, extract, notify))
+                )
 
-                # Start extraction loop
-                while True:
-                    files = local_file.extract(path, notify=notify)
-                    os.remove(local_file.fullpath)
-
-                    if len(files) == 1:
-                        inner_file = LocalFile(os.path.join(path, files[0]))
-                        if inner_file.is_archive:
-                            local_file = inner_file
-                            continue
-
-                    break
-
-                dataset.includes.append({file.path: files})
-
-            else:
-                dataset.includes.append(file.path)
+            for result in results:
+                dataset.includes.append(result.get())
 
         # Save file information
         dataset.save_files()

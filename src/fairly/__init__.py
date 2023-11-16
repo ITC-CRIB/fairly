@@ -19,6 +19,11 @@ from .dataset.local import LocalDataset
 from .file import File
 
 
+MAX_PARALLEL = 4
+
+_parallel = None
+
+
 def is_testing() -> bool:
     """Returns unit testing state.
 
@@ -449,6 +454,36 @@ def resolveDOI(doi: str) -> str:
         raise ValueError("Invalid DOI")
 
     return response.headers.get("location")
+
+
+def set_parallel(parallel: int=None, force: bool=False):
+    global _parallel
+
+    if not parallel and parallel is not None:
+        parallel = 1
+
+    if hasattr(os, "sched_getaffinity"):
+        max = len(os.sched_getaffinity(0))
+    else:
+        max = os.cpu_count()
+
+    if parallel is None:
+        parallel = max
+
+    elif parallel > max:
+        raise ValueError("Invalid number of parallel downloads")
+
+    if not force and parallel > MAX_PARALLEL:
+        parallel = MAX_PARALLEL
+
+    _parallel = parallel
+
+    return _parallel
+
+
+def get_parallel():
+    global _parallel
+    return _parallel if _parallel else set_parallel()
 
 
 if __name__ == "__main__":
