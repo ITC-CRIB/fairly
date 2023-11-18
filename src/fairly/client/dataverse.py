@@ -6,7 +6,7 @@ from ..dataset.remote import RemoteDataset
 from ..file.local import LocalFile
 from ..file.remote import RemoteFile
 
-from requests import Session
+import requests
 from collections import OrderedDict
 import urllib.parse
 
@@ -47,7 +47,7 @@ class DataverseClient(Client):
         return config
 
 
-    def _create_session(self) -> Session:
+    def _create_session(self) -> requests.Session:
         session = super()._create_session()
 
         # Set authentication token

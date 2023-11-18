@@ -10,7 +10,6 @@ from ..file.remote import RemoteFile
 import re
 from urllib.parse import urlparse
 import requests
-from requests import Session
 from requests.exceptions import HTTPError
 from collections import OrderedDict
 import time
@@ -85,7 +84,7 @@ class FigshareClient(Client):
         return config
 
 
-    def _create_session(self) -> Session:
+    def _create_session(self) -> requests.Session:
         session = super()._create_session()
 
         # Set authentication token

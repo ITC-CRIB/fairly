@@ -309,7 +309,7 @@ class Client(ABC):
         return dataset
 
 
-    def _create_session(self) -> Session:
+    def _create_session(self) -> requests.Session:
         return requests.Session()
 
 

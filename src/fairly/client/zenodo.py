@@ -9,7 +9,7 @@ from ..file.remote import RemoteFile
 
 import re
 from urllib.parse import urlparse
-from requests import Session
+import requests
 from requests.exceptions import HTTPError
 from collections import OrderedDict
 from requests_toolbelt.multipart.encoder import MultipartEncoderMonitor
@@ -168,7 +168,7 @@ class ZenodoClient(Client):
         return config
 
 
-    def _create_session(self) -> Session:
+    def _create_session(self) -> requests.Session:
         session = super()._create_session()
 
         # Set authentication token
