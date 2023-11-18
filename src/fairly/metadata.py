@@ -31,7 +31,7 @@ class Metadata(MutableMapping):
         REGEXP_DOI: Regular expression to validate DOI.
     """
 
-    REGEXP_DOI = re.compile(r"^10.\d{4,9}/[-._;()/:a-z0-9]+$", re.IGNORECASE)
+    REGEXP_DOI = re.compile(r"10\.\d{4,9}/[-._;()/:a-z\d]+", re.IGNORECASE)
 
 
     def __init__(self, normalize: Callable=None, **kwargs):
@@ -122,7 +122,7 @@ class Metadata(MutableMapping):
                     val = val[15:]
                 elif val.startswith("https://doi.org/"):
                     val = val[16:]
-                if not re.match(Metadata.REGEXP_DOI, val):
+                if not re.fullmatch(Metadata.REGEXP_DOI, val):
                     raise ValueError
             else:
                 raise ValueError

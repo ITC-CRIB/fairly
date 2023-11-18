@@ -49,7 +49,7 @@ class DjehutyClient(Client):
 
     """
 
-    REGEXP_UUID = re.compile(r"^([a-f\d]+)(-[a-f\d]+)+$", re.IGNORECASE)
+    REGEXP_UUID = re.compile(r"([a-f\d]+)(-[a-f\d]+)+", re.IGNORECASE)
 
     PAGE_SIZE = 25
 
@@ -148,13 +148,13 @@ class DjehutyClient(Client):
         elif kwargs.get("url"):
             parts = urlparse(kwargs["url"]).path.strip("/").split("/")
             if parts[-1].isnumeric():
-                if re.match(DjehutyClient.REGEXP_UUID, parts[-2]) or parts[-2].isnumeric():
+                if re.fullmatch(DjehutyClient.REGEXP_UUID, parts[-2]) or parts[-2].isnumeric():
                     id = parts[-2]
                     version = parts[-1]
                 else:
                     id = parts[-1]
 
-            elif re.match(DjehutyClient.REGEXP_UUID, parts[-1]):
+            elif re.fullmatch(DjehutyClient.REGEXP_UUID, parts[-1]):
                 id = parts[-1]
 
             else:
@@ -162,7 +162,7 @@ class DjehutyClient(Client):
 
         elif kwargs.get("id"):
             id = str(kwargs["id"])
-            if not re.match(DjehutyClient.REGEXP_UUID, id) and not id.isnumeric():
+            if not re.fullmatch(DjehutyClient.REGEXP_UUID, id) and not id.isnumeric():
                 raise ValueError("Invalid id")
 
         elif kwargs.get("doi"):
@@ -847,7 +847,7 @@ class DjehutyClient(Client):
         # Get file id
 
         file_id = result["location"].split("/")[-1]
-        if not re.match(DjehutyClient.REGEXP_UUID, file_id) and not file_id.isnumeric():
+        if not re.fullmatch(DjehutyClient.REGEXP_UUID, file_id) and not file_id.isnumeric():
             raise ValueError("Invalid file id")
 
         # Get upload token and URL

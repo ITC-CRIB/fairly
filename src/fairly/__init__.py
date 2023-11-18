@@ -310,7 +310,7 @@ def dataset(id: str) -> Dataset:
         Dataset object.
 
     Raises:
-        ValueError: If unknown dataset identifier.
+        ValueError("Unknown dataset identifier"): If unknown dataset identifier.
 
     Examples:
         >>> dataset = fairly.dataset("10.5281/zenodo.6026285")
@@ -336,7 +336,7 @@ def dataset(id: str) -> Dataset:
     else:
         return LocalDataset(id)
 
-    raise ValueError(f"Unknown dataset identifier: {id}")
+    raise ValueError(f"Unknown dataset identifier")
 
 
 def init_dataset(path: str, template: str = "default", create: bool = True) -> LocalDataset:
@@ -444,7 +444,7 @@ def resolveDOI(doi: str) -> str:
         ValueError("Invalid DOI"): If DOI is invalid.
     """
 
-    match = re.match(r"(doi:|https?://doi\.org/)?(10\..+)$", doi, flags=re.IGNORECASE)
+    match = re.fullmatch(r"(doi:|https?://doi\.org/)?(10\..+)", doi, flags=re.IGNORECASE)
     if not match:
         raise ValueError("Invalid DOI")
 

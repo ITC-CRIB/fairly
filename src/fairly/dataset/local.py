@@ -226,7 +226,7 @@ class LocalDataset(Dataset):
             for part in os.path.normpath(rule).split(os.sep):
                 if part:
                     pattern = re.escape(part).replace("\*", ".*").replace("\?", ".")
-                    regexp = re.compile(f"^{pattern}$", re.IGNORECASE)
+                    regexp = re.compile(pattern, re.IGNORECASE)
                 else:
                     regexp = None
                 regexps.append(regexp)
@@ -237,7 +237,7 @@ class LocalDataset(Dataset):
             except:
                 regexp = None
             if part:
-                if not regexp or not regexp.match(part):
+                if not regexp or not regexp.fullmatch(part):
                     return False
             elif regexp:
                 return False

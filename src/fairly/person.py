@@ -30,8 +30,8 @@ class Person(MutableMapping):
 
     # TODO: Check the checksum digit
     # https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier
-    REGEXP_ORCID_ID = re.compile(r"^(\d{4}-){3}\d{3}(\d|X)$")
-    REGEXP_EMAIL = re.compile(r"^[\w\.+-]+@([\w-]+\.)+[\w-]{2,}$")
+    REGEXP_ORCID_ID = re.compile(r"(\d{4}-){3}\d{3}(\d|X)")
+    REGEXP_EMAIL = re.compile(r"[\w\.+-]+@([\w-]+\.)+[\w-]{2,}")
 
 
     def __init__(self, person: str=None, **kwargs):
@@ -118,10 +118,10 @@ class Person(MutableMapping):
         """
         person = person.strip()
 
-        if re.match(Person.REGEXP_ORCID_ID, person):
+        if re.fullmatch(Person.REGEXP_ORCID_ID, person):
             return {"orcid_id": person}
 
-        if re.match(Person.REGEXP_EMAIL, person):
+        if re.fullmatch(Person.REGEXP_EMAIL, person):
             return {"email": person}
 
         attrs = {"fullname": person}

@@ -34,7 +34,7 @@ class Client(ABC):
         CHUNK_SIZE: Chunk size in bytes to transfer data (default = 65536)
     """
 
-    REGEXP_URL = re.compile(r"^[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$", re.IGNORECASE)
+    REGEXP_URL = re.compile(r"[(http(s)?):\/\/(www\.)?a-z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-z0-9@:%_\+.~#?&//=]*)", re.IGNORECASE)
 
     REQUEST_FORMAT = "json"
 
@@ -57,7 +57,7 @@ class Client(ABC):
                     raise ValueError("Repository client id mismatch")
                 config = repository
 
-            elif re.match(Client.REGEXP_URL, repository_id):
+            elif re.fullmatch(Client.REGEXP_URL, repository_id):
                 kwargs["api_url"] = repository_id
 
         self._repository_id = repository_id
@@ -113,11 +113,11 @@ class Client(ABC):
             if key == "name":
                 config["name"] = val
             elif key == "url":
-                if not re.match(Client.REGEXP_URL, val):
+                if not re.fullmatch(Client.REGEXP_URL, val):
                     raise ValueError("Invalid URL address")
                 config["url"] = val
             elif key == "api_url":
-                if not re.match(Client.REGEXP_URL, val):
+                if not re.fullmatch(Client.REGEXP_URL, val):
                     raise ValueError("Invalid API URL address")
                 config["api_url"] = val
             elif key == "doi_prefixes":
@@ -185,12 +185,12 @@ class Client(ABC):
         Returns:
           Tuple of identifier type and value
         """
-        match = re.match(r"^(doi:|https?:\/\/doi.org\/)(.+)$", id)
+        match = re.fullmatch(r"(doi:|https?:\/\/doi.org\/)(.+)", id)
         if match:
             return "doi", match.group(2)
-        elif re.match(Metadata.REGEXP_DOI, id):
+        elif re.fullmatch(Metadata.REGEXP_DOI, id):
             return "doi", id
-        elif re.match(r"^https?:\/\/", id):
+        elif re.match(r"https?:\/\/", id):
             return "url", id
         else:
             return "id", id
