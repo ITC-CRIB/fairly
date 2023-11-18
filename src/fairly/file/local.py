@@ -1,4 +1,4 @@
-""" LocalFile class module.
+"""LocalFile class module.
 
 LocalFile class is used to perform operations on local files.
 
@@ -29,7 +29,11 @@ class LocalFile(File):
     Class Attributes:
         CHUNK_SIZE: Chunk size in bytes to calculate MD5 checksum (default = 65536).
         NO_EXTRACT: List of file extensions which should not be extracted.
+
+    Attributes:
+        _fullpath (str): Full path of the local file.
     """
+
     CHUNK_SIZE = 2**16
 
     NO_EXTRACT = [
@@ -41,14 +45,18 @@ class LocalFile(File):
     def __init__(self, fullpath: str, basepath: str = None, md5: str = None):
         """Initializes LocalFile object.
 
+        Args:
+            fullpath (str): Full path of the local file.
+            basepath (str): Base path of the local file (optional).
+            md5 (str): MD5 checksum of the local file (optional).
+
         Raises:
-            ValueError("Invalid file path"): If fullpath is not a valid file path
+            ValueError("Invalid file path"): If fullpath is not a valid file path.
         """
         if not os.path.isfile(fullpath):
             raise ValueError("Invalid file path")
         self._fullpath = fullpath
-        self._path = os.path.relpath(
-            fullpath, basepath) if basepath else fullpath
+        self._path = os.path.relpath(fullpath, basepath) if basepath else fullpath
         self._name = os.path.basename(fullpath)
         self._size = os.path.getsize(fullpath)
         self._type = None
@@ -57,21 +65,13 @@ class LocalFile(File):
 
     @property
     def fullpath(self) -> str:
-        """Full path of the file.
-
-        Returns:
-            Full path of the file (str).
-        """
+        """Full path of the local file."""
         return self._fullpath
 
 
     @property
     def type(self) -> str:
-        """MIME type of the file.
-
-        Returns:
-            MIME type of the file (str).
-        """
+        """Content type of the local file."""
         if self._type is None:
             self._type, _ = mimetypes.guess_type(self.fullpath)
         return self._type
@@ -79,11 +79,7 @@ class LocalFile(File):
 
     @property
     def md5(self) -> str:
-        """MD5 checksum of the file.
-
-        Returns:
-            MD5 checksum of the file (str).
-        """
+        """MD5 checksum of the local file."""
         if self._md5 is None:
             with open(self.fullpath, "rb") as file:
                 md5 = hashlib.md5()
@@ -116,6 +112,9 @@ class LocalFile(File):
     def match(self, val: str) -> bool:
         """Checks if file matches the specified file identifier.
 
+        Args:
+            val (str): File identifier.
+
         Returns:
             True if file matches the specified file identifier, False otherwise.
         """
@@ -138,12 +137,12 @@ class LocalFile(File):
                 - total_size (int): Total uncompressed size of the archive
 
         Raises:
-          ValueError("Invalid path"): If path is not a directory path.
-          ValueError("Invalid archive item {name}"): If archive item path is not valid.
-          ValueError("Invalid archive file"): If file is not an archive file.
+            ValueError("Invalid path"): If path is not a directory path.
+            ValueError("Invalid archive item {name}"): If archive item path is not valid.
+            ValueError("Invalid archive file"): If file is not an archive file.
 
         Returns:
-          List of names of extracted files (str).
+            List of names of extracted files (str).
         """
         # Raise exception if invalid path
         if path:
