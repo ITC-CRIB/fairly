@@ -237,7 +237,14 @@ class RemoteDataset(Dataset):
     @property
     def size(self) -> int:
         """Total size of the dataset in bytes."""
-        return self._get_detail("size")
+        size = self._get_detail("size")
+
+        if size is None:
+            size = 0
+            for file in self.get_files():
+                size += file.size
+
+        return size
 
 
     @cached_property
