@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Dict, Union
+from typing import List, Dict
 from abc import ABC, abstractmethod
 
 import datetime
@@ -213,9 +213,10 @@ class Dataset(ABC):
 
 
     @property
+    @abstractmethod
     def title(self) -> str:
         """Title of the dataset."""
-        return self.metadata["title"]
+        raise NotImplementedError
 
 
     @property

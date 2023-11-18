@@ -497,6 +497,12 @@ class LocalDataset(Dataset):
 
 
     @property
+    def title(self) -> str:
+        """Title of the dataset."""
+        return self.metadata["title"]
+
+
+    @property
     def size(self) -> int:
         """Total size of the dataset in bytes."""
         size = 0
