@@ -20,11 +20,10 @@ import uuid
 
 class Client(ABC):
     """
-
     Attributes:
-        config (dict): Configuration options
+        config (Dict): Configuration options
         _session (Session): HTTP session object
-        _datasets (dict): Public dataset cache
+        _datasets (Dict): Public dataset cache
         _account_datasets (List): Account dataset cache
         _licenses (List): Licenses cache
 
@@ -180,18 +179,25 @@ class Client(ABC):
 
     @classmethod
     def parse_id(cls, id: str) -> Tuple(str, str):
-        """Parses the specified identifier
+        """Parses the specified identifier.
+
+        Args:
+            id : Identifier.
 
         Returns:
-          Tuple of identifier type and value
+          Tuple of identifier type and value.
         """
         match = re.fullmatch(r"(doi:|https?:\/\/doi.org\/)(.+)", id)
+
         if match:
             return "doi", match.group(2)
+
         elif re.fullmatch(Metadata.REGEXP_DOI, id):
             return "doi", id
+
         elif re.match(r"https?:\/\/", id):
             return "url", id
+
         else:
             return "id", id
 
@@ -212,13 +218,17 @@ class Client(ABC):
             Standard dataset identifier
         """
         if id:
+
             if isinstance(id, dict):
                 return id
+
             elif isinstance(id, str):
                 key, val = self.parse_id(id)
                 kwargs[key] = val
+
             else:
                 kwargs["id"] = id
+
         return self._get_dataset_id(**kwargs)
 
 
