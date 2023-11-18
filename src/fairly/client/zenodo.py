@@ -168,6 +168,36 @@ class ZenodoClient(Client):
         return config
 
 
+    @classmethod
+    def get_client(cls, url: str) -> Client:
+        parts = urlparse(url)
+
+        url = parts.scheme + "://" + parts.netloc
+        api_url = url + "/api/"
+
+        try:
+            response = requests.get(api_url + "records?size=1")
+            data = response.json()
+
+        except:
+            raise ValueError("Invalid repository")
+
+        if ("hits" not in data) or ("hits" not in data["hits"]):
+            raise ValueError("Invalid repository")
+
+        doi_prefixes = []
+
+        if data["hits"]["hits"]:
+            item = data["hits"]["hits"][0]
+            match = re.search(Metadata.REGEXP_DOI, item["links"].get("doi", ""))
+            if match:
+                doi_prefixes = [match[0].split("/")[0]]
+
+        client = ZenodoClient(url=url, api_url=api_url, doi_prefixes=doi_prefixes)
+
+        return client
+
+
     def _create_session(self) -> requests.Session:
         session = super()._create_session()
 
@@ -197,12 +227,14 @@ class ZenodoClient(Client):
             id = str(kwargs["id"])
             if not id.isnumeric():
                 raise ValueError("Invalid id")
+
         elif "url" in kwargs:
             parts = urlparse(kwargs["url"]).path.strip("/").split("/")
-            if parts[-1].isnumeric():
+            if parts and len(parts) >= 2 and parts[-2] == "records":
                 id = parts[-1]
             else:
                 raise ValueError("Invalid URL address")
+
         elif "doi" in kwargs:
             # REMARK: zenodo in the regular expression may not be always valid
             match = re.search(r"\/zenodo\.(\d+)$", kwargs["doi"])
@@ -210,8 +242,10 @@ class ZenodoClient(Client):
                 id = match.group(1)
             else:
                 raise ValueError("Invalid DOI")
+
         else:
             raise ValueError("No identifier")
+
         return {"id": id}
 
 
@@ -1078,7 +1112,19 @@ class ZenodoClient(Client):
             "restricted": "restricted",
             "closed": "closed",
         }
-        state = details["state"] if details["state"] != "done" else details["metadata"]["access_right"]
+
+        if "state" in details and details["state"] != "done":
+            state = details["state"]
+
+        elif "access_right" in details["metadata"]:
+            state = details["metadata"]["access_right"]
+
+        elif "access" in details:
+            state = details["access"].get("status")
+
+        else:
+            state = None
+
         status = statuses.get(state, "unknown")
 
         # Calculate data size
