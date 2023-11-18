@@ -203,22 +203,24 @@ class FigshareClient(Client):
         """
         if "token" not in self.config:
             return []
+
         datasets = []
         page = 1
+
         while True:
             # TODO: Add error handling
             items, _ = self._request(f"account/articles?page={page}&page_size={self.PAGE_SIZE}")
+
             if not items:
                 break
+
             for item in items:
                 id = self.get_dataset_id(**item)
-                dataset = RemoteDataset(self, id, details={
-                    "title": item.get("title"),
-                    "url": item.get("url_public_html", item.get("url_private_html")),
-                    "doi": item.get("doi"),
-                })
+                dataset = RemoteDataset(self, id)
                 datasets.append(dataset)
+
             page += 1
+
         return datasets
 
 
@@ -603,10 +605,14 @@ class FigshareClient(Client):
     def get_files(self, id: Dict) -> List[RemoteFile]:
         # REMARK: Uses article details endpoint instead of files endpoint to support versions
         details = self._get_dataset_details(id)
+
         if "files" not in details:
             return []
+
         files = []
+
         for item in details["files"]:
+
             file = RemoteFile(
                 url=item["download_url"],
                 id=item["id"],
@@ -615,6 +621,7 @@ class FigshareClient(Client):
                 md5=item["computed_md5"],
             )
             files.append(file)
+
         return files
 
 

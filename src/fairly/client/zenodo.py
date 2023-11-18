@@ -383,6 +383,7 @@ class ZenodoClient(Client):
 
         datasets = []
         page = 1
+
         while True:
             # TODO: Add error handling
             items, _ = self._request(f"deposit/depositions?page={page}&size={self.PAGE_SIZE}")
@@ -392,16 +393,12 @@ class ZenodoClient(Client):
 
             for item in items:
                 id = self.get_dataset_id(**item)
-                dataset = RemoteDataset(self, id)
-                datasets.append(dataset)
 
                 # Store details
                 self._set_details(id, item)
 
-                # Prevent unnecessary requests by triggering the use of available details
-                dataset.title
-                dataset.metadata
-                dataset.files
+                dataset = RemoteDataset(self, id)
+                datasets.append(dataset)
 
             if len(items) < self.PAGE_SIZE:
                 break

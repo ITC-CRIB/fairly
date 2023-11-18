@@ -299,6 +299,8 @@ class Client(ABC):
         # Cache dataset
         hash = self._get_dataset_hash(id)
         self._datasets[hash] = dataset
+
+        # Append dataset to the account datasets
         if not self._account_datasets:
             self._account_datasets = []
         self._account_datasets.append(dataset)
@@ -419,11 +421,7 @@ class Client(ABC):
         hash = self._get_dataset_hash(id)
         # Fetch dataset if required
         if hash not in self._datasets or refresh:
-            details = {}
-            for key in ["url", "doi"]:
-                if kwargs.get(key):
-                    details[key] = kwargs[key]
-            self._datasets[hash] = RemoteDataset(self, id, details=details)
+            self._datasets[hash] = RemoteDataset(self, id)
 
         # Return dataset
         return self._datasets[hash]

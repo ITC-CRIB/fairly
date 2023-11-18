@@ -27,7 +27,7 @@ class RemoteDataset(Dataset):
 
     """
 
-    def __init__(self, client, id=None, auto_refresh: bool=True, details: Dict=None, **kwargs):
+    def __init__(self, client, id=None, auto_refresh: bool=True, **kwargs):
         """Initializes RemoteDataset object.
 
         Args:
@@ -37,17 +37,15 @@ class RemoteDataset(Dataset):
         """
         # Call parent method
         super().__init__(auto_refresh=auto_refresh)
+
         # Set client
         self._client = client
+
         # Set dataset id
         self._id = client.get_dataset_id(id, **kwargs)
 
-        if id and isinstance(id, str):
-            key, val = Client.parse_id(id)
-            kwargs[key] = val
-
-        # REMARK: User-specific details should be validated once actual details becomes available
-        self._details = None if not details else details.copy()
+        # Set details
+        self._details = client.get_details(self.id)
 
 
     @property
@@ -193,7 +191,7 @@ class RemoteDataset(Dataset):
 
 
     def _get_detail(self, key: str, refresh: bool=False) -> Any:
-        if not self._details or key not in self._details or refresh:
+        if refresh:
             self._details = self.client.get_details(self.id)
 
         return self._details.get(key)
