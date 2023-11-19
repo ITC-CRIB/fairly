@@ -40,7 +40,7 @@ def create_dummy_dataset(path):
 
 def remote_dataset_ids():
     return [
-        "https://zenodo.org/record/7759648",
+        "https://zenodo.org/records/7759648",
         "10.5281/zenodo.7759648",
         "https://figshare.com/articles/dataset/_/12505823",
         "https://doi.org/10.6084/m9.figshare.12505823.v1",

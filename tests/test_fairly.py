@@ -7,7 +7,7 @@ from fairly.dataset.local import LocalDataset
 from fairly.dataset.remote import RemoteDataset
 
 from fairly.client.figshare import FigshareClient
-from fairly.client.zenodo import ZenodoClient
+from fairly.client.invenio import InvenioClient
 
 # Set testing flag
 fairly.TESTING = True
@@ -16,7 +16,7 @@ fairly.TESTING = True
 def params_create_client():
     return [
         ("figshare", FigshareClient),
-        ("zenodo", ZenodoClient)
+        ("invenio", InvenioClient)
     ]
 
 
@@ -31,7 +31,7 @@ def test_get_clients():
     assert clients
     assert "fairly" not in clients
     assert "figshare" in clients
-    assert "zenodo" in clients
+    assert "invenio" in clients
     assert "djehuty" in clients
 
 
