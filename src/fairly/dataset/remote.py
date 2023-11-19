@@ -107,7 +107,7 @@ class RemoteDataset(Dataset):
             return file.path
 
 
-    def store(self, path: str=None, notify: Callable=None, extract: bool=False, parallel: int=None) -> LocalDataset:
+    def store(self, path: str=None, notify: Callable=None, extract: bool=False, concurrent: int=None) -> LocalDataset:
         """Stores the dataset to a local directory.
 
         If no path is provided, DOI is used by replacing slashes and backslashes with underscores.
@@ -116,7 +116,8 @@ class RemoteDataset(Dataset):
         Args:
             path (str): Path to the local directory (optional).
             notify (Callable): Notification callback method (optional).
-            extract (bool): Set True to extract archive files (default = False).
+            extract (bool): Set True to extract archive files (default False).
+            concurrent (int): Number of concurrent downloads (optional).
 
         Returns:
             LocalDataset object of the stored local dataset.
@@ -125,9 +126,9 @@ class RemoteDataset(Dataset):
             ValueError("Empty path")
             ValueError("Directory is not empty")
         """
-        # Set number of parallel downloads if required
-        if not parallel:
-            parallel = fairly.get_parallel()
+        # Set number of concurrent downloads if required
+        if not concurrent:
+            concurrent = fairly.get_concurrent()
 
         # Set path based on DOI if required
         if not path:
@@ -167,7 +168,7 @@ class RemoteDataset(Dataset):
         dataset.set_metadata(**self.metadata)
         dataset.save_metadata()
 
-        with multiprocessing.Pool(processes=parallel) as pool:
+        with multiprocessing.Pool(processes=concurrent) as pool:
 
             results = []
 

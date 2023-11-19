@@ -19,9 +19,9 @@ from .dataset.local import LocalDataset
 from .file import File
 
 
-MAX_PARALLEL = 4
+MAX_CONCURRENT = 4
 
-_parallel = None
+_concurrent = None
 
 
 def is_testing() -> bool:
@@ -314,7 +314,7 @@ def dataset(id: str) -> Dataset:
 
     Examples:
         >>> dataset = fairly.dataset("10.5281/zenodo.6026285")
-        >>> dataset = fairly.dataset("https://zenodo.org/record/6026285")
+        >>> dataset = fairly.dataset("https://zenodo.org/records/6026285")
     """
     if isinstance(id, str):
         key, val = Client.parse_id(id)
@@ -456,34 +456,51 @@ def resolveDOI(doi: str) -> str:
     return response.headers.get("location")
 
 
-def set_parallel(parallel: int=None, force: bool=False):
-    global _parallel
+def set_concurrent(num: int=None, force: bool=False) -> int:
+    """Sets number of concurrent file operations.
 
-    if not parallel and parallel is not None:
-        parallel = 1
+    Number of concurrent file operations is limited to `MAX_CONCURRENT`, unless
+    `force` flag is set.
+
+    Args:
+        num (int): Number of concurrent file operations.
+        force (bool): Set True to increase the number beyond `MAX_CONCURRENT` (default False).
+
+    Returns:
+        Number of concurrent file operations.
+
+    Raises:
+        ValueError("Invalid number of concurrent operations"): If the number is more than the number of available cores.
+    """
+    global _concurrent
+
+    if not num and num is not None:
+        num = 1
 
     if hasattr(os, "sched_getaffinity"):
         max = len(os.sched_getaffinity(0))
     else:
         max = os.cpu_count()
 
-    if parallel is None:
-        parallel = max
+    if num is None:
+        num = max
 
-    elif parallel > max:
-        raise ValueError("Invalid number of parallel downloads")
+    elif num > max:
+        raise ValueError("Invalid number of concurrent operations")
 
-    if not force and parallel > MAX_PARALLEL:
-        parallel = MAX_PARALLEL
+    if not force and num > MAX_CONCURRENT:
+        num = MAX_CONCURRENT
 
-    _parallel = parallel
+    _concurrent = num
 
-    return _parallel
+    return _concurrent
 
 
-def get_parallel():
-    global _parallel
-    return _parallel if _parallel else set_parallel()
+def get_concurrent():
+    """Returns number of concurrent file operations."""
+    global _concurrent
+
+    return _concurrent if _concurrent else set_concurrent()
 
 
 if __name__ == "__main__":
