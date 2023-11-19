@@ -38,7 +38,7 @@ def clone(
 
     Examples: \n
         >>> fairly dataset clone <url|doi|uid> \n \n
-        >>> fairly dataset clone https://zenodo.org/record/7759648 \n
+        >>> fairly dataset clone https://zenodo.org/records/7759648 \n
         >>> fairly dataset clone 10.5281/zenodo.7759648 \n
         >>> fairly dataset clone <repository> <id> \n
         >>> fairly dataset clone --repo zenodo 7759648 \n
