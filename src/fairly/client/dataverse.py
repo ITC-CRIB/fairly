@@ -20,10 +20,7 @@ class DataverseClient(Client):
 
     @classmethod
     def get_config_parameters(cls) -> Dict:
-        """Returns configuration parameters
-
-        Args:
-            None
+        """Returns configuration parameters.
 
         Returns:
             Dictionary of configuration parameters.
@@ -167,9 +164,6 @@ class DataverseClient(Client):
             id (Dict): Standard dataset id
             metadata (Metadata): Metadata to be saved
 
-        Returns:
-            None
-
         Raises:
             ValueError("No access token")
         """
@@ -201,9 +195,6 @@ class DataverseClient(Client):
 
         Args:
             id (Dict): Standard dataset identifier
-
-        Returns:
-            None
 
         Raises:
             NotImplementedError

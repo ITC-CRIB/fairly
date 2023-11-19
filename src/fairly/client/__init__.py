@@ -88,10 +88,7 @@ class Client(ABC):
 
     @classmethod
     def get_config_parameters(cls) -> Dict:
-        """Returns configuration parameters
-
-        Args:
-            None
+        """Returns configuration parameters.
 
         Returns:
             Dictionary of configuration parameters.
@@ -132,10 +129,7 @@ class Client(ABC):
         """Saves client configuration.
 
         Args:
-            save_environment: Set True to save environment variables
-
-        Returns:
-            None
+            save_environment: Set True to save environment variables (default False)
         """
         id = self.repository_id if self.repository_id else self.client_id
 
@@ -246,7 +240,7 @@ class Client(ABC):
 
 
     @classmethod
-    def normalize(cls, name: str, val) -> Any:
+    def normalize_value(cls, name: str, val) -> Any:
         """Normalized metadata attribute value
 
         Args:
@@ -256,7 +250,7 @@ class Client(ABC):
         Returns:
             Normalized attribute value
         """
-        return Metadata.normalize(name, val)
+        return Metadata.normalize_value(name, val)
 
 
     @abstractmethod
@@ -506,19 +500,16 @@ class Client(ABC):
         attrs = self._get_metadata(id)
 
         # Return metadata
-        return Metadata(normalize=self.normalize, **attrs)
+        return Metadata(normalize=self.normalize_value, **attrs)
 
 
     @abstractmethod
     def save_metadata(self, id: Dict, metadata: Metadata) -> None:
-        """Saves metadata of the specified dataset
+        """Saves metadata of the specified dataset.
 
         Args:
-            id (Dict): Standard dataset id
-            metadata (Metadata): Metadata to be saved
-
-        Returns:
-            None
+            id (Dict): Standard dataset id.
+            metadata (Metadata): Metadata to be saved.
         """
         raise NotImplementedError
 
@@ -659,13 +650,10 @@ class Client(ABC):
 
     @abstractmethod
     def _delete_dataset(self, id: Dict) -> None:
-        """Deletes dataset specified by the standard identifier from the repository
+        """Deletes dataset from the repository.
 
         Args:
-            id (Dict): Standard dataset identifier
-
-        Returns:
-            None
+            id (Dict): Standard dataset identifier.
 
         Raises:
             ValueError("Operation not permitted")
@@ -675,14 +663,11 @@ class Client(ABC):
 
 
     def delete_dataset(self, id, **kwargs) -> None:
-        """Deletes specified dataset from the repository
+        """Deletes dataset from the repository.
 
         Args:
-            id: Dataset identifier
-            **kwargs: Other identifier arguments
-
-        Returns:
-            None
+            id: Dataset identifier.
+            **kwargs: Other identifier arguments.
         """
         # Get standard id
         id = self.get_dataset_id(id, **kwargs)

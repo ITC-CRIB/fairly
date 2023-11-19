@@ -29,11 +29,11 @@ class LocalDataset(Dataset):
         _manifest_path (str): Path of the dataset manifest
         _includes (set): File inclusion rules
         _excludes (set): File exclusion rules
-        _md5s (dict): MD5 hash cache of the files
+        _md5s (Dict): MD5 checksum cache of the files
         _yaml: YAML object
 
     Class Attributes:
-        _regexps (dict): Regular expression cache of the file rules
+        _regexps (Dict): Regular expression cache of the file rules
     """
 
     _regexps: Dict = {}
@@ -65,7 +65,7 @@ class LocalDataset(Dataset):
         self._includes = None
         self._excludes = None
 
-        # Load cached MD5 hashes
+        # Load cached MD5 checksums
         self._load_md5s()
 
         self._yaml = YAML()
@@ -166,9 +166,6 @@ class LocalDataset(Dataset):
 
         Args:
             manifest (Dict): Dataset manifest
-
-        Returns:
-            None
         """
         if "metadata" not in manifest:
             manifest["metadata"] = {}
@@ -216,10 +213,6 @@ class LocalDataset(Dataset):
 
         Returns:
             True if file name matches the rule, False otherwise
-
-        Raises:
-            None
-
         """
         if not rule in self._regexps:
             regexps = []
@@ -307,7 +300,7 @@ class LocalDataset(Dataset):
 
 
     def _load_md5s(self) -> None:
-        """Loads MD5 hashes stored in the dataset directory"""
+        """Loads MD5 checksums stored in the dataset directory"""
         self._md5s = {}
         path = os.path.join(self.path, ".fairly_md5")
         try:
@@ -324,9 +317,6 @@ class LocalDataset(Dataset):
 
         Args:
             force (bool): Set True to enforce save even if existing dataset is modified
-
-        Returns:
-            None
 
         Raises:
             Warning("Existing dataset is modified")
@@ -638,7 +628,7 @@ class LocalDataset(Dataset):
         return remote
 
 
-    def pull(self, source=None, notify: Callable=None) -> None:
+    def pull(self, source=None, notify: Callable=None) -> RemoteDataset:
         """
         Pulls changes made to metadata and files from the data repository
         to update the local dataset. Dataset must exits in data repository.

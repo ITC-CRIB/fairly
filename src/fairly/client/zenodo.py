@@ -141,10 +141,7 @@ class ZenodoClient(Client):
 
     @classmethod
     def get_config_parameters(cls) -> Dict:
-        """Returns configuration parameters
-
-        Args:
-            None
+        """Returns configuration parameters.
 
         Returns:
             Dictionary of configuration parameters.
@@ -267,9 +264,6 @@ class ZenodoClient(Client):
         Args:
             id (Dict): Standard dataset id.
             details (Dict): Dataset details. Set None to clear the cached details.
-
-        Returns:
-            None
         """
         hash = self._get_dataset_hash(id)
 
@@ -492,10 +486,7 @@ class ZenodoClient(Client):
         http://zenodo.org/schemas/licenses/license-v1.0.0.json
 
         Returns:
-            Dictionary of available licenses
-
-        Raises:
-            None
+            Dictionary of available licenses.
         """
         # REMARK: It looks like license names are not unique
         return self._get_entities("licenses", page_size = 2000, key = "id", process=lambda item: {
@@ -522,10 +513,7 @@ class ZenodoClient(Client):
             - curation_policy (str): Curation policy of the community
 
         Returns:
-            List of community dictionaries
-
-        Raises:
-            None
+            List of community dictionaries.
         """
         return self._get_entities("communities", page_size=2000, process=lambda item: {
             "id": item["id"],
@@ -557,10 +545,7 @@ class ZenodoClient(Client):
         http://zenodo.org/schemas/funders/funder-v1.0.0.json
 
         Returns:
-            List of funder dictionaries
-
-        Raises:
-            None
+            List of funder dictionaries.
         """
         return self._get_entities("funders", page_size=2000, process=lambda item: {
             # REMARK: Zenodo uses DOI to identify funders
@@ -899,9 +884,6 @@ class ZenodoClient(Client):
             id (Dict): Standard dataset id
             metadata (Metadata): Metadata to be saved
 
-        Returns:
-            None
-
         Raises:
             ValueError("No access token")
         """
@@ -1051,9 +1033,6 @@ class ZenodoClient(Client):
 
         Args:
             id (Dict): Standard dataset identifier
-
-        Returns:
-            None
 
         Raises:
             ValueError("Operation not permitted")

@@ -57,10 +57,7 @@ class FigshareClient(Client):
 
     @classmethod
     def get_config_parameters(cls) -> Dict:
-        """Returns configuration parameters
-
-        Args:
-            None
+        """Returns configuration parameters.
 
         Returns:
             Dictionary of configuration parameters.
@@ -503,17 +500,14 @@ class FigshareClient(Client):
 
 
     def save_metadata(self, id: Dict, metadata: Metadata) -> None:
-        """Saves metadata of the specified dataset
+        """Saves metadata of the specified dataset.
 
         Args:
-            id (Dict): Standard dataset id
-            metadata (Metadata): Metadata to be saved
-
-        Returns:
-            None
+            id (Dict): Standard dataset id.
+            metadata (Metadata): Metadata to be saved.
 
         Raises:
-            ValueError("No access token")
+            ValueError("No access token"): If not access token.
         """
         # Raise exception if no access token
         if not self.config.get("token"):
@@ -898,13 +892,10 @@ class FigshareClient(Client):
 
 
     def _delete_dataset(self, id: Dict) -> None:
-        """Deletes dataset specified by the standard identifier from the repository
+        """Deletes dataset from the repository.
 
         Args:
             id (Dict): Standard dataset identifier
-
-        Returns:
-            None
 
         Raises:
             ValueError("Operation not permitted")

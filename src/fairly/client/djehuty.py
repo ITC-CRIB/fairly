@@ -86,10 +86,7 @@ class DjehutyClient(Client):
 
     @classmethod
     def get_config_parameters(cls) -> Dict:
-        """Returns configuration parameters
-
-        Args:
-            None
+        """Returns configuration parameters.
 
         Returns:
             Dictionary of configuration parameters.
@@ -545,9 +542,6 @@ class DjehutyClient(Client):
             id (Dict): Standard dataset id
             metadata (Metadata): Metadata to be saved
 
-        Returns:
-            None
-
         Raises:
             ValueError("No access token")
         """
@@ -934,9 +928,6 @@ class DjehutyClient(Client):
 
         Args:
             id (Dict): Standard dataset identifier
-
-        Returns:
-            None
 
         Raises:
             ValueError("Operation not permitted")
