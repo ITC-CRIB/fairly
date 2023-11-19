@@ -9,7 +9,7 @@ Usage example:
 
 """
 from __future__ import annotations
-from typing import Any, Dict
+from typing import Any, Dict, List, Callable
 from collections.abc import MutableMapping
 
 from .person import Person, PersonList
@@ -19,13 +19,15 @@ import copy
 import sys
 import ruamel.yaml
 
+
 class Metadata(MutableMapping):
     """Metadata class.
 
     Attributes:
-        _normalize (Callable): Attribute normalization method.
         _attrs (Dict): Metadata attributes.
         _basis (Dict): Basis of metadata attributes.
+        _normalize (Callable): Attribute normalization method.
+        _serialize (Callable): Attribute serialization method.
 
     Class Attributes:
         REGEXP_DOI: Regular expression to validate DOI.
@@ -34,18 +36,21 @@ class Metadata(MutableMapping):
     REGEXP_DOI = re.compile(r"10\.\d{4,9}/[-._;()/:a-z\d]+", re.IGNORECASE)
 
 
-    def __init__(self, normalize: Callable=None, **kwargs):
+    def __init__(self, normalize: Callable=None, serialize: Callable=None, **kwargs):
         """Initializes Metadata object.
 
-        The default normalization method `Metadata.normalize()` is not called
-        if user-defined normalization method is provided.
+        The corresponding default methods are not called if user-defined
+        attribute value normalization and serialization methods are provided.
 
         Args:
-            normalize: User-defined normalization method.
+            normalize: Attribute value normalization method (optional).
+            serialize: Attribute value serialization method (optional).
             **kwargs: Metadata attributes.
         """
-        self._normalize = normalize if normalize else Metadata.normalize
+        self._normalize = normalize if normalize else Metadata.normalize_value
+        self._serialize = serialize if serialize else Metadata.serialize_value
         self._attrs = {}
+
         for key, val in kwargs.items():
             if bool(val) or isinstance(val, (bool, int, float)):
                 self._attrs[key] = self._normalize(key, val)
@@ -85,6 +90,7 @@ class Metadata(MutableMapping):
 
 
     def rebase(self):
+        """Updates the basis of the metadata attributes."""
         self._basis = copy.deepcopy(self._attrs)
 
 
@@ -99,11 +105,16 @@ class Metadata(MutableMapping):
 
 
     @classmethod
-    def normalize(cls, name: str, val) -> Any:
+    def normalize_value(cls, key: str, val) -> Any:
         """Normalizes metadata attribute value.
 
+        Supported attributes:
+            - doi
+            - keywords
+            - authors
+
         Args:
-            name: Attribute name.
+            key (str): Attribute key.
             val: Attribute value.
 
         Returns:
@@ -113,7 +124,7 @@ class Metadata(MutableMapping):
             ValueError: If invalid attribute value.
         """
         # Digital Object Identifier
-        if name == "doi":
+        if key == "doi":
             if isinstance(val, str):
                 val = val.lower()
                 if val.startswith("doi:"):
@@ -128,7 +139,7 @@ class Metadata(MutableMapping):
                 raise ValueError
 
         # Keywords
-        elif name == "keywords":
+        elif key == "keywords":
             if isinstance(val, str):
                 val = re.split(r"[,;\n]", val)
             try:
@@ -137,11 +148,35 @@ class Metadata(MutableMapping):
                 raise ValueError
 
         # Authors
-        elif name == "authors":
+        elif key == "authors":
             val = Person.get_persons(val)
 
         # Return normalized value
         return val
+
+
+    @classmethod
+    def serialize_value(cls, key: str, val) -> Any:
+        """Serializes metadata attribute value.
+
+        Supported attributes:
+            - Any attribute with a data type of `Person`.
+            - Any attribute with a data type of `PersonList`.
+
+        Args:
+            key (str): Attribute key.
+            val: Attribute value.
+
+        Returns:
+            Serialized attribute value.
+        """
+        if isinstance(val, Person):
+            return val.serialize()
+
+        if isinstance(val, PersonList):
+            return [person.serialize() for person in val]
+
+        return copy.deepcopy(val)
 
 
     def serialize(self) -> Dict:
@@ -150,20 +185,10 @@ class Metadata(MutableMapping):
         Returns:
             Metadata dictionary.
         """
-        out = self._attrs.copy()
+        out = {}
 
-        for key, val in out.items():
-
-            if isinstance(val, Person):
-                val = val.serialize()
-
-            elif isinstance(val, PersonList):
-                val = [person.serialize() for person in val]
-
-            else:
-                continue
-
-            out[key] = val
+        for key, val in self._attrs.items():
+            out[key] = self._serialize(key, val)
 
         return out
 
@@ -171,9 +196,13 @@ class Metadata(MutableMapping):
     def autocomplete(self, overwrite: bool=False, attrs: List=None, **kwargs) -> Dict:
         """Completes missing metadata attributes by using the available information.
 
+        Supported attributes:
+            - Any attribute with a data type of `Person`.
+            - Any attribute with a data type of `PersonList`.
+
         Args:
-            overwrite: Set True to overwrite existing attributes.
-            attrs: List of attributes to be completed.
+            overwrite (bool): Set True to overwrite existing attributes (default False).
+            attrs (List): List of attributes to be completed (optional).
             **kwargs: Arguments for the specific autocomplete methods.
 
         Returns:
@@ -205,31 +234,38 @@ class Metadata(MutableMapping):
         return updated
 
 
-    def _remove_comments(self, d):
-        """Removes comments from a YAML dictionary recursively."""
+    def _remove_comments(self, var):
+        """Removes comments from a YAML dictionary recursively.
 
-        # REMARK: https://stackoverflow.com/questions/60080325/how-to-delete-all-comments-in-ruamel-yaml
-        if isinstance(d, dict):
-            for k, v in d.items():
-                self._remove_comments(k)
-                self._remove_comments(v)
+        Args:
+            var: YAML dictionary or a dictionary item, if called recursively.
+        """
+        # REMARK: Based on https://stackoverflow.com/questions/60080325/how-to-delete-all-comments-in-ruamel-yaml
+        if isinstance(var, dict):
+            for key, val in var.items():
+                self._remove_comments(key)
+                self._remove_comments(val)
 
-        elif isinstance(d, list):
-            for elem in d:
-                self._remove_comments(elem)
+        elif isinstance(var, list):
+            for item in var:
+                self._remove_comments(item)
 
         try:
-             # literal scalarstring might have comment associated with them
-             attr = 'comment' if isinstance(d, ruamel.yaml.scalarstring.ScalarString) \
-                      else ruamel.yaml.comments.Comment.attrib
-             delattr(d, attr)
+             if isinstance(var, ruamel.yaml.scalarstring.ScalarString):
+                attr = "comment"
+             else:
+                attr = ruamel.yaml.comments.Comment.attrib
+             delattr(var, attr)
+
         except AttributeError:
             pass
 
 
     def print(self):
-        """Pretty prints metadata."""
+        """Pretty prints metadata.
 
+        Serializes metadata and prints as YAML without comments.
+        """
         yaml = ruamel.yaml.YAML()
 
         out = self.serialize()
