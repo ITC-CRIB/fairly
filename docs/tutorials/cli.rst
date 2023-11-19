@@ -59,11 +59,11 @@ Cloning a Dataset
       # On Linux/MacOS
       cd  workshop/clone
 
-3. Clone this `Zenodo dataset <https://zenodo.org/record/7748718#.ZBozNdLMJhE>`_, using its URL:
+3. Clone this `Zenodo dataset <https://zenodo.org/records/7748718#.ZBozNdLMJhE>`_, using its URL:
 
    .. code:: shell
 
-      fairly dataset clone --url https://zenodo.org/record/7748718#.ZBo1SNLMJhF
+      fairly dataset clone --url https://zenodo.org/records/7748718#.ZBo1SNLMJhF
 
 4. Explore the content of the dataset, notice that file(s)  of the dataset have been downloaded and its metadata is in the :code:`manifest.yaml` file.
 

@@ -46,8 +46,8 @@ Public research datasets can be cloned (copy and downloaded) directly to an empt
 
 This are other datasets that you can try:
 
-* https://zenodo.org/record/4302600
-* https://zenodo.org/record/8273524
+* https://zenodo.org/records/4302600
+* https://zenodo.org/records/8273524
   
  
 Using the JupyterLab interface, create a new directory called :code:`workshop`. *Notice that the content of your main directory would be different.*

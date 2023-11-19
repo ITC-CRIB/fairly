@@ -20,10 +20,10 @@ fairly.client.figshare module
    :undoc-members:
    :show-inheritance:
 
-fairly.client.zenodo module
+fairly.client.invenio module
 ---------------------------
 
-.. automodule:: fairly.client.zenodo
+.. automodule:: fairly.client.invenio
    :members:
    :undoc-members:
    :show-inheritance:

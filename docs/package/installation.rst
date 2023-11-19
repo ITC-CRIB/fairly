@@ -2,7 +2,7 @@
 Installation
 ########################
 
-*fairly* is a Python package that provides functionality for the core tasks of preparing, uploading and downloading datasets from research data repositories. The package currently provides integration with `Zenodo <https://zenodo.org/>`_ and Figshare repositories such as `4TU.ReseachData <https://data.4tu.nl/>`_
+*fairly* is a Python package that provides functionality for the core tasks of preparing, uploading and downloading datasets from research data repositories. The package currently provides integration with `Invenio <https://inveniosoftware.org/>`_ and Figshare repositories.
 
 Installing using pip
 ========================

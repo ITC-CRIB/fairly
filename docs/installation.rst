@@ -3,7 +3,7 @@
 Installation
 ================
 
-The *Fairly Toolset* provides functionality for the core tasks of preparing, uploading and downloading datasets from research data repositories. The toolset currently provides integration with data repositories based on `Zenodo <https://zenodo.org/>`_ and `Figshare <https://figshare.com/>`_.
+The *Fairly Toolset* provides functionality for the core tasks of preparing, uploading and downloading datasets from research data repositories. The toolset currently provides integration with data repositories based on `Invenio <https://inveniosoftware.org/>`_ and `Figshare <https://figshare.com/>`_.
 
 **What's Included:**
 
@@ -89,5 +89,5 @@ Installing *fairly* from source requires `setuptools` version 49.0 or later and 
    pip install .
 
 .. important::
-   Currently, the toolset only supports data repositories based on `Zenodo <https://zenodo.org/>`_ and `Figshare <https://figshare.com/>`_. For examples on how to use the toolset, read the `Tutorials <index.rst>`_
+   Currently, the toolset only supports data repositories based on `Invenio <https://inveniosoftware.org/>`_ and `Figshare <https://figshare.com/>`_. For examples on how to use the toolset, read the `Tutorials <index.rst>`_
 

@@ -159,7 +159,7 @@ Basic example to access a remote dataset and store it locally:
 Currently, the package supports the following research data management
 platforms:
 
--  `Zenodo <https://zenodo.org/>`__
+-  `Invenio <https://inveniosoftware.org/>`__
 -  `Figshare <https://figshare.com/>`__
 -  `Djehuty <https://github.com/4TUResearchData/djehuty/>`__
    (experimental)
