@@ -20,7 +20,7 @@ def add(
     id: str = typer.Argument("", help="Repository ID"),
 ):
     '''Add a repository to the config file,
-    
+
     fairly repository add --id <id> --name <name> --api-url <url> --token <token>
 
     Notice that this should only be allowed once there is a corresponing module
@@ -30,7 +30,7 @@ def add(
 
 @app.command()
 def show(
-    
+
 ):
     '''Show config details'''
     yaml = YAML()
@@ -54,17 +54,17 @@ def update_token(
     try:
         with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
             config = json.loads(f.read())
-            
+
             # check if token is already set with the same value
             if config[id]["token"] == token:
                 print(f"Token for repository {id} is already set to {token}")
                 return
-            
+
             else: config[id]["token"] = token
-        
+
         with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
             f.write(json.dumps(config, indent=4))
-  
+
     except FileNotFoundError:
         print(f"Config file not found at {CONFIG_FILE}")
         return
