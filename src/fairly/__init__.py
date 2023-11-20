@@ -12,6 +12,8 @@ import importlib
 import requests
 import re
 from functools import lru_cache
+import logging
+from urllib.parse import urlparse
 
 from .client import Client
 from .dataset import Dataset
@@ -103,10 +105,11 @@ def get_clients() -> Dict:
     """Returns available clients.
 
     Returns:
-        Dictionary of the available clients. Keys are client identifiers (str), values are client classes (Client).
+        Dictionary of the available clients.
+        Keys are client identifiers (str), values are client classes (Client).
 
     Raises:
-        AttributeError: If a client module is not valid.
+        AttributeError("Invalid client module", id): If a client module is invalid.
 
     Examples:
         >>> fairly.get_clients()
@@ -121,7 +124,7 @@ def get_clients() -> Dict:
         # Get client class name
         classname = client.CLASS_NAME
         if not classname:
-            raise AttributeError(f"Invalid client module: {id}")
+            raise AttributeError("Invalid client module", id)
         # Set client class
         clients[id] = getattr(client, classname)
 
@@ -227,6 +230,10 @@ def metadata_templates() -> List:
     return templates
 
 
+def _match_domain(url: str, domain_url: str) -> bool:
+    hostname = urlparse(url).hostname
+    return False if not hostname else hostname.endswith(urlparse(domain_url).hostname)
+
 def get_repository(uid: str) -> Dict:
     """Returns repository dictionary of the specified repository.
 
@@ -248,9 +255,10 @@ def get_repository(uid: str) -> Dict:
     if uid in repositories:
         return repositories[uid].copy()
 
-    for _, repository in repositories.items():
-        if uid == repository["url"]:
-            return repository.copy()
+    if re.fullmatch(Client.REGEXP_URL, uid):
+        for _, repository in repositories.items():
+            if _match_domain(uid, repository["url"]):
+                return repository.copy()
 
     return None
 
@@ -270,7 +278,7 @@ def client(id: str, **kwargs) -> Client:
         Client object.
 
     Raises:
-        ValueError: If invalid client id.
+        ValueError("Invalid client id"): If invalid client id.
 
     Examples:
         >>> # Create a 4TU.ResearchData client (id = "4tu")
@@ -287,7 +295,7 @@ def client(id: str, **kwargs) -> Client:
         id = repository["client_id"]
 
     if id not in clients:
-        raise ValueError(f"Invalid client id: {id}")
+        raise ValueError("Invalid client id")
 
     return clients[id](**kwargs)
 
@@ -296,9 +304,9 @@ def dataset(id: str) -> Dataset:
     """Creates dataset object from a dataset identifier.
 
     The following types of dataset identifiers are supported:
-        - DOI : Digital object identifier of the remote dataset.
-        - URL : URL address of the remote dataset.
-        - Path : Path of the local dataset.
+        - DOI : Digital object identifier of a remote dataset.
+        - URL : URL address of a remote dataset.
+        - Path : Path of a local dataset.
 
     Repository of the dataset is automatically detected by checking the URL
     addresses and the DOI prefixes of the recognized repositories.
@@ -322,21 +330,32 @@ def dataset(id: str) -> Dataset:
         key = None
 
     if key == "url":
+        logging.info("Checking recognized repositories for %s.", val)
         for repository_id, repository in get_repositories().items():
             url = repository.get("url")
-            if url and val.startswith(url):
+            if url and _match_domain(val, url):
+                logging.info("%s matched %s.", repository_id, val)
                 return client(repository_id).get_dataset(url=val)
 
+        logging.info("Checking clients for auto-detection.")
+        for cls in get_clients().values():
+            if not hasattr(cls, "get_client"):
+                continue
+            try:
+                result = cls.get_client(val)
+                logging.info("%s client is found at %s.", result.client_id, result.config.get("url"))
+                return result.get_dataset(url=val)
+            except:
+                pass
+
     elif key == "doi":
-        for repository_id, repository in get_repositories().items():
-            for prefix in repository.get("doi_prefixes", []):
-                if prefix and val.startswith(prefix):
-                    return client(repository_id).get_dataset(doi=val)
+        url = resolveDOI(val)
+        return dataset(url)
 
     else:
         return LocalDataset(id)
 
-    raise ValueError(f"Unknown dataset identifier")
+    raise ValueError("Unknown dataset identifier")
 
 
 def init_dataset(path: str, template: str = "default", create: bool = True) -> LocalDataset:
@@ -438,7 +457,7 @@ def resolveDOI(doi: str) -> str:
         doi (str): Digital object identifier
 
     Returns:
-        URL address of the DOI or None if invalid DOI.
+        URL address of the DOI.
 
     Raises:
         ValueError("Invalid DOI"): If DOI is invalid.
@@ -448,12 +467,20 @@ def resolveDOI(doi: str) -> str:
     if not match:
         raise ValueError("Invalid DOI")
 
-    response = requests.head("https://doi.org/" + match[2])
-
-    if response.status_code != 302:
+    url = "https://doi.org/" + match[2]
+    try:
+        logging.info("Sending DOI resolve request to %s.", url)
+        response = requests.head(url, allow_redirects=True)
+        response.raise_for_status()
+    except:
         raise ValueError("Invalid DOI")
 
-    return response.headers.get("location")
+    url = response.headers.get("Location", response.url)
+    if not url:
+        raise ValueError("Invalid DOI")
+    logging.info("Resolved URL address is %s.", url)
+
+    return url
 
 
 def set_concurrent(num: int=None, force: bool=False) -> int:
@@ -481,6 +508,7 @@ def set_concurrent(num: int=None, force: bool=False) -> int:
         max = len(os.sched_getaffinity(0))
     else:
         max = os.cpu_count()
+    logging.info("Maximum number of concurrent operations is %d.", max)
 
     if num is None:
         num = max
@@ -489,6 +517,7 @@ def set_concurrent(num: int=None, force: bool=False) -> int:
         raise ValueError("Invalid number of concurrent operations")
 
     if not force and num > MAX_CONCURRENT:
+        logging.info("Limiting %d concurrent operations to %d.", num, MAX_CONCURRENT)
         num = MAX_CONCURRENT
 
     _concurrent = num
@@ -501,6 +530,11 @@ def get_concurrent():
     global _concurrent
 
     return _concurrent if _concurrent else set_concurrent()
+
+
+def debug(state: bool=True):
+    level = logging.DEBUG if state else logging.INFO
+    logging.basicConfig(level=level)
 
 
 if __name__ == "__main__":
