@@ -9,6 +9,7 @@ jobs:
     env:
       FAIRLY_FIGSHARE_TOKEN: ${{ secrets.FIGSHARE_TOKEN }}
       FAIRLY_ZENODO_TOKEN: ${{ secrets.ZENODO_TOKEN }}
+      FAIRLY_4TU_TOKEN: ${{ secrets.FOURTU_TOKEN }}
 
     strategy:
       matrix:
@@ -27,5 +28,3 @@ jobs:
       - name: Test with pytest
         run: |
           pytest --cov=fairly tests/
-          # pytest --record-mode=once --cov=fairly tests/
-          # pytest --disable-recording
