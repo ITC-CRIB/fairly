@@ -27,7 +27,6 @@ class Client(ABC):
         _session (Session): HTTP session object
         _datasets (Dict): Public dataset cache
         _account_datasets (List): Account dataset cache
-        _licenses (List): Licenses cache
 
     Class Attributes:
         REGEXP_URL: Regular expression to validate URL address.
@@ -73,7 +72,6 @@ class Client(ABC):
         self._session = None
         self._datasets = {}
         self._account_datasets = None
-        self._licenses = None
 
 
     @property
@@ -387,31 +385,6 @@ class Client(ABC):
             content = None
 
         return content, response
-
-
-    @abstractmethod
-    def _get_licenses(self) -> Dict:
-        raise NotImplementedError
-
-
-    def get_licenses(self, refresh: bool=False) -> List[Dict]:
-        """Returns list of available licenses
-
-        Args:
-            refresh (bool): Set True to refresh licenses (default = False)
-
-        Returns:
-            List of client-specific license dictionaries
-        """
-        if self._licenses is None or refresh:
-            self._licenses = self._get_licenses()
-
-        return self._licenses
-
-
-    @property
-    def licenses(self) -> Dict:
-        return self.get_licenses()
 
 
     @abstractmethod

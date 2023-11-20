@@ -14,6 +14,7 @@ from requests.exceptions import HTTPError
 from collections import OrderedDict
 from requests_toolbelt.multipart.encoder import MultipartEncoderMonitor
 from datetime import datetime
+from functools import cached_property
 
 CLASS_NAME = "ZenodoClient"
 
@@ -444,7 +445,8 @@ class ZenodoClient(Client):
         return details
 
 
-    def _get_licenses(self) -> Dict:
+    @cached_property
+    def licenses(self) -> Dict:
         """Retrieves the list of available licenses
 
         License dictionary:

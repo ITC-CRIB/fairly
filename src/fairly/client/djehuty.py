@@ -15,6 +15,7 @@ from collections import OrderedDict
 import time
 import warnings
 from datetime import datetime
+from functools import cached_property
 
 CLASS_NAME = "DjehutyClient"
 
@@ -267,7 +268,8 @@ class DjehutyClient(Client):
         return datasets
 
 
-    def _get_licenses(self) -> Dict:
+    @cached_property
+    def licenses(self) -> Dict:
         """Retrieves list of available licenses
 
         License dictionary:
@@ -405,7 +407,7 @@ class DjehutyClient(Client):
         val = details.get("license")
         if val:
             try:
-                licenses = self.get_licenses()
+                licenses = self.licenses
             except:
                 licenses = {}
 
@@ -670,7 +672,7 @@ class DjehutyClient(Client):
             if license.isnumeric():
                 return int(license)
 
-            for id, item in self.get_licenses().items():
+            for id, item in self.licenses.items():
                 if license == item["name"] or license == item["url"]:
                     return id
 

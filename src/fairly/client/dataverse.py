@@ -12,6 +12,7 @@ import urllib.parse
 
 CLASS_NAME = "DataverseClient"
 
+
 class DataverseClient(Client):
 
     def __init__(self, repository_id: str=None, **kwargs):
@@ -121,18 +122,6 @@ class DataverseClient(Client):
         if "token" not in self.config:
             return []
 
-        raise NotImplementedError
-
-
-    def _get_licenses(self) -> Dict:
-        """Retrieves the list of available licenses
-
-        Returns:
-            Dictionary of available licenses
-
-        Raises:
-            NotImplementedError
-        """
         raise NotImplementedError
 
 

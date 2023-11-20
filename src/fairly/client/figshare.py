@@ -16,6 +16,7 @@ import time
 import warnings
 import dateutil.parser
 import logging
+from functools import cached_property
 
 CLASS_NAME = "FigshareClient"
 
@@ -270,7 +271,8 @@ class FigshareClient(Client):
         return datasets
 
 
-    def _get_licenses(self) -> Dict:
+    @cached_property
+    def licenses(self) -> Dict:
         """Retrieves list of available licenses
 
         License dictionary:
@@ -416,7 +418,7 @@ class FigshareClient(Client):
         val = details.get("license")
         if val:
             try:
-                licenses = self.get_licenses()
+                licenses = self.licenses
             except:
                 licenses = {}
 
@@ -687,7 +689,7 @@ class FigshareClient(Client):
         elif isinstance(license, str):
             if license.isnumeric():
                 return int(license)
-            for id, item in self.get_licenses().items():
+            for id, item in self.licenses.items():
                 if license == item["name"] or license == item["url"]:
                     return id
         elif isinstance(license, dict):
