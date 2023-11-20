@@ -165,36 +165,6 @@ class ZenodoClient(Client):
         return config
 
 
-    @classmethod
-    def get_client(cls, url: str) -> Client:
-        parts = urlparse(url)
-
-        url = parts.scheme + "://" + parts.netloc
-        api_url = url + "/api/"
-
-        try:
-            response = requests.get(api_url + "records?size=1")
-            data = response.json()
-
-        except:
-            raise ValueError("Invalid repository")
-
-        if ("hits" not in data) or ("hits" not in data["hits"]):
-            raise ValueError("Invalid repository")
-
-        doi_prefixes = []
-
-        if data["hits"]["hits"]:
-            item = data["hits"]["hits"][0]
-            match = re.search(Metadata.REGEXP_DOI, item["links"].get("doi", ""))
-            if match:
-                doi_prefixes = [match[0].split("/")[0]]
-
-        client = ZenodoClient(url=url, api_url=api_url, doi_prefixes=doi_prefixes)
-
-        return client
-
-
     def _create_session(self) -> requests.Session:
         session = super()._create_session()
 
