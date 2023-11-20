@@ -20,7 +20,7 @@ def list_repos():
     repositories = fairly.get_repositories()
 
     print("List of repositories to use with fairly:")
-    
+
     for key in repositories:
         print("- " + key)
 
@@ -53,7 +53,7 @@ def list_user_datasets(
                 yaml.dump(item, sys.stdout)
                 print("------------------")
 
-    except Exception as e: 
+    except Exception as e:
         print(e)
         print("Please specify a repository name that is valid")
     return None
