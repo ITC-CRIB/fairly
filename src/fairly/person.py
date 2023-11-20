@@ -174,6 +174,7 @@ class Person(MutableMapping):
                 "Content-Type": "application/x-www-form-urlencoded",
             }
         )
+        response.raise_for_status()
 
         json = response.json()
 
@@ -195,7 +196,7 @@ class Person(MutableMapping):
             token: ORCID access token.
 
         Returns:
-            Person object if valid ORCID identifier, otherwise None.
+            Person object if valid ORCID identifier, None otherwise.
 
         Raises:
             ValueError("No access token"): If access token is not available.
@@ -220,6 +221,7 @@ class Person(MutableMapping):
                 "Authorization type and Access token": f"Bearer {token}"
             }
         )
+        response.raise_for_status()
         results = response.json().get("expanded-result")
 
         # Raise exception if no results
