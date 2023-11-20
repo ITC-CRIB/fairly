@@ -15,8 +15,10 @@ from collections import OrderedDict
 import time
 import warnings
 import dateutil.parser
+import logging
 
 CLASS_NAME = "FigshareClient"
+
 
 class FigshareClient(Client):
 
@@ -81,6 +83,48 @@ class FigshareClient(Client):
         return config
 
 
+    @classmethod
+    def get_client(cls, url: str) -> Client:
+        """Creates a repository client from the specified URL address.
+
+        Args:
+            url (str): URL address of the repository or dataset.
+
+        Returns:
+            Client object (InvenioClient).
+
+        Raises:
+            ValueError("Invalid repository"): If repository is not valid.
+        """
+        logging.info("Checking Figshare client for %s.", url)
+        parts = urlparse(url).path.strip("/").split("/")
+        if parts[-1].isnumeric():
+            if parts[-2].isnumeric():
+                id = parts[-2]
+                version = parts[-1]
+            else:
+                id = parts[-1]
+                version = None
+        else:
+            raise ValueError("Invalid URL address")
+
+        parts = urlparse(url)
+        client = FigshareClient(
+            url=parts.scheme + "://" + parts.netloc,
+            api_url="https://api.figshare.com/v2/"
+        )
+
+        try:
+            dataset = client.get_dataset(id=id, version=version)
+        except:
+            raise ValueError("Invalid repository")
+
+        if dataset.url != url:
+            raise ValueError("Invalid repository")
+
+        return client
+
+
     def _create_session(self) -> requests.Session:
         session = super()._create_session()
 
@@ -107,10 +151,12 @@ class FigshareClient(Client):
             ValueError("Invalid version")
         """
         version = None
+
         if kwargs.get("id"):
             id = str(kwargs["id"])
             if not id.isnumeric():
                 raise ValueError("Invalid id")
+
         elif kwargs.get("url"):
             parts = urlparse(kwargs["url"]).path.strip("/").split("/")
             if parts[-1].isnumeric():
@@ -121,6 +167,7 @@ class FigshareClient(Client):
                     id = parts[-1]
             else:
                 raise ValueError("Invalid URL address")
+
         elif kwargs.get("doi"):
             match = re.search(r"(\.figshare\.|\/)(\d+)(\.v(\d+))?$", kwargs["doi"])
             if match:
@@ -130,12 +177,15 @@ class FigshareClient(Client):
                 # TODO: Find id from DOI
                 # https://docs.figshare.com/#private_articles_search
                 raise NotImplementedError
+
         else:
             raise ValueError("No identifier")
+
         if version is None and kwargs.get("version"):
             version = str(kwargs["version"])
             if not version.isnumeric():
                 raise ValueError("Invalid version")
+
         return {"id": id, "version": version}
 
 
