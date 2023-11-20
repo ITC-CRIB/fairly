@@ -1,0 +1,11 @@
+/* Prevent stacking properties */
+/* https://github.com/readthedocs/sphinx_rtd_theme/issues/1301 */
+dl.property {
+	display: block !important;
+	width: 100%;
+}
+/* Prevent double colon for roles */
+/* https://github.com/sphinx-doc/sphinx/issues/10594 */
+dl.field-list .colon {
+    display: none;
+}
