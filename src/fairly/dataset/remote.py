@@ -15,6 +15,7 @@ import os.path
 import datetime
 import multiprocessing
 from functools import cached_property
+import logging
 
 
 class RemoteDataset(Dataset):
@@ -50,14 +51,20 @@ class RemoteDataset(Dataset):
 
     @property
     def client(self) -> Client:
-        """Client of the dataset"""
+        """Client of the dataset."""
         return self._client
 
 
     @property
     def id(self) -> Dict:
-        """Identifier of the dataset"""
+        """Identifier of the dataset."""
         return self._id
+
+
+    @property
+    def plain_id(self) -> str:
+        """Plain identifier of the dataset."""
+        return self._client.get_dataset_plain_id(self._id)
 
 
     def _get_metadata(self) -> Metadata:

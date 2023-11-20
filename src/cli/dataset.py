@@ -45,7 +45,10 @@ def clone(
     '''
 
     if repo:
-        client = fairly.client(repo, token=token)
+        if token:
+            client = fairly.client(repo, token=token)
+        else:
+            client = fairly.client(repo)
         dataset = client.get_dataset(id)
 
     else:
@@ -97,7 +100,7 @@ def upload(
         progress.add_task(description=f"Uploading dataset {path}", total=None)
         remote_dataset = dataset.upload(client, notify=notify)
 
-    print(f"Dataset {path} is successfully uploaded at {remote_dataset.url or remote_dataset.doi}")
+    print(f"Dataset {path} is successfully uploaded at {remote_dataset.url or remote_dataset.plain_id}")
 
 
 @app.command()
@@ -110,7 +113,10 @@ def delete(
     Deletes a dataset by using its URL address, DOI or unique ID.
     '''
     if repo:
-        client = fairly.client(repo, token=token)
+        if token:
+            client = fairly.client(repo, token=token)
+        else:
+            client = fairly.client(repo)
         dataset = client.get_dataset(id)
 
     else:
@@ -122,7 +128,7 @@ def delete(
         TextColumn("[progress.description]{task.description}"),
         transient = True,
     ) as progress:
-        progress.add_task(description="Deleting dataset {id}", total=None)
+        progress.add_task(description=f"Deleting dataset {id}", total=None)
         client.delete_dataset(dataset.id)
 
     print(f"Dataset {id} is successfully deleted.")
