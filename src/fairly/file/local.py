@@ -21,6 +21,7 @@ import mimetypes
 import hashlib
 import zipfile
 import tarfile
+import logging
 
 
 class LocalFile(File):
@@ -34,7 +35,7 @@ class LocalFile(File):
         _fullpath (str): Full path of the local file.
     """
 
-    CHUNK_SIZE = 2**16
+    CHUNK_SIZE = 2**18
 
     NO_EXTRACT = [
         ".docx",
@@ -73,19 +74,28 @@ class LocalFile(File):
     def type(self) -> str:
         """Content type of the local file."""
         if self._type is None:
+            logging.info("Guessing content type of %s.", self.fullpath)
             self._type, _ = mimetypes.guess_type(self.fullpath)
+            logging.info("Guessed content type is %s.", self._type)
+
         return self._type
 
 
     @property
     def md5(self) -> str:
-        """MD5 checksum of the local file."""
+        """MD5 checksum of the local file.
+
+        MD5 checksum is only calculated once and cached for subsequent calls.
+        """
         if self._md5 is None:
+            logging.info("Calculating MD5 checksum of %s.", self.fullpath)
             with open(self.fullpath, "rb") as file:
                 md5 = hashlib.md5()
                 while chunk := file.read(self.CHUNK_SIZE):
                     md5.update(chunk)
             self._md5 = md5.hexdigest()
+            logging.info("Calculated MD5 checksum is %s.", self._md5)
+
         return self._md5
 
 
@@ -112,6 +122,9 @@ class LocalFile(File):
     def match(self, val: str) -> bool:
         """Checks if file matches the specified file identifier.
 
+        File fullpath is compared with the specified identifier in addition to
+        the properties checked by File.match().
+
         Args:
             val (str): File identifier.
 
@@ -131,10 +144,10 @@ class LocalFile(File):
             notify: Notification callback function. Three arguments are
                 provided to the callback function:
 
-                - file (LocalFile): File object of the extracted local file
+                - file (LocalFile): File object of the extracted local file.
                 - current_size (int): Current total uncompressed size of
                     extracted files.
-                - total_size (int): Total uncompressed size of the archive
+                - total_size (int): Total uncompressed size of the archive.
 
         Raises:
             ValueError("Invalid path"): If path is not a directory path.

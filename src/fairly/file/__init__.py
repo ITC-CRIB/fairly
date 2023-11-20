@@ -4,8 +4,8 @@ File class is used to store file information in a standardized manner.
 It is an abstract class.
 
 Implementations:
-    LocalFile
-    RemoteFile
+    - LocalFile
+    - RemoteFile
 """
 from abc import ABC, abstractmethod
 
@@ -77,6 +77,12 @@ class File(ABC):
     def match(self, val: str) -> bool:
         """Checks if file matches the specified file identifier.
 
+        File name, path, and MD5 checksum are compared with the specified
+        identifier for matching.
+
+        Args:
+            val (str): File identifier.
+
         Returns:
             True if file matches the specified file identifier, False otherwise.
         """
@@ -87,8 +93,10 @@ class File(ABC):
     def is_simple(self) -> bool:
         """Checks if file is a simple file.
 
+        A simple file does not include any directories in its path, e.g. the
+        path is equal to the name.
+
         Returns:
-            True if the file path does not include directories, i.e. the path
-            is equal to the name, False otherwise.
+            True if the file is simple, False otherwise.
         """
         return self.path == self.name

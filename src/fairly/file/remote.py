@@ -10,6 +10,7 @@ import requests
 import mimetypes
 import os.path
 from urllib.parse import urlparse
+import logging
 
 
 class RemoteFile(File):
@@ -22,7 +23,7 @@ class RemoteFile(File):
     """
 
     def __init__(self, url: str, id: str=None, path: str=None, size: int=None, type: str=None, md5: str=None):
-        """Initializes LocalFile object.
+        """Initializes RemoteFile object.
 
         Args:
             url (str): URL address of the remote file.
@@ -58,8 +59,11 @@ class RemoteFile(File):
     def headers(self) -> Dict:
         """HTTP headers of the remote file."""
         if self._headers is None:
+            logging.info("Fetching HTTP headers from %s.", self.url)
             # TODO: Add error handling
             response = requests.head(self.url, allow_redirects=True)
+            response.raise_for_status()
+            logging.debug("Headers %s", response.headers)
             self._headers = response.headers
 
         return self._headers
@@ -77,7 +81,11 @@ class RemoteFile(File):
 
     @property
     def size(self) -> int:
-        """Size of the remote file in bytes."""
+        """Size of the remote file in bytes.
+
+        Content-Length header is used to get the size.
+        It is only calculated once and cached for subsequent calls.
+        """
         if self._size is None:
             self._size = self.headers.get("content-length")
 
@@ -86,7 +94,12 @@ class RemoteFile(File):
 
     @property
     def type(self) -> str:
-        """Content type of the remote file."""
+        """Content type of the remote file.
+
+        Content type is guessed by using the URL address. If it fails, then
+        Content-Type header is used to get the content type.
+        It is only calculated once and cached for subsequent calls.
+        """
         if self._type is None:
             self._type, _ = mimetypes.guess_type(self.url)
             if self._type is None:
@@ -97,7 +110,11 @@ class RemoteFile(File):
 
     @property
     def md5(self) -> str:
-        """MD5 checksum of the remote file."""
+        """MD5 checksum of the remote file.
+
+        Content-MD5 header is used to get the MD5 checksum.
+        It is only calculated once and cached for subsequent calls.
+        """
         if self._md5 is None:
             self._md5 = self.headers.get("content-md5")
 
@@ -106,6 +123,9 @@ class RemoteFile(File):
 
     def match(self, val: str) -> bool:
         """Checks if remote file matches the specified file identifier.
+
+        File URL address and id are compared with the specified identifier in
+        addition to the properties checked by File.match().
 
         Args:
             val (str): File identifier.
