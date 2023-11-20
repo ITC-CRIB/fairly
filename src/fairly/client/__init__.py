@@ -16,6 +16,8 @@ import requests
 import hashlib
 import http.client
 import uuid
+import logging
+import time
 
 
 class Client(ABC):
@@ -37,7 +39,7 @@ class Client(ABC):
 
     REQUEST_FORMAT = "json"
 
-    CHUNK_SIZE = 2**16
+    CHUNK_SIZE = 2**18
 
 
     def __init__(self, repository_id: str=None, **kwargs):
@@ -98,7 +100,6 @@ class Client(ABC):
             "name": "Repository name.",
             "url": "URL address of the repository.",
             "api_url": "API end-point URL address of the repository.",
-            "doi_prefixes": "DOI prefixes of the repository.",
         }
 
 
@@ -116,10 +117,6 @@ class Client(ABC):
                 if not re.fullmatch(Client.REGEXP_URL, val):
                     raise ValueError("Invalid API URL address")
                 config["api_url"] = val
-            elif key == "doi_prefixes":
-                if not isinstance(val, list):
-                    raise ValueError("Invalid DOI prefixes")
-                config["doi_prefixes"] = val
             else:
                 pass
         return config
@@ -212,7 +209,6 @@ class Client(ABC):
             Standard dataset identifier
         """
         if id:
-
             if isinstance(id, dict):
                 return id
 
@@ -224,6 +220,24 @@ class Client(ABC):
                 kwargs["id"] = id
 
         return self._get_dataset_id(**kwargs)
+
+
+    def get_dataset_plain_id(self, id: Dict) -> str:
+        """Returns plain standard dataset identifier.
+
+        Args:
+            id (Dict): Standard dataset identifier.
+
+        Returns:
+            Plain standard dataset identifier.
+        """
+        parts = []
+
+        for key, val in id.items():
+            if bool(val) or isinstance(val, (bool, int, float)):
+                parts.append(val)
+
+        return "/".join(parts)
 
 
     @abstractmethod
@@ -357,6 +371,9 @@ class Client(ABC):
             if "Content-Type" not in _headers:
                 _headers["Content-Type"] = "application/json"
 
+        logging.info("Sending %s request to %s.", method, url)
+        if _headers:
+            logging.debug("Headers %s", _headers)
         response = self._session.request(method, url, headers=_headers, data=data)
         response.raise_for_status()
 
@@ -365,6 +382,7 @@ class Client(ABC):
                 content = response.json()
             else:
                 content = response.content
+            logging.debug("Content %s", content)
         else:
             content = None
 
@@ -550,6 +568,7 @@ class Client(ABC):
             ValueError("No URL address"): If remote file has no URL address.
             IOError("Invalid MD5 checksum"): If MD5 checksum is invalid.
         """
+        logging.info("Downloading file %s.", file.path)
         if not file.url:
             raise ValueError("No URL address")
 
@@ -577,6 +596,8 @@ class Client(ABC):
                 os.makedirs(os.path.dirname(temppath), exist_ok=True)
 
                 # Download file
+                start = time.time()
+                logging.info("Started at %s", time.strftime("%Y-%m-%d %H:%M:%S"))
                 with open(temppath, "wb") as local_file:
                     for chunk in response.iter_content(self.CHUNK_SIZE):
                         local_file.write(chunk)
@@ -584,6 +605,7 @@ class Client(ABC):
                         current_size += len(chunk)
                         if notify:
                             notify(file, current_size)
+                logging.info("Done in %d s.", time.time() - start)
 
                 # Rename file
                 os.makedirs(os.path.dirname(fullpath), exist_ok=True)

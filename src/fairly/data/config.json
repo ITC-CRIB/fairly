@@ -3,21 +3,18 @@
 		"client_id": "djehuty",
 		"name": "4TU.ResearchData",
 		"url": "https://data.4tu.nl/",
-		"api_url": "https://data.4tu.nl/",
-		"doi_prefixes": ["10.4121/"]
+		"api_url": "https://data.4tu.nl/"
 	},
 	"figshare": {
 		"client_id": "figshare",
 		"name": "Figshare",
 		"url": "https://figshare.com/",
-		"api_url": "https://api.figshare.com/v2/",
-		"doi_prefixes": ["10.6084/"]
+		"api_url": "https://api.figshare.com/v2/"
 	},
 	"zenodo": {
-		"client_id": "zenodo",
+		"client_id": "invenio",
 		"name": "Zenodo",
 		"url": "https://zenodo.org/",
-		"api_url": "https://zenodo.org/api/",
-		"doi_prefixes": ["10.5281/zenodo."]
+		"api_url": "https://zenodo.org/api/"
 	}
 }
