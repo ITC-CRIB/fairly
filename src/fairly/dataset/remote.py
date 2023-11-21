@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Dict, Callable
+from typing import Any, List, Dict, Callable
 
 import fairly
 

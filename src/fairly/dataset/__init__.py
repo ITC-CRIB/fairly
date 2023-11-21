@@ -186,7 +186,7 @@ class Dataset(ABC):
         raise NotImplementedError
 
 
-    def diff_metadata(self, dataset: Dataset=None):
+    def diff_metadata(self, dataset: Dataset=None) -> Diff:
         diff = Diff()
 
         if dataset is None:
@@ -286,6 +286,6 @@ class Dataset(ABC):
 
 
     @auto_refresh.setter
-    def auto_refresh(self, val):
+    def auto_refresh(self, val) -> None:
         """Sets auto-refresh flag of the dataset."""
         self._auto_refresh = bool(val)

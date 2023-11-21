@@ -1,4 +1,4 @@
-from typing import Any, List, Dict, Callable
+from typing import List, Dict, Callable
 
 from . import Client
 from ..metadata import Metadata
@@ -381,7 +381,7 @@ class DjehutyClient(Client):
         # Set metadata attributes
         attrs = {}
 
-        def _set(key: str, val=None, source_key: str=None):
+        def _set(key: str, val=None, source_key: str=None) -> None:
             attrs[key] = details.get(source_key if source_key else key, val)
 
         # Common attributes
@@ -693,7 +693,7 @@ class DjehutyClient(Client):
         """
         out = {}
 
-        def _serialize(key: str, target_key=None):
+        def _serialize(key: str, target_key=None) -> None:
             if key in metadata:
                 out[key] = metadata[target_key if target_key else key]
 

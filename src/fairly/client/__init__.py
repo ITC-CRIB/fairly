@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Callable
 from abc import ABC, abstractmethod
 
 import fairly

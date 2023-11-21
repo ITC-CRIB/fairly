@@ -525,14 +525,14 @@ def set_concurrent(num: int=None, force: bool=False) -> int:
     return _concurrent
 
 
-def get_concurrent():
+def get_concurrent() -> int:
     """Returns number of concurrent file operations."""
     global _concurrent
 
     return _concurrent if _concurrent else set_concurrent()
 
 
-def debug(state: bool=True):
+def debug(state: bool=True) -> None:
     level = logging.DEBUG if state else logging.INFO
     logging.basicConfig(level=level)
 

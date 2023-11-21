@@ -89,7 +89,7 @@ class Metadata(MutableMapping):
         return "Metadata({})".format(self._attrs)
 
 
-    def rebase(self):
+    def rebase(self) -> None:
         """Updates the basis of the metadata attributes."""
         self._basis = copy.deepcopy(self._attrs)
 
@@ -234,7 +234,7 @@ class Metadata(MutableMapping):
         return updated
 
 
-    def _remove_comments(self, var):
+    def _remove_comments(self, var) -> None:
         """Removes comments from a YAML dictionary recursively.
 
         Args:
@@ -261,7 +261,7 @@ class Metadata(MutableMapping):
             pass
 
 
-    def print(self):
+    def print(self) -> None:
         """Pretty prints metadata.
 
         Serializes metadata and prints as YAML without comments.

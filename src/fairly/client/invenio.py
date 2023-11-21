@@ -536,7 +536,7 @@ class InvenioClient(Client):
         # https://inveniordm.docs.cern.ch/reference/metadata/
         attrs = {}
 
-        def _set(key: str, val=None, source_key: str=None):
+        def _set(key: str, val=None, source_key: str=None) -> None:
             attrs[key] = metadata.get(source_key if source_key else key, val)
 
         def _get_person(item: Dict) -> Person:
@@ -710,7 +710,7 @@ class InvenioClient(Client):
         """
         out = {}
 
-        def _serialize(key: str, default=None):
+        def _serialize(key: str, default=None) -> None:
             if key in metadata:
                 out[key] = metadata[key]
             elif default is not None:

@@ -580,7 +580,7 @@ class ZenodoClient(Client):
         # https://developers.zenodo.org/#deposit-metadata
         attrs = {}
 
-        def _set(key: str, val=None, source_key: str=None):
+        def _set(key: str, val=None, source_key: str=None) -> None:
             attrs[key] = metadata.get(source_key if source_key else key, val)
 
         def _get_person(item: Dict) -> Person:
@@ -754,7 +754,7 @@ class ZenodoClient(Client):
         """
         out = {}
 
-        def _serialize(key: str, default=None):
+        def _serialize(key: str, default=None) -> None:
             if key in metadata:
                 out[key] = metadata[key]
             elif default is not None:
@@ -951,7 +951,7 @@ class ZenodoClient(Client):
         # ref: https://stackoverflow.com/questions/22915295/python-requests-post-and-big-content
         # ref: https://stackoverflow.com/questions/12385179/how-to-send-a-multipart-form-data-with-requests-in-python
 
-        def _notify(monitor):
+        def _notify(monitor) -> None:
             if notify:
                 notify(file, monitor.bytes_read)
 
