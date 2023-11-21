@@ -343,10 +343,10 @@ def dataset(id: str) -> Dataset:
                 continue
             try:
                 result = cls.get_client(val)
-                logging.info("%s client is found at %s.", result.client_id, result.config.get("url"))
-                return result.get_dataset(url=val)
             except:
                 pass
+            logging.info("%s client is found at %s.", result.client_id, result.config.get("url"))
+            return result.get_dataset(url=val)
 
     elif key == "doi":
         url = resolveDOI(val)

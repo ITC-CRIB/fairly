@@ -218,13 +218,13 @@ class ZenodoClient(Client):
 
 
     def _get_dataset_hash(self, id: Dict) -> str:
-        """Returns hash of the standard dataset identifier
+        """Returns hash of the standard dataset identifier.
 
         Args:
-            id (Dict): Standard dataset identifier
+            id (Dict): Standard dataset identifier.
 
         Returns:
-            Hash string of the dataset identifier
+            Hash of the dataset identifier.
         """
         return id["id"]
 

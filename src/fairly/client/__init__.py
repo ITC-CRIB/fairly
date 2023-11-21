@@ -240,13 +240,13 @@ class Client(ABC):
 
     @abstractmethod
     def _get_dataset_hash(self, id: Dict) -> str:
-        """Returns hash of the standard dataset identifier
+        """Returns hash of the standard dataset identifier.
 
         Args:
-            id (Dict): Standard dataset identifier
+            id (Dict): Standard dataset identifier.
 
         Returns:
-            Hash of the dataset identifier
+            Hash of the dataset identifier.
         """
         raise NotImplementedError
 
@@ -649,10 +649,6 @@ class Client(ABC):
 
         Args:
             id (Dict): Standard dataset identifier.
-
-        Raises:
-            ValueError("Operation not permitted")
-            ValueError("Invalid dataset id")
         """
         raise NotImplementedError
 

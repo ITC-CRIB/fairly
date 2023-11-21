@@ -186,10 +186,10 @@ class DjehutyClient(Client):
         """Returns hash of the standard dataset identifier.
 
         Args:
-            id (Dict): Standard dataset identifier
+            id (Dict): Standard dataset identifier.
 
         Returns:
-            Hash string of the dataset identifier
+            Hash of the dataset identifier.
         """
         if id["version"]:
             return f"{id['id']}_{id['version']}"
