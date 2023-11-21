@@ -1,4 +1,4 @@
-from typing import Dict, List, Callable
+from typing import Any, Dict, List, Callable
 
 from . import Client
 from ..metadata import Metadata
@@ -9,6 +9,8 @@ from ..file.remote import RemoteFile
 import requests
 from collections import OrderedDict
 import urllib.parse
+import dateutil.parser
+import logging
 
 CLASS_NAME = "DataverseClient"
 
@@ -43,6 +45,42 @@ class DataverseClient(Client):
                 pass
 
         return config
+
+
+    @classmethod
+    def get_client(cls, url: str) -> Client:
+        """Creates a repository client from the specified URL address.
+
+        Args:
+            url (str): URL address of the repository or dataset.
+
+        Returns:
+            Client object (InvenioClient).
+
+        Raises:
+            ValueError("Invalid repository"): If repository is not valid.
+        """
+        logging.info("Checking Dataverse client for %s.", url)
+        parts = urllib.parse.urlparse(url)
+
+        url = parts.scheme + "://" + parts.netloc
+        api_url = url + "/api/"
+
+        try:
+            response = requests.get(api_url + "search?q=&per_page=1")
+            response.raise_for_status()
+            data = response.json()
+
+        except:
+            raise ValueError("Invalid repository")
+
+        if data.get("status") != "OK" or data.get("data", {}).get("q") != "":
+            raise ValueError("Invalid repository")
+
+        logging.info("Repository found at %s.", api_url)
+        client = DataverseClient(url=url, api_url=api_url)
+
+        return client
 
 
     def _create_session(self) -> requests.Session:
@@ -92,15 +130,41 @@ class DataverseClient(Client):
 
 
     def _get_dataset_hash(self, id: Dict) -> str:
-        """Returns hash of the standard dataset identifier
+        """Returns hash of the standard dataset identifier.
 
         Args:
-            id (Dict): Standard dataset identifier
+            id (Dict): Standard dataset identifier.
 
         Returns:
-            Hash string of the dataset identifier
+            Hash of the dataset identifier.
         """
         return id["doi"]
+
+
+    def _get_dataset_details(self, id: Dict) -> Dict:
+        """Retrieves details of the dataset.
+
+        Args:
+            id (Dict): Standard dataset identifier.
+
+        Returns:
+            Dictionary of dataset details.
+
+        Raises:
+            ValueError("Invalid dataset id")
+            HTTPError
+        """
+        if id.get("version"):
+            endpoint = f"datasets/:persistentId/versions/{id['version']}?persistentId=doi:{id['doi']}"
+        else:
+            endpoint = f"datasets/:persistentId/?persistentId=doi:{id['doi']}"
+
+        result, response = self._request(endpoint)
+
+        if not result or result.get("status") != "OK" or not result.get("data"):
+            raise ValueError("Invalid dataset id")
+
+        return result
 
 
     def _create_dataset(self, metadata: Metadata) -> Dict:
@@ -147,11 +211,11 @@ class DataverseClient(Client):
 
 
     def save_metadata(self, id: Dict, metadata: Metadata) -> None:
-        """Saves metadata of the specified dataset
+        """Saves metadata of the specified dataset.
 
         Args:
-            id (Dict): Standard dataset id
-            metadata (Metadata): Metadata to be saved
+            id (Dict): Standard dataset id.
+            metadata (Metadata): Metadata to be saved.
 
         Raises:
             ValueError("No access token")
@@ -168,7 +232,31 @@ class DataverseClient(Client):
 
 
     def get_files(self, id: Dict) -> List[RemoteFile]:
-        raise NotImplementedError
+        # REMARK: Dataverse has a dedicated endpoint for files
+        details = self._get_dataset_details(id)
+
+        data = details["data"] if id.get("version") else details["data"]["latestVersion"]
+
+        if "files" not in data:
+            raise NotImplementedError
+
+        files = [];
+        for item in data["files"]:
+            file = item["dataFile"]
+            md5 = file.get("md5")
+            if not md5 and "checksum" in file and file["checksum"]["type"] == "md5":
+                md5 = file["checksum"]["value"]
+            file = RemoteFile(
+                url=self.config.get("api_url") + f"access/datafile/{file['id']}",
+                id=file.get("id"),
+                path=file.get("filename"),
+                size=file.get("filesize"),
+                type=file.get("contentType"),
+                md5=md5
+            )
+            files.append(file)
+
+        return files
 
 
     def _upload_file(self, id: Dict, file: LocalFile, notify: Callable=None) -> RemoteFile:
@@ -180,10 +268,10 @@ class DataverseClient(Client):
 
 
     def _delete_dataset(self, id: Dict) -> None:
-        """Deletes dataset specified by the standard identifier from the repository
+        """Deletes specific dataset from the repository.
 
         Args:
-            id (Dict): Standard dataset identifier
+            id (Dict): Standard dataset identifier.
 
         Raises:
             NotImplementedError
@@ -191,17 +279,50 @@ class DataverseClient(Client):
         raise NotImplementedError
 
 
+    def _get_property_value(self, prop: Dict) -> Any:
+        if prop["typeClass"] in ["primitive", "controlledVocabulary"]:
+            return prop["value"]
+
+        elif prop["typeClass"] == "compound":
+            if prop["multiple"]:
+                results = []
+                for item in prop["value"]:
+                    result = {}
+                    for key, val in item.items():
+                        result[key] = self._get_property_value(val)
+                    results.append(result)
+                return results
+
+            else:
+                result = {}
+                for key, val in prop["value"].items():
+                    result[key] = self._get_property_value(val)
+                return result
+
+        else:
+            raise ValueError("Invalid property type class", prop["typeClass"])
+
+
+    def _get_field_value(self, fields: Dict, key: str) -> Any:
+        for field in fields:
+            if field["typeName"] == key:
+                return self._get_property_value(field)
+                break
+
+        return None
+
+
     def get_details(self, id: Dict) -> Dict:
         """Returns standard details of the specified dataset.
 
         Details dictionary:
-            - title (str): Title
-            - url (str): URL address
-            - doi (str): DOI
-            - status (str): Status
-            - size (int): Total size of data files in bytes
-            - created (datetime.datetime): Creation date and time
-            - modified (datetime.datetime): Last modification date and time
+            - title (str): Title.
+            - url (str): URL address.
+            - doi (str): DOI.
+            - status (str): Status.
+            - size (int): Total size of data files in bytes.
+            - created (datetime.datetime): Creation date and time.
+            - modified (datetime.datetime): Last modification date and time.
 
         Possible statuses are as follows:
             - "draft": Dataset is not published yet.
@@ -213,14 +334,49 @@ class DataverseClient(Client):
             - "unknown": Dataset is in an unknown state.
 
         Args:
-            id (Dict): Standard dataset id
+            id (Dict): Standard dataset id.
 
         Returns:
             Details dictionary of the dataset.
         """
-        raise NotImplementedError
+        details = self._get_dataset_details(id)
+
+        data = details["data"] if id.get("version") else details["data"]["latestVersion"]
+        fields = data["metadataBlocks"]["citation"]["fields"]
+
+        out = {}
+
+        out["title"] = self._get_field_value(fields, "title")
+        if isinstance(out["title"], list):
+            out["title"] = out["title"][0]
+
+        url = self.config.get("url")
+        if url:
+            out["url"] = f"{url}/dataset.xhtml?persistentId=doi:{id['doi']}"
+            if id.get("version"):
+                out["url"] += f"&version={id['version']}"
+
+        out["doi"] = data["datasetPersistentId"]
+        if out["doi"].startswith("doi:"):
+            out["doi"] = out["doi"][4:]
+
+        # TODO: Set status
+
+        # REMARK: Dataverse has a dedicated endpoint for dataset size
+        # https://guides.dataverse.org/en/latest/api/native-api.html?highlight=typename#id81
+        if "files" in data:
+            size = 0
+            for file in data["files"]:
+                size += file["dataFile"]["filesize"]
+            out["size"] = size
+
+        out["created"] = dateutil.parser.isoparse(data["createTime"])
+        out["modified"] = dateutil.parser.isoparse(data["lastUpdateTime"])
+
+        return out
 
 
     @classmethod
     def supports_folder(cls) -> bool:
+        """Returns if folders are supported."""
         return False
