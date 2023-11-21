@@ -47,4 +47,6 @@ def remote_dataset_ids():
         "https://doi.org/10.6084/m9.figshare.12505823.v1",
         "https://data.4tu.nl/datasets/8c9cf432-a4cf-4ba4-aaf5-92b1a99ca20b",
         "10.4121/13697596.v1",
+        "https://dataverse.nl/dataset.xhtml?persistentId=doi:10.34894/M9JGU2",
+        "10.34894/M9JGU2",
     ]
