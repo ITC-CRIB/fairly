@@ -21,9 +21,9 @@ from .dataset.local import LocalDataset
 from .file import File
 
 
-MAX_CONCURRENT = 4
+MAX_WORKERS = 4
 
-_concurrent = None
+_max_workers = None
 
 
 def is_testing() -> bool:
@@ -483,23 +483,23 @@ def resolveDOI(doi: str) -> str:
     return url
 
 
-def set_concurrent(num: int=None, force: bool=False) -> int:
-    """Sets number of concurrent file operations.
+def set_max_workers(num: int=None, force: bool=False) -> int:
+    """Sets number of maximum workers for file operations.
 
-    Number of concurrent file operations is limited to `MAX_CONCURRENT`, unless
-    `force` flag is set.
+    Maximum number of workers is limited to `MAX_WORKERS`, unless `force` 
+    flag is set.
 
     Args:
-        num (int): Number of concurrent file operations.
-        force (bool): Set True to increase the number beyond `MAX_CONCURRENT` (default False).
+        num (int): Maximum number of workers for file operations.
+        force (bool): Set True to increase the number beyond `MAX_WORKERS` (default False).
 
     Returns:
-        Number of concurrent file operations.
+        Maximum number of workers for file operations.
 
     Raises:
-        ValueError("Invalid number of concurrent operations"): If the number is more than the number of available cores.
+        ValueError("Invalid maximum number of workers"): If the number is more than the number of available cores.
     """
-    global _concurrent
+    global _max_workers
 
     if not num and num is not None:
         num = 1
@@ -508,28 +508,28 @@ def set_concurrent(num: int=None, force: bool=False) -> int:
         max = len(os.sched_getaffinity(0))
     else:
         max = os.cpu_count()
-    logging.info("Maximum number of concurrent operations is %d.", max)
+    logging.info("Number of available cores is %d.", max)
 
     if num is None:
         num = max
 
     elif num > max:
-        raise ValueError("Invalid number of concurrent operations")
+        raise ValueError("Invalid maximum number of workers")
 
-    if not force and num > MAX_CONCURRENT:
-        logging.info("Limiting %d concurrent operations to %d.", num, MAX_CONCURRENT)
-        num = MAX_CONCURRENT
+    if not force and num > MAX_WORKERS:
+        logging.info("Limiting %d maximum workers to %d.", num, MAX_WORKERS)
+        num = MAX_WORKERS
 
-    _concurrent = num
+    _max_workers = num
 
-    return _concurrent
+    return _max_workers
 
 
-def get_concurrent() -> int:
-    """Returns number of concurrent file operations."""
-    global _concurrent
+def max_workers() -> int:
+    """Returns maximum number of workers for file operations."""
+    global _max_workers
 
-    return _concurrent if _concurrent else set_concurrent()
+    return _max_workers if _max_workers else set_max_workers()
 
 
 def debug(state: bool=True) -> None:

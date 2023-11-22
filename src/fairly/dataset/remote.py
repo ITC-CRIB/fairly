@@ -13,7 +13,7 @@ from ..file.remote import RemoteFile
 import os
 import os.path
 import datetime
-import multiprocessing
+import concurrent.futures
 from functools import cached_property
 import logging
 
@@ -114,7 +114,7 @@ class RemoteDataset(Dataset):
             return file.path
 
 
-    def store(self, path: str=None, notify: Callable=None, extract: bool=False, concurrent: int=None) -> LocalDataset:
+    def store(self, path: str=None, notify: Callable=None, extract: bool=False, max_workers: int=None) -> LocalDataset:
         """Stores the dataset to a local directory.
 
         If no path is provided, DOI is used by replacing slashes and backslashes with underscores.
@@ -124,7 +124,7 @@ class RemoteDataset(Dataset):
             path (str): Path to the local directory (optional).
             notify (Callable): Notification callback method (optional).
             extract (bool): Set True to extract archive files (default False).
-            concurrent (int): Number of concurrent downloads (optional).
+            max_workers (int): Number of workers (optional).
 
         Returns:
             LocalDataset object of the stored local dataset.
@@ -133,9 +133,9 @@ class RemoteDataset(Dataset):
             ValueError("Empty path")
             ValueError("Directory is not empty")
         """
-        # Set number of concurrent downloads if required
-        if not concurrent:
-            concurrent = fairly.get_concurrent()
+        # Set number of workers if required
+        if not max_workers:
+            max_workers = fairly.max_workers()
 
         # Set path based on DOI if required
         if not path:
@@ -175,17 +175,17 @@ class RemoteDataset(Dataset):
         dataset.set_metadata(**self.metadata)
         dataset.save_metadata()
 
-        with multiprocessing.Pool(processes=concurrent) as pool:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
 
-            results = []
+            futures = []
 
             for _, file in self.files.items():
-                results.append(
-                    pool.apply_async(self._store_file, (file, path, extract, notify))
+                futures.append(
+                    executor.submit(self._store_file, file, path, extract, notify)
                 )
 
-            for result in results:
-                dataset.includes.append(result.get())
+            for future in concurrent.futures.as_completed(futures):
+                dataset.includes.append(future.result())
 
         # Save file information
         dataset.save_files()
