@@ -344,7 +344,7 @@ def dataset(id: str) -> Dataset:
             try:
                 result = cls.get_client(val)
             except:
-                pass
+                continue
             logging.info("%s client is found at %s.", result.client_id, result.config.get("url"))
             return result.get_dataset(url=val)
 
