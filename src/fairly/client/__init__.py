@@ -34,7 +34,7 @@ class Client(ABC):
         CHUNK_SIZE: Chunk size in bytes to transfer data (default = 65536)
     """
 
-    REGEXP_URL = re.compile(r"[(http(s)?):\/\/(www\.)?a-z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-z0-9@:%_\+.~#?&//=]*)", re.IGNORECASE)
+    REGEXP_URL = re.compile(r"(http(s)?):\/\/(www\.)?[a-z\d@:%._\+~#=-]{2,256}\.[a-z]{2,6}\b([-a-z\d@:%_\+.~#?&//=]*)", re.IGNORECASE)
 
     REQUEST_FORMAT = "json"
 
