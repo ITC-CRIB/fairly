@@ -111,6 +111,7 @@ class FigshareClient(Client):
 
         parts = urlparse(url)
         client = FigshareClient(
+            name=parts.hostname,
             url=parts.scheme + "://" + parts.netloc,
             api_url="https://api.figshare.com/v2/"
         )

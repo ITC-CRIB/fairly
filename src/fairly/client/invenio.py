@@ -99,7 +99,7 @@ class InvenioClient(Client):
             raise ValueError("Invalid repository")
 
         logging.info("Repository found at %s.", api_url)
-        client = InvenioClient(url=url, api_url=api_url)
+        client = InvenioClient(name=parts.hostname, url=url, api_url=api_url)
 
         return client
 
