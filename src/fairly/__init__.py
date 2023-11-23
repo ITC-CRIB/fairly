@@ -343,7 +343,8 @@ def dataset(id: str) -> Dataset:
                 continue
             try:
                 result = cls.get_client(val)
-            except:
+            except Exception as err:
+                logging.debug("Exception %s", err)
                 continue
             logging.info("%s client is found at %s.", result.client_id, result.config.get("url"))
             return result.get_dataset(url=val)
