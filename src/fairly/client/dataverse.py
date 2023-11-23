@@ -204,11 +204,22 @@ class DataverseClient(Client):
 
 
     def _get_metadata(self, id: Dict) -> Dict:
-        endpoint = f"datasets/:persistentId/?persistentId=doi:{id['doi']}"
+        details = self._get_dataset_details(id)
 
-        details, _ = self._request(endpoint)
+        data = details["data"] if id.get("version") else details["data"]["latestVersion"]
+        if "citation" in data["metadataBlocks"]:
+            citation = data["metadataBlocks"]["citation"]
+        else:
+            citation = next(iter(data["metadataBlocks"].values()))
+        fields = citation["fields"]
 
-        return details
+        metadata = {}
+        for field in fields:
+            key = field["typeName"]
+            val = self._get_property_value(field)
+            metadata[key] = val
+
+        return metadata
 
 
     def save_metadata(self, id: Dict, metadata: Metadata) -> None:
@@ -343,7 +354,11 @@ class DataverseClient(Client):
         details = self._get_dataset_details(id)
 
         data = details["data"] if id.get("version") else details["data"]["latestVersion"]
-        fields = data["metadataBlocks"]["citation"]["fields"]
+        if "citation" in data["metadataBlocks"]:
+            citation = data["metadataBlocks"]["citation"]
+        else:
+            citation = next(iter(data["metadataBlocks"].values()))
+        fields = citation["fields"]
 
         out = {}
 
