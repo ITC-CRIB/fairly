@@ -67,14 +67,15 @@ class DataverseClient(Client):
         api_url = url + "/api/"
 
         try:
-            response = requests.get(api_url + "search?q=&per_page=1")
+            # REMARK: search endpoint is not used as it may require access token
+            response = requests.get(api_url + "info/metrics/dataverses")
             response.raise_for_status()
             data = response.json()
 
         except:
             raise ValueError("Invalid repository")
 
-        if data.get("status") != "OK" or data.get("data", {}).get("q") != "":
+        if data.get("status") != "OK" or data.get("data", {}).get("count") is None:
             raise ValueError("Invalid repository")
 
         logging.info("Repository found at %s.", api_url)
