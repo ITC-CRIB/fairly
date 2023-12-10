@@ -587,6 +587,7 @@ class Client(ABC):
             # Validate checksum
             md5 = md5.hexdigest()
             if file.md5 and file.md5 != md5:
+                logging.debug("Invalid checksum %s vs %s.", file.md5, md5)
                 raise IOError("Invalid MD5 checksum")
 
         except:
