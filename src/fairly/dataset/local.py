@@ -332,8 +332,6 @@ class LocalDataset(Dataset):
         }
         self._set_manifest(manifest)
 
-        self.get_files(refresh=True)
-
 
     def save(self) -> None:
         """Saves metadata and file inclusion/exclusion rules."""
