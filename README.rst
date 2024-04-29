@@ -18,6 +18,12 @@
      - |Python Build| |Python Publish|
    * - Documentation
      - |Documentation Status|
+   * - Anaconda package
+     - |Anaconda|
+
+.. |Anaconda| image:: https://anaconda.org/conda-forge/fairly/badges/version.svg   
+   :target: https://anaconda.org/conda-forge/fairly
+   :alt: Anaconda Package
 
 .. |GitHub Badge| image:: https://img.shields.io/github/v/release/ITC-CRIB/fairly
    :target: https://github.com/ITC-CRIB/fairly
@@ -35,11 +41,11 @@
    :target: https://doi.org/10.5281/zenodo.7759648
    :alt: Zenodo Badge
 
-.. |Python Build| image:: https://img.shields.io/github/actions/workflow/status/ITC-CRIB/fairly/test_workflow.yaml
+.. |Python Build| image:: https://github.com/ITC-CRIB/fairly/actions/workflows/test_workflow.yaml/badge.svg
    :target: https://github.com/ITC-CRIB/fairly/actions/workflows/test_workflow.yaml
    :alt: Python Build
 
-.. |Python Publish| image:: https://img.shields.io/github/actions/workflow/status/ITC-CRIB/fairly/publish.yaml
+.. |Python Publish| image:: https://github.com/ITC-CRIB/fairly/actions/workflows/publish.yaml/badge.svg
    :target: https://github.com/ITC-CRIB/fairly/actions/workflows/publish.yaml
    :alt: Python Publish
 
