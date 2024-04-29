@@ -1,16 +1,21 @@
 import pytest
+import os
 from tests.conftest import *
 
 import fairly
 
 import re
 
-from cli import app
+from fairly.cli import app
 
 from typer.testing import CliRunner
 
 runner = CliRunner()
 
+def test_cli_help():
+    '''Test if CLI is reachable from the system terminal.'''
+    exit_status = os.system("fairly --help")
+    assert exit_status == 0
 
 def test_show_config():
     result = runner.invoke(app, ["config", "show"])
