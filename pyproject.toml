@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fairly"
-version = "0.4.2"
+version = "1.0.0"
 authors = [
   { name="Serkan Girgin", email="s.girgin@utwente.nl" },
   { name="Manuel Garcia Alvarez", email="m.g.garciaalvarez@tudelft.nl" },
@@ -31,7 +31,9 @@ keywords = ["fairly", "open science", "research data", "data management"]
 dev = [
     "pytest",
     "pytest-cov",
-    "python-dotenv"
+    "python-dotenv",
+    "build",
+    "hatch"
     ]
 
 [project.urls]
