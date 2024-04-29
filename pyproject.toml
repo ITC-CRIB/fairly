@@ -5,14 +5,15 @@ build-backend = "hatchling.build"
 [project]
 name = "fairly"
 version = "1.0.0"
-authors = [
-  { name="Serkan Girgin", email="s.girgin@utwente.nl" },
-  { name="Manuel Garcia Alvarez", email="m.g.garciaalvarez@tudelft.nl" },
-  { name="Jose Urra Llanusa", email="j.c.urrallanusa@tudelft.nl" }, ]
 description = "A package to create, publish, and download research datasets"
 readme = "README.rst"
 license = { file="LICENSE" }
 requires-python = ">=3.8"
+authors = [
+  { name="Serkan Girgin", email="s.girgin@utwente.nl" },
+  { name="Manuel Garcia Alvarez", email="m.g.garciaalvarez@tudelft.nl" },
+  { name="Jose Urra Llanusa", email="j.c.urrallanusa@tudelft.nl" }, 
+  ]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
