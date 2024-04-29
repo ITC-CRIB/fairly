@@ -1,4 +1,5 @@
 import pytest
+import os
 from tests.conftest import *
 
 import fairly
@@ -11,6 +12,9 @@ from typer.testing import CliRunner
 
 runner = CliRunner()
 
+def test_show_help():
+    exit_status = os.system("fairly --help")
+    assert exit_status == 0
 
 def test_show_config():
     result = runner.invoke(app, ["config", "show"])
