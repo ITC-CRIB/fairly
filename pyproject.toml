@@ -44,4 +44,4 @@ dev = [
 "Funding" = "https://nwo.nl/en/researchprogrammes/open-science/open-science-fund"
 
 [project.scripts]
-fairly = "cli:app"
+fairly = "fairly.cli:app"

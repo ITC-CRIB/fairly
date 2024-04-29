@@ -5,7 +5,7 @@ import fairly
 
 import re
 
-from cli import app
+from fairly.cli import app
 
 from typer.testing import CliRunner
 

@@ -3,15 +3,12 @@ import sys
 from ruamel.yaml import YAML
 import typer
 import fairly
-
-import cli.dataset
-import cli.config
-
-
+from fairly.cli import dataset
+from fairly.cli import config
 
 app = typer.Typer()
-app.add_typer(cli.dataset.app, name="dataset")
-app.add_typer(cli.config.app, name="config")
+app.add_typer(dataset.app, name="dataset")
+app.add_typer(config.app, name="config")
 
 @app.command()
 def list_repos():
