@@ -12,7 +12,8 @@ from typer.testing import CliRunner
 
 runner = CliRunner()
 
-def test_show_help():
+def test_cli_help():
+    '''Test if CLI is reachable from the system terminal.'''
     exit_status = os.system("fairly --help")
     assert exit_status == 0
 
