@@ -1,5 +1,4 @@
 import sys
-import pprint as pp
 
 from ruamel.yaml import YAML
 import typer
