@@ -19,11 +19,15 @@
    * - Documentation
      - |Documentation Status|
    * - Anaconda package
-     - |Anaconda|
+     - |Anaconda| |Anaconda Downloads|
 
 .. |Anaconda| image:: https://anaconda.org/conda-forge/fairly/badges/version.svg   
    :target: https://anaconda.org/conda-forge/fairly
    :alt: Anaconda Package
+
+.. |Anaconda Downloads| image:: https://anaconda.org/conda-forge/fairly/badges/downloads.svg   
+   :target: https://anaconda.org/conda-forge/fairly
+   :alt: Anaconda Downloads
 
 .. |GitHub Badge| image:: https://img.shields.io/github/v/release/ITC-CRIB/fairly
    :target: https://github.com/ITC-CRIB/fairly
