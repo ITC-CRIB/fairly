@@ -69,11 +69,18 @@ Installation
 ------------
 
 *fairly* requires Python 3.8 or later, and `ruamel.yaml` version *0.17.26* or later.  It can be installed directly
-using pip.
+from **PYPI** or **Conda-Forge**.
 
 .. code:: shell
 
+   # Using pip
    pip install fairly
+
+.. code:: shell
+
+   # using anaconda or miniconda
+   conda install conda-forge::fairly
+
 
 Installing from source
 ~~~~~~~~~~~~~~~~~~~~~~

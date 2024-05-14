@@ -21,7 +21,7 @@ The *Fairly Toolset* provides functionality for the core tasks of preparing, upl
 Installing the Toolset
 ------------------------
 
-You can install the full toolset by installing the JupyterLab extension from PyPI. The fairly package and CLI will be installed automatically.
+You can install the *full toolset* by installing the JupyterLab extension from PyPI. The fairly package and CLI will be installed automatically.
 
 Linux / MacOS
 '''''''''''''''''''
@@ -56,11 +56,17 @@ If all you need is the *fairly* Python package and the CLI, you can install them
 Linux / MacOS
 '''''''''''''''''''
 
-On the terminal type:
+On the terminal type, for PyPI:
 
 .. code-block:: shell
 
    pip install fairly
+
+Or if using Anaconda or Miniconda:
+
+.. code-block:: shell
+
+   conda install conda-forge::fairly
 
 
 Installing from Source
