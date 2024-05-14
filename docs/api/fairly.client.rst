@@ -21,7 +21,7 @@ fairly.client.figshare module
    :show-inheritance:
 
 fairly.client.invenio module
----------------------------
+----------------------------
 
 .. automodule:: fairly.client.invenio
    :members:
@@ -35,3 +35,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+   :noindex:
