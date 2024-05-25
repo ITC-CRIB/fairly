@@ -218,7 +218,7 @@ class LocalDataset(Dataset):
             regexps = []
             for part in os.path.normpath(rule).split(os.sep):
                 if part:
-                    pattern = re.escape(part).replace("\*", ".*").replace("\?", ".")
+                    pattern = re.escape(part).replace("\\*", ".*").replace("\\?", ".")
                     regexp = re.compile(pattern, re.IGNORECASE)
                 else:
                     regexp = None
