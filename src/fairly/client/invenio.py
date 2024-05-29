@@ -424,20 +424,33 @@ class InvenioClient(Client):
         # https://inveniordm.docs.cern.ch/reference/metadata/
         attrs = {}
 
+        def _get_person(item: Dict) -> Person:
+            lookup = {
+                "name": "fullname",
+                "affiliation": "institution",
+                "orcid": "orcid_id",
+            }
+            kwargs = {}
+            for key, val in item.items():
+                kwargs[lookup[key] if key in lookup else key] = val
+
+            return Person(**kwargs)
+
         for key, val in metadata.items():
             if key in ["relations"]:
                 continue
 
-            # elif key in ["creators", "contributors"]:
-            #     val = PersonList([_get_person(item) for item in val])
-            #
-            #     if key == "creators":
-            #         key = "authors"
+            elif key in ["creators", "contributors"]:
+                val = PersonList([_get_person(item) for item in val])
+
+                if key == "creators":
+                    key = "authors"
 
             attrs[key] = val
 
         # Return metadata attributes
         return attrs
+
 
 
     def _serialize_metadata(self, metadata: Metadata) -> Dict:
@@ -451,7 +464,46 @@ class InvenioClient(Client):
         """
         out = {}
 
+        def _serialize_persons(persons: List[Dict]) -> List[Dict]:
+            lookup = {
+                "institution": "affiliation",
+                "orcid_id": "orcid",
+            }
+
+            out = []
+
+            for person in persons:
+                item = {}
+
+                if "name" in person:
+                    if "surname" in person:
+                        item["name"] = f"{person['surname']}, {person['name']}"
+                    else:
+                        item["name"] = person["name"]
+
+                elif "surname" in person:
+                    item["name"] = person["surname"]
+
+                else:
+                    item["name"] = person["fullname"]
+
+                for key, val in person.items():
+                    if key in ["name", "surname", "fullname"]:
+                        continue
+                    item[lookup[key] if key in lookup else key] = val
+
+                out.append(item)
+
+            return out
+
         for key, val in metadata.serialize().items():
+
+            if key in ["authors", "contributors"]:
+                val = _serialize_persons(val)
+
+            if key == "authors":
+                key = "creators"
+
             out[key] = val
 
         return out
