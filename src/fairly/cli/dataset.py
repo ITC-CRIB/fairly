@@ -2,6 +2,7 @@ import typer
 from pathlib import Path
 import importlib.resources as pkg_resources
 
+
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
 import fairly
@@ -30,7 +31,6 @@ def create(
         provider_name = Path(path).name
         try:
             # Try opening fairly/data/templates/<provider_name>.yaml
-            import importlib.resources as pkg_resources
             tmpl_file = f"{provider_name}.yaml"
             pkg_resources.open_text("fairly.data.templates", tmpl_file).close()
             # If no exception, that file exists → use provider_name as template
