@@ -1,4 +1,6 @@
 import typer
+from pathlib import Path
+import importlib.resources as pkg_resources
 
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
@@ -21,6 +23,26 @@ def create(
 
     fairly dataset create <path> --template <template>
     '''
+    # If the user did not explicitly pass --template (so template=="default"),
+    # check whether <path> matches a provider-specific YAML under data/templates.
+    if template == "default":
+        # take just the final name of the path (in case they passed "some/folder").
+        provider_name = Path(path).name
+        try:
+            # Try opening fairly/data/templates/<provider_name>.yaml
+            import importlib.resources as pkg_resources
+            tmpl_file = f"{provider_name}.yaml"
+            pkg_resources.open_text("fairly.data.templates", tmpl_file).close()
+            # If no exception, that file exists → use provider_name as template
+            template = provider_name
+        except FileNotFoundError:
+            # Did not find <path>.yaml under data/templates → stick with default.yaml
+            typer.echo(
+                f"Warning: template '{provider_name}' not found; using default.yaml",
+                err=True
+           )
+
+    # Finally, call the existing init_dataset() with whichever template we determined.
     fairly.init_dataset(path, template=template)
 
 

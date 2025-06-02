@@ -1,0 +1,98 @@
+metadata:
+
+  # Title of the dataset
+  title: ""
+  #   A short, human-readable title. For example:
+  #   title: "My coolest dataset ever"
+
+  # A detailed description of the dataset (purpose, scope, contents, file formats).
+  description: ""
+  #   e.g.
+  #   description: "A description covering the dataset’s purpose, scope, contents, and file formats."
+
+  # Keywords (list of strings) to tag this dataset.
+  keywords: []
+  #   Example:
+  #   keywords: ["nanofabrication","mechanical properties","nanocomposites"]
+
+  # Categories as controlled vocabulary.
+  # Replace these with actual UUIDs from /v2/categories (see categories.json).
+  categories: []
+  #   Example (two UUIDs + one numeric ID):
+  #   categories: ["c1b8cd5f-1fb7-4de9-9033-9c98e0f3a8ca","13659","60977a21-b79e-41d9-935a-04ecc6c09a57"]
+
+  # List of author records. Each author object can include fields like:
+  #   - first_name
+  #   - full_name
+  #   - last_name
+  #   - orcid_id
+  #   - email         (if you want to supply an email)
+  #   - affiliation   (if known)
+  authors: []
+  # List of authors to be associated with the dataset.
+  #   Example:
+  #   authors:
+  #     - { first_name: "John",  last_name: "Doe",  full_name: "John Doe",  orcid_id: "0000-0003-4324-5350" }
+  #     - { first_name: "Linda", last_name: "Pig",  full_name: "Linda Pig",  orcid_id: "0000-0003-4324-4230" }
+
+  # Defined type of the dataset. Options (controlled vocabulary) include:
+  #   figure, online resource, preprint, book, conference contribution,
+  #   media, dataset, poster, journal contribution, presentation, thesis, software, other
+  defined_type: "dataset"
+  #   You can leave it blank or change it to one of the allowed types:
+  #   defined_type: "dataset"
+
+  # One‐liner to cite your funding.
+  funding: ""
+  #   e.g.
+  #   funding: "Funded by the XYZ Grant"
+
+  # List of detailed funding records, if you want to break them out individually.
+  # Each record can have:
+  #   - title        (e.g. name of the grant)
+  #   - funder_name  (e.g. funding agency)
+  funding_list: []
+  #   Example:
+  #   funding_list:
+  #     - { title: "Magic Money Tree Fund", funder_name: "Open Tree" }
+  #     - { title: "Another Fund",            funder_name: "Another Tree" }
+
+  # License under which the dataset may be re-used.
+  # Must be an integer ID from /v2/licenses (see licenses.json), or you can leave blank
+  # if you want to pick it later:
+  license: 
+  #   Example:
+  #   license: 1
+
+  # ISO 639-1 language code for the dataset.
+  language: "en"
+  #   Example:
+  #   language: "en"
+
+  # DOI field; leave empty if you want Djehuty to assign a DOI automatically upon publication.
+  doi: ""
+  #   If you already have a DOI and want to register it manually, put it here.
+
+  # URL of the DOI for an associated peer‐reviewed journal publication (if any).
+  resource_doi: ""
+  #   e.g. 
+  #   resource_doi: "10.1000/j.journal.2023.01.001"
+
+  # Title of the associated peer‐reviewed journal publication.
+  resource_title: ""
+  #   e.g.
+  #   resource_title: "A Journal Paper That Uses This Data"
+
+  # Custom fields: list of arbitrary key‐value pairs for anything not covered above.
+  custom_fields_list: []
+  #   This is a list of objects, where each object has a 'name' and a 'value'.
+  #   Each entry is an object with:
+  #     - name:  (string key)
+  #     - value: (string or number or list)
+  #   Example:
+  #   custom_fields_list:
+  #     - { name: "contributors",  value: "John Doe, Linda Pig" }
+  #     - { name: "data_link",     value: "https://example.com/data_link" }
+  #     - { name: "publisher",     value: "4TU.ResearchData" }
+  #     - { name: "organizations", value: "Organization 1, Organization 2" }
+  #     - { name: "format",        value: ".csv, .txt" }

@@ -139,3 +139,6 @@ experiments
 tests/notes.py
 _no_*
 
+# python virtual environment
+
+/fairly/
