@@ -38,10 +38,8 @@ metadata:
   # Defined type of the dataset. Options (controlled vocabulary) include:
   #   figure, online resource, preprint, book, conference contribution,
   #   media, dataset, poster, journal contribution, presentation, thesis, software, other
-  defined_type: "dataset"
-  #   You can leave it blank or change it to one of the allowed types:
-  #   defined_type: "dataset"
-
+  defined_type: ""
+ 
   # One‐liner to cite your funding.
   funding: ""
   #   e.g.
