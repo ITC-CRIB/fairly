@@ -7,7 +7,7 @@ message: Please cite this software using these metadata.
 type: software
 authors:
   - given-names: Serkan
-    family-names: Grigin
+    family-names: Girgin
     email: s.girgin@utwente.nl
     affiliation: University of Twente
     orcid: 'https://orcid.org/0000-0002-0156-185X'
