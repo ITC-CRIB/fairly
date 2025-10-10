@@ -21,7 +21,8 @@ import time
 
 
 class Client(ABC):
-    """
+    """Client class.
+
     Attributes:
         config (Dict): Configuration options
         _session (Session): HTTP session object
@@ -31,7 +32,7 @@ class Client(ABC):
     Class Attributes:
         REGEXP_URL: Regular expression to validate URL address.
         REQUEST_FORMAT: Request data format
-        CHUNK_SIZE: Chunk size in bytes to transfer data (default = 65536)
+        CHUNK_SIZE: Chunk size in bytes to transfer data (default = 262144)
     """
 
     REGEXP_URL = re.compile(r"(http(s)?):\/\/(www\.)?[a-z\d@:%._\+~#=-]{2,256}\.[a-z]{2,6}\b([-a-z\d@:%_\+.~#?&//=]*)", re.IGNORECASE)
@@ -42,6 +43,12 @@ class Client(ABC):
 
 
     def __init__(self, repository_id: str=None, **kwargs):
+        """Initialized client object.
+
+        Args:
+            repository_id (str): Repository id.
+            **kwargs (Dict): Client-specific arguments.
+        """
         # Get client id
         self._client_id = self.__module__.split(".")[-1]
 
@@ -76,13 +83,13 @@ class Client(ABC):
 
     @property
     def client_id(self) -> str:
-        """Client identifier"""
+        """Client identifier."""
         return self._client_id
 
 
     @property
     def repository_id(self) -> str:
-        """Repository identifier of the client"""
+        """Repository identifier of the client."""
         return self._repository_id
 
 
@@ -91,8 +98,7 @@ class Client(ABC):
         """Returns configuration parameters.
 
         Returns:
-            Dictionary of configuration parameters.
-            Keys are the parameter names, values are the descriptions.
+            Dictionary of configuration parameters {name: value}.
         """
         return {
             "name": "Repository name.",
@@ -103,6 +109,14 @@ class Client(ABC):
 
     @classmethod
     def get_config(cls, **kwargs) -> Dict:
+        """Returns client configuration.
+
+        Args:
+            **kwargs: Client-specific configuration arguments.
+
+        Returns:
+            Dictionary of configuration arguments {name: value}.
+        """
         config = {}
         for key, val in kwargs.items():
             if key == "name":
@@ -120,11 +134,11 @@ class Client(ABC):
         return config
 
 
-    def save_config(self, save_environment=False) -> None:
+    def save_config(self, save_environment: bool=False) -> None:
         """Saves client configuration.
 
         Args:
-            save_environment: Set True to save environment variables (default False)
+            save_environment (bool): Set True to save environment variables (default = False).
         """
         id = self.repository_id if self.repository_id else self.client_id
 
@@ -193,18 +207,26 @@ class Client(ABC):
 
     @abstractmethod
     def _get_dataset_id(self, **kwargs) -> Dict:
+        """Returns standard dataset identifier from the arguments.
+
+        Args:
+            **kwargs (Dict): Dataset identifier arguments.
+
+        Returns:
+            Standard dataset identifier (Dict).
+        """
         raise NotImplementedError
 
 
     def get_dataset_id(self, id=None, **kwargs) -> Dict:
-        """Returns standard dataset identifier
+        """Returns standard dataset identifier.
 
         Args:
-            id: Dataset identifier
-            **kwargs: Other identifier arguments
+            id: Dataset identifier (optional).
+            **kwargs: Other identifier arguments.
 
         Returns:
-            Standard dataset identifier
+            Standard dataset identifier (Dict).
         """
         if id:
             if isinstance(id, dict):
@@ -227,7 +249,7 @@ class Client(ABC):
             id (Dict): Standard dataset identifier.
 
         Returns:
-            Plain standard dataset identifier.
+            Plain standard dataset identifier (str).
         """
         parts = []
 
@@ -246,46 +268,46 @@ class Client(ABC):
             id (Dict): Standard dataset identifier.
 
         Returns:
-            Hash of the dataset identifier.
+            Hash of the dataset identifier (str).
         """
         raise NotImplementedError
 
 
     @classmethod
-    def normalize_value(cls, name: str, val) -> Any:
-        """Normalized metadata attribute value
+    def normalize_value(cls, name: str, val: Any) -> Any:
+        """Returns normalized metadata attribute value.
 
         Args:
-            name (str): Attribute name
-            val: Attribute value
+            name (str): Attribute name.
+            val: Attribute value.
 
         Returns:
-            Normalized attribute value
+            Normalized attribute value.
         """
         return Metadata.normalize_value(name, val)
 
 
     @abstractmethod
     def _create_dataset(self, metadata: Metadata) -> Dict:
-        """Creates a dataset with the specified standard metadata
+        """Creates a dataset with the specified standard metadata.
 
         Args:
-            metadata (Metadata): Standard metadata
+            metadata (Metadata): Standard metadata.
 
         Returns:
-            Standard identifier of the dataset
+            Standard identifier of the dataset (Dict).
         """
         raise NotImplementedError
 
 
     def create_dataset(self, metadata=None) -> RemoteDataset:
-        """Creates a dataset with the specified metadata
+        """Creates a dataset.
 
         Args:
-            metadata: Metadata of the dataset (optional)
+            metadata: Metadata of the dataset (optional).
 
         Returns:
-            Dataset
+            Remote dataset (RemoveDataset).
 
         Raises:
             ValueError("Invalid metadata")
@@ -326,16 +348,31 @@ class Client(ABC):
 
 
     def _create_session(self) -> requests.Session:
+        """Creates a session.
+
+        Returns:
+            Session (requests.Session).
+        """
         return requests.Session()
 
 
-    def _request(self, endpoint: str, method: str="GET", headers: dict=None, data=None, format: str=None, serialize: bool=True) -> Tuple(Any, requests.Response):
-        """ Sends a HTTP request and returns the result
+    def _request(
+        self,
+        endpoint: str,
+        method: str="GET",
+        headers: dict=None,
+        data=None,
+        format: str=None,
+        serialize: bool=True
+    ) -> Tuple(Any, requests.Response):
+        """Sends a HTTP request and returns the result.
 
         Returns:
-          Returned content and response
-        """
+            Tuple of returned content and response.
 
+        Raises:
+            ValueError("No API URL address")
+        """
         # Patch HTTPConnection block size to improve connection speed
         # ref: https://stackoverflow.com/questions/72977722/python-requests-post-very-slow
         http.client.HTTPConnection.__init__.__defaults__ = tuple(
@@ -389,10 +426,23 @@ class Client(ABC):
 
     @abstractmethod
     def _get_account_datasets(self) -> List[RemoteDataset]:
+        """Retrieves list of account datasets.
+
+        Returns:
+            List of datasets related to the account (List[RemoteDataset]).
+        """
         raise NotImplementedError
 
 
     def get_account_datasets(self, refresh: bool=False) -> List[RemoteDataset]:
+        """Returns list of account datasets.
+
+        Args:
+            refresh (bool): Set True to refresh the cache (default = False).
+
+        Returns:
+            List of datasets related to the account (List[RemoteDataset]).
+        """
         if self._account_datasets is None or refresh:
             datasets = self._get_account_datasets()
             for dataset in datasets:
@@ -400,10 +450,21 @@ class Client(ABC):
                 hash = self._get_dataset_hash(id)
                 self._datasets[hash] = dataset
             self._account_datasets = datasets
+
         return self._account_datasets
 
 
     def get_dataset(self, id=None, refresh: bool=False, **kwargs) -> RemoteDataset:
+        """Returns dataset from the repository.
+
+        Args:
+            id: Dataset id (optional).
+            refresh (bool): Set True to refresh the cache (default = False).
+            **kwargs (Dict): Dataset identifier arguments.
+
+        Returns:
+            Remote dataset (RemoteDataset).
+        """
         # Parse id to get additional information if possible
         if id and isinstance(id, str):
             key, val = Client.parse_id(id)
@@ -412,8 +473,10 @@ class Client(ABC):
 
         # Get standard id
         id = self.get_dataset_id(id, **kwargs)
+
         # Get dataset hash
         hash = self._get_dataset_hash(id)
+
         # Fetch dataset if required
         if hash not in self._datasets or refresh:
             self._datasets[hash] = RemoteDataset(self, id)
@@ -424,31 +487,31 @@ class Client(ABC):
 
     @abstractmethod
     def _get_versions(self, id: Dict) -> OrderedDict:
-        """Returns dataset ids of the available dataset versions
+        """Returns standard dataset identifiers of the dataset versions.
 
         Some clients do not provide information to order versions (e.g. date).
         Therefore, ordered dictionary is needed to have properly ordered
         versions as reported by the client.
 
         Args:
-            id (Dict): Dataset id
+            id (Dict): Standard dataset id.
 
         Returns:
-            Ordered dictionary of dataset ids of the available versions.
-            Keys are the versions, values are the dataset ids.
+            Ordered dictionary of dataset identifiers of the available versions {version: id}.
         """
         raise NotImplementedError
 
 
     def get_versions(self, id, refresh: bool=False, **kwargs) -> List[RemoteDataset]:
-        """Returns datasets of all available versions of the specified dataset
+        """Returns datasets of all available versions of the specified dataset.
 
         Args:
-            id: Dataset identifier
-            refresh (bool): Set True to refresh versions (default = False)
+            id: Dataset identifier.
+            refresh (bool): Set True to refresh the cache (default = False).
+            **kwargs: Dataset identifier arguments.
 
         Returns:
-            List of datasets of all available versions
+            List of datasets of all available versions (List[RemoteDataset]).
         """
         # Get standard id
         id = self.get_dataset_id(id, **kwargs)
@@ -467,25 +530,25 @@ class Client(ABC):
 
     @abstractmethod
     def _get_metadata(self, id: Dict) -> Dict:
-        """Returns standard metadata attributes
+        """Returns standard metadata attributes.
 
         Args:
-            id (Dict): Standard dataset id
+            id (Dict): Standard dataset id.
 
         Returns:
-            Dictionary of standard metadata attributes
+            Dictionary of standard metadata attributes {name: value}.
         """
         raise NotImplementedError
 
 
     def get_metadata(self, id: Dict) -> Metadata:
-        """Returns standard metadata of the specified dataset
+        """Returns standard metadata of the specified dataset.
 
         Args:
-            id (Dict): Standard dataset id
+            id (Dict): Standard dataset id.
 
         Returns:
-            Standard metadata
+            Standard metadata (Metadata).
         """
         # Get standard metadata attributes
         attrs = self._get_metadata(id)
@@ -507,25 +570,37 @@ class Client(ABC):
 
     @abstractmethod
     def validate_metadata(self, metadata: Metadata) -> Dict:
-        """Validates metadata
+        """Validates metadata.
 
         Args:
-            metadata (Metadata): Metadata to be validated
+            metadata (Metadata): Metadata to be validated.
 
         Returns:
-            Dictionary of invalid metadata fields and related error messages,
-            if any.
-
+            Dictionary of invalid metadata {name: error message}.
         """
         raise NotImplementedError
 
 
     @abstractmethod
     def get_files(self, id: Dict) -> List[RemoteFile]:
+        """Retrieves list of files of the specified dataset.
+
+        Args:
+            id (Dict): Standard dataset identifier.
+
+        Returns:
+            List of dataset files ([RemoteFile]).
+        """
         raise NotImplementedError
 
 
-    def download_file(self, file: RemoteFile, path: str=None, name: str=None, notify: Callable=None) -> LocalFile:
+    def download_file(
+        self,
+        file: RemoteFile,
+        path: str=None,
+        name: str=None,
+        notify: Callable=None
+    ) -> LocalFile:
         """Downloads a remote file.
 
         Args:
@@ -606,10 +681,30 @@ class Client(ABC):
 
     @abstractmethod
     def _upload_file(self, id: Dict, file: LocalFile, notify: Callable=None) -> RemoteFile:
+        """Uploads a local file to the specified dataset at the repository.
+
+        Args:
+            id (Dict): Standard dataset identifier.
+            file (LocalFile): File to be uploaded.
+            notify (Callable): Notification callback method.
+
+        Returns:
+            Remote file object of the uploaded file (RemoteFile).
+        """
         raise NotImplementedError
 
 
     def upload_file(self, dataset, file, notify: Callable=None) -> RemoteFile:
+        """Uploads a local file to the specified remote dataset.
+
+        Args:
+            dataset: Remote dataset.
+            file: File to be uploaded.
+            notify (Callable): Notification callback method.
+
+        Returns:
+            Remote file object of the uploaded file (RemoteFile).
+        """
         if not isinstance(dataset, RemoteDataset):
             dataset = self.get_dataset(dataset)
 
@@ -626,10 +721,25 @@ class Client(ABC):
 
     @abstractmethod
     def _delete_file(self, id: Dict, file: RemoteFile) -> None:
+        """Deletes specified file of the dataset.
+
+        Args:
+            id (Dict): Standard dataset identifier.
+            file (RemoteFile): File to be deleted.
+        """
         raise NotImplementedError
 
 
     def delete_file(self, dataset, file) -> None:
+        """Deletes specified from of the dataset.
+
+        Args:
+            dataset: Remote dataset.
+            file: File to be deleted.
+
+        Raises:
+            ValueError("Invalid file identifier")
+        """
         if not isinstance(dataset, RemoteDataset):
             dataset = self.get_dataset(dataset)
 
@@ -659,7 +769,7 @@ class Client(ABC):
 
         Args:
             id: Dataset identifier.
-            **kwargs: Other identifier arguments.
+            **kwargs: Other dataset identifier arguments.
         """
         # Get standard id
         id = self.get_dataset_id(id, **kwargs)
@@ -703,10 +813,10 @@ class Client(ABC):
             - "unknown": Dataset is in an unknown state.
 
         Args:
-            id (Dict): Standard dataset id
+            id (Dict): Standard dataset id.
 
         Returns:
-            Details dictionary of the dataset.
+            Details dictionary of the dataset {name: value}.
         """
         raise NotImplementedError
 
@@ -714,5 +824,9 @@ class Client(ABC):
     @classmethod
     @abstractmethod
     def supports_folder(cls) -> bool:
-        """Returns if folders are supported."""
+        """Checks if folders are supported.
+
+        Returns:
+            True if folders are supported, False otherwise.
+        """
         raise NotImplementedError
