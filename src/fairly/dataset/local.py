@@ -1,3 +1,4 @@
+"""LocalDataset class module."""
 from __future__ import annotations
 from typing import List, Dict, Set
 
@@ -398,10 +399,10 @@ class LocalDataset(Dataset):
 
         files = self.get_files(refresh=True)
 
-        allow_folders = client.supports_folder()
+        supports_folders = client.supports_folders()
 
         if not strategy or strategy == "auto":
-            strategy = "mirror" if allow_folders else "archive_folders"
+            strategy = "mirror" if supports_folders else "archive_folders"
 
         uploads = []
         archives = {}
@@ -416,7 +417,7 @@ class LocalDataset(Dataset):
                 uploads.append(file)
 
             elif strategy == "mirror":
-                if allow_folders:
+                if supports_folders:
                     uploads.append(file)
                 else:
                     raise ValueError("Invalid upload strategy")

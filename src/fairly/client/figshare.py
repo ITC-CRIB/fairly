@@ -1,6 +1,7 @@
+"""FigshareClient class module."""
 from typing import List, Dict, Callable
 
-from . import Client
+from . import Client, ClientInfo
 from ..metadata import Metadata
 from ..person import Person, PersonList
 from ..dataset.remote import RemoteDataset
@@ -18,11 +19,20 @@ import dateutil.parser
 import logging
 from functools import cached_property
 
+
 CLASS_NAME = "FigshareClient"
 
 
 class FigshareClient(Client):
+    """Figshare client class.
 
+    Class Attributes:
+        PAGE_SIZE (int): Page size (default = 25)
+        LOCKED_SLEEP (int): Locked upload sleep interval in seconds (default = 5)
+        LOCKED_TRIES (int): Number of tries for locked uploads (default = 5)
+        record_types (Dict): Record types {id: name}
+        record_type_lookup (Dict): Lookup table for record types {id: id}
+    """
     PAGE_SIZE = 25
 
     LOCKED_SLEEP = 5
@@ -51,6 +61,12 @@ class FigshareClient(Client):
     }
 
     def __init__(self, repository_id: str=None, **kwargs):
+        """Initializes Figshare client object.
+
+        Args:
+            repository_id (str): Repository id (optional).
+            **kwargs (Dict): Client-specific configuration arguments.
+        """
         # Call parent method
         super().__init__(repository_id, **kwargs)
 
@@ -59,12 +75,26 @@ class FigshareClient(Client):
 
 
     @classmethod
+    def get_client_info(cls) -> ClientInfo:
+        """Returns client information."""
+        return ClientInfo(
+            name="figshare",
+            description="""
+                figshare is a provider of open research repository
+                infrastructure, which help organizations and researchers share,
+                showcase and manage their research outputs in a discoverable,
+                citable, reportable and transparent way.
+            """,
+            url="https://info.figshare.com/",
+        )
+
+
+    @classmethod
     def get_config_parameters(cls) -> Dict:
         """Returns configuration parameters.
 
         Returns:
-            Dictionary of configuration parameters.
-            Keys are the parameter names, values are the descriptions.
+            Dictionary of configuration parameters {name: description}.
         """
         return {**super().get_config_parameters(), **{
             "token": "Access token.",
@@ -73,6 +103,14 @@ class FigshareClient(Client):
 
     @classmethod
     def get_config(cls, **kwargs) -> Dict:
+        """Returns client configuration.
+
+        Args:
+            **kwargs (Dict): Client-specific configuration arguments.
+
+        Returns:
+            Dictionary of configuration arguments {name: value}.
+        """
         config = super().get_config(**kwargs)
 
         for key, val in kwargs.items():
@@ -85,14 +123,14 @@ class FigshareClient(Client):
 
 
     @classmethod
-    def get_client(cls, url: str) -> Client:
+    def get_client(cls, url: str) -> "FigshareClient":
         """Creates a repository client from the specified URL address.
 
         Args:
             url (str): URL address of the repository or dataset.
 
         Returns:
-            Client object (InvenioClient).
+            Client object (FigshareClient).
 
         Raises:
             ValueError("Invalid repository"): If repository is not valid.
@@ -128,6 +166,11 @@ class FigshareClient(Client):
 
 
     def _create_session(self) -> requests.Session:
+        """Creates a session.
+
+        Returns:
+            Session (requests.Session).
+        """
         session = super()._create_session()
 
         # Set authentication token
@@ -141,16 +184,17 @@ class FigshareClient(Client):
         """Returns standard dataset identifier.
 
         Args:
-            **kwargs: Dataset identifier arguments
+            **kwargs (Dict): Dataset identifier arguments.
 
         Returns:
-            Standard dataset identifier
+            Standard dataset identifier (Dict).
 
         Raises:
             ValueError("Invalid id")
             ValueError("Invalid URL address")
             ValueError("No identifier")
             ValueError("Invalid version")
+            NotImplementedError
         """
         version = None
 
@@ -198,7 +242,7 @@ class FigshareClient(Client):
             id (Dict): Standard dataset identifier.
 
         Returns:
-            Hash of the dataset identifier.
+            Hash of the dataset identifier (str).
         """
         if id["version"]:
             return f"{id['id']}_{id['version']}"
@@ -210,10 +254,10 @@ class FigshareClient(Client):
         """Retrieves details of the dataset.
 
         Args:
-            id (Dict): Standard dataset identifier
+            id (Dict): Standard dataset identifier.
 
         Returns:
-            Dictionary of dataset details
+            Dictionary of dataset details.
 
         Raises:
             ValueError("Invalid dataset id")
@@ -244,10 +288,10 @@ class FigshareClient(Client):
 
 
     def _get_account_datasets(self) -> List[RemoteDataset]:
-        """Retrieves list of account datasets
+        """Retrieves list of account datasets,
 
         Returns:
-            List of datasets related to the account
+            List of datasets related to the account ([RemoteDataset]).
         """
         if "token" not in self.config:
             return []
@@ -274,15 +318,15 @@ class FigshareClient(Client):
 
     @cached_property
     def licenses(self) -> Dict:
-        """Retrieves list of available licenses
+        """Retrieves available licenses.
 
         License dictionary:
-            - id (int): License identifier
-            - name (str): Name of the license
-            - url (str): URL address of the license
+            - id (int): License identifier.
+            - name (str): Name of the license.
+            - url (str): URL address of the license.
 
         Returns:
-            List of license dictionaries
+            Dictionary of license dictionaries {id: license}.
         """
         # REMARK: Private endpoint returns both public and private licenses
         endpoints = ["account/licenses"] if self.config.get("token") else []
@@ -309,17 +353,17 @@ class FigshareClient(Client):
 
 
     def _get_categories(self) -> Dict:
-        """Retrieves available categories
+        """Retrieves available categories.
 
         Category dictionary:
-            - id (int): Category identifier
-            - name (str): Name of the category
-            - parent_id (int): Parent category identifier
-            - source_id (int): Source identifier
-            - selectable (bool): True if category is selectable
+            - id (int): Category identifier.
+            - name (str): Name of the category.
+            - parent_id (int): Parent category identifier.
+            - source_id (int): Source identifier.
+            - selectable (bool): True if category is selectable.
 
         Returns:
-            Dictionary of category dictionaries. Keys are category identifiers.
+            Dictionary of category dictionaries {id: category}.
         """
         # REMARK: Private endpoint returns both public and private categories
         # REMARK: Public endpoint does not return parent categories
@@ -350,6 +394,16 @@ class FigshareClient(Client):
 
 
     def get_categories(self, refresh: bool=False) -> Dict:
+        """Returns available categories.
+
+        See _get_categories() for the structure of category dictionary.
+
+        Args:
+            refresh (bool): Set True to refresh the cache (default = False).
+
+        Returns:
+            Dictionary of category dictionaries {id: category}.
+        """
         if self._categories is None or refresh:
             self._categories = self._get_categories()
         return self._categories
@@ -357,18 +411,18 @@ class FigshareClient(Client):
 
     @property
     def categories(self) -> Dict:
+        """Available categories."""
         return self.get_categories()
 
 
     def _get_versions(self, id: Dict) -> OrderedDict:
-        """Returns standard dataset identifiers of the dataset versions
+        """Returns standard dataset identifiers of the dataset versions.
 
         Args:
-            id (Dict): Dataset id
+            id (Dict): Standard dataset identifier.
 
         Returns:
-            Ordered dictionary of dataset identifiers of the available versions.
-            Keys are the versions, values are the dataset identifiers.
+            Ordered dictionary of dataset identifiers of the available versions {version: id}.
         """
         items, _ = self._request(f"articles/{id['id']}/versions")
 
@@ -384,6 +438,14 @@ class FigshareClient(Client):
 
 
     def _get_metadata(self, id: Dict) -> Dict:
+        """Returns standard metadata attributes.
+
+        Args:
+            id (Dict): Standard dataset identifier.
+
+        Returns:
+            Dictionary of standard metadata attributes {name: value}.
+        """
         # Get record details
         details = self._get_dataset_details(id)
 
@@ -556,11 +618,12 @@ class FigshareClient(Client):
         """Saves metadata of the specified dataset.
 
         Args:
-            id (Dict): Standard dataset id.
+            id (Dict): Standard dataset identifier.
             metadata (Metadata): Metadata to be saved.
 
         Raises:
             ValueError("No access token"): If not access token.
+            HTTPError
         """
         # Raise exception if no access token
         if not self.config.get("token"):
@@ -583,7 +646,7 @@ class FigshareClient(Client):
 
         except HTTPError as err:
             # TODO: Add error handling
-            print(err.response.content)
+            logging.error(err.response.content)
             raise
 
         # Add article authors if required
@@ -594,7 +657,7 @@ class FigshareClient(Client):
 
             except HTTPError as err:
                 # TODO: Add error handling
-                print(err.response.content)
+                logging.error(err.response.content)
                 raise
 
         # Set embargo attributes
@@ -613,7 +676,7 @@ class FigshareClient(Client):
 
             except HTTPError as err:
                 # TODO: Add error handling
-                print(err.response.content)
+                logging.error(err.response.content)
                 raise
         else:
             data = {
@@ -635,11 +698,19 @@ class FigshareClient(Client):
 
             except HTTPError as err:
                 # TODO: Add error handling
-                print(err.response.content)
+                logging.error(err.response.content)
                 raise
 
 
     def validate_metadata(self, metadata: Metadata) -> Dict:
+        """Validates metadata.
+
+        Args:
+            metadata (Metadata): Metadata to be validated.
+
+        Returns:
+            Dictionary of invalid metadata {name: error message}.
+        """
         result = {}
 
         if not metadata.get("title"):
@@ -649,6 +720,14 @@ class FigshareClient(Client):
 
 
     def get_files(self, id: Dict) -> List[RemoteFile]:
+        """Retrieves list of files of the specified dataset.
+
+        Args:
+            id (Dict): Standard dataset identifier.
+
+        Returns:
+            List of dataset files ([RemoteFile]).
+        """
         # REMARK: Uses article details endpoint instead of files endpoint to support versions
         details = self._get_dataset_details(id)
 
@@ -672,40 +751,44 @@ class FigshareClient(Client):
 
 
     def _get_license_id(self, license) -> int:
-        """Returns license id from license information, e.g. name, url, id
+        """Returns license id from license information, e.g. name, url, id.
 
         Args:
-            license : License information
+            license: License information.
 
         Returns:
-            License id
+            License id (int).
 
         Raises:
-            ValueError("Invalid license")
+            ValueError("Invalid license"): if no matching license found.
         """
         if not license:
             return None
+
         elif isinstance(license, int):
             return license
+
         elif isinstance(license, str):
             if license.isnumeric():
                 return int(license)
             for id, item in self.licenses.items():
                 if license == item["name"] or license == item["url"]:
                     return id
+
         elif isinstance(license, dict):
             return license["id"]
+
         raise ValueError("Invalid license")
 
 
     def _serialize_metadata(self, metadata: Metadata) -> Dict:
-        """Serializes dataset metadata for client use
+        """Serializes dataset metadata for client use.
 
         Args:
-            metadata (Metadata): Dataset metadata
+            metadata (Metadata): Dataset metadata.
 
         Returns:
-            Client-specific dictionary of the metadata
+            Client-specific dictionary of the metadata {name: value}.
         """
         out = {}
 
@@ -793,16 +876,17 @@ class FigshareClient(Client):
 
 
     def _create_dataset(self, metadata: Metadata) -> Dict:
-        """Creates a dataset with the specified standard metadata
+        """Creates a dataset with the specified standard metadata.
 
         Args:
-            metadata (Metadata): Standard metadata
+            metadata (Metadata): Standard metadata.
 
         Returns:
-            Standard identifier of the dataset
+            Standard dataset identifier (Dict).
 
         Raises:
             ValueError("No access token")
+            HTTPError
         """
         # Raise exception if no access token
         if not self.config.get("token"):
@@ -835,6 +919,16 @@ class FigshareClient(Client):
 
 
     def _upload_file(self, id: Dict, file: LocalFile, notify: Callable=None) -> RemoteFile:
+        """Uploads a local file to the specified dataset at the repository.
+
+        Args:
+            id (Dict): Standard dataset identifier.
+            file (LocalFile): File to be uploaded.
+            notify (Callable): Notification callback method.
+
+        Returns:
+            Remote file object of the uploaded file (RemoteFile).
+        """
         # REMARK: Figshare does not have a versioned endpoint
         if id["version"]:
             raise ValueError("Uploading file to a versioned dataset is not supported")
@@ -934,9 +1028,19 @@ class FigshareClient(Client):
 
 
     def _delete_file(self, id: Dict, file: RemoteFile) -> None:
+        """Deletes specified file of the dataset.
+
+        Args:
+            id (Dict): Standard dataset identifier.
+            file (RemoteFile): File to be deleted.
+
+        Raises:
+            PermissionError("Operation not permitted")
+            ValueError("No file id")
+        """
         # REMARK: Figshare does not have a versioned endpoint
         if id["version"]:
-            raise ValueError("Deleting file from a versioned dataset is not supported")
+            raise PermissionError("Operation not permitted")
 
         if not file.id:
             raise ValueError("No file id")
@@ -948,11 +1052,12 @@ class FigshareClient(Client):
         """Deletes dataset from the repository.
 
         Args:
-            id (Dict): Standard dataset identifier
+            id (Dict): Standard dataset identifier.
 
         Raises:
-            ValueError("Operation not permitted")
+            PermissionError("Operation not permitted")
             ValueError("Invalid dataset id")
+            HTTPError
         """
         # REMARK: Only private articles can be deleted
         # https://help.figshare.com/article/ive-accidentally-set-my-data-to-public-what-should-i-do
@@ -963,14 +1068,14 @@ class FigshareClient(Client):
             versions = self._get_versions(id)
             last_version = next(reversed(versions))
             if id["version"] != last_version:
-                raise ValueError("Operation not permitted")
+                raise PermissionError("Operation not permitted")
 
         try:
             result, response = self._request(f"account/articles/{id['id']}", "DELETE")
 
         except HTTPError as err:
             if err.response.status_code == 403:
-                raise ValueError("Operation not permitted")
+                raise PermissionError("Operation not permitted")
             elif err.response.status_code == 404:
                 raise ValueError("Invalid dataset id")
             raise
@@ -997,7 +1102,7 @@ class FigshareClient(Client):
             - "unknown": Dataset is in an unknown state.
 
         Args:
-            id (Dict): Standard dataset id
+            id (Dict): Standard dataset identifier.
 
         Returns:
             Details dictionary of the dataset.
@@ -1051,5 +1156,10 @@ class FigshareClient(Client):
 
 
     @classmethod
-    def supports_folder(cls) -> bool:
+    def supports_folders(cls) -> bool:
+        """Returns if folders are supported.
+
+        Returns:
+            True if folders are supported, False otherwise.
+        """
         return False

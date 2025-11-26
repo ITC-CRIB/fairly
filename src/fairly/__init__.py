@@ -2,7 +2,7 @@
 fairly
 """
 from __future__ import annotations
-from typing import Dict, List, Callable
+from typing import Dict, List, Callable, Optional
 
 import sys
 import os
@@ -30,7 +30,7 @@ def is_testing() -> bool:
     """Returns unit testing state.
 
     Returns:
-        True if performing unit tests, False otherwise
+        True if performing unit tests, False otherwise.
     """
     return getattr(sys.modules[__name__], "TESTING", False)
 
@@ -66,9 +66,9 @@ def get_config(key: str) -> Dict:
 
     Configuration parameters are read from the following sources:
 
-    1. Configuration file of the package located at ``{package_root}/data/config.json``
-    2. Configuration file of the user located at ``~/.fairly/config.json``.
-    3. Environmental variables of the user starting with ``FAIRLY_{KEY}_``.
+    1. Configuration file of the package located at `{package_root}/data/config.json`
+    2. Configuration file of the user located at `~/.fairly/config.json`.
+    3. Environmental variables of the user starting with `FAIRLY_{KEY}_`.
 
     Args:
         key (str): Configuration key.
@@ -138,7 +138,8 @@ def get_repositories() -> Dict:
     """Returns recognized repositories.
 
     Returns:
-        Dictionary of the recognized repositories. Keys are repository identifiers (str), values are repository
+        Dictionary of the recognized repositories.
+        Keys are repository identifiers (str), values are repository
         dictionaries (Dict).
 
     Raises:
@@ -148,7 +149,7 @@ def get_repositories() -> Dict:
 
     Examples:
         >>> fairly.get_repositories()
-        >>> {'4tu': {'client_id': 'figshare', 'name': '4TU.ResearchData', 'url': 'https://data.4tu.nl/', ...}, ...}
+        >>> {'zenodo': {'client_id': 'invenio', 'name': 'Zenodo', 'url': 'https://zenodo.org/', ...}, ...}
     """
     data = {}
 
@@ -193,8 +194,10 @@ def get_repositories() -> Dict:
 
         if "client_id" not in attrs:
             raise AttributeError(f"No client id {id}")
+
         elif attrs["client_id"] not in clients:
             raise AttributeError(f"Invalid client_id {id}:{attrs['client_id']}")
+
         else:
             repository["client_id"] = attrs["client_id"]
 
@@ -213,7 +216,7 @@ def metadata_templates() -> List:
     """Returns list of available metadata templates.
 
     Returns:
-        List of available metadata templates (str).
+        List of available metadata templates ([str]).
 
     Examples:
         >>> fairly.metadata_templates()
@@ -231,23 +234,33 @@ def metadata_templates() -> List:
 
 
 def _match_domain(url: str, domain_url: str) -> bool:
+    """Returns if URL address matches the domain URL address.
+
+    Args:
+        url (str): URL address.
+        domain_url (str): Domain URL address.
+
+    Returns:
+        True if URL address matches the domain URL address, False otherwise.
+    """
     hostname = urlparse(url).hostname
     return False if not hostname else hostname.endswith(urlparse(domain_url).hostname)
 
-def get_repository(uid: str) -> Dict:
+
+def get_repository(uid: str) -> Optional[Dict]:
     """Returns repository dictionary of the specified repository.
 
     Args:
         uid (str): Repository id or URL address.
 
     Returns:
-        Repository dictionary if a recognized repository, ``None`` otherwise.
+        Repository dictionary if a recognized repository, `None` otherwise.
 
     Examples:
-        >>> fairly.get_repository("4tu")
-        >>> {'id': '4tu', 'client_id': 'figshare', 'name': '4TU.ResearchData', 'url': 'https://data.4tu.nl/', ...}
+        >>> fairly.get_repository("zenodo")
+        >>> {'id': 'zenodo', 'client_id': 'invenio', 'name': 'Zenodo', 'url': 'https://zenodo.org/', ...}
 
-        >>> fairly.get_repository("5tu")
+        >>> fairly.get_repository("my_repository")
         >>>
     """
     repositories = get_repositories()
@@ -272,20 +285,20 @@ def client(id: str, **kwargs) -> Client:
 
     Args:
         id (str): Client or repository identifier.
-        **kwargs: Other client arguments.
+        **kwargs (Dict): Other client arguments.
 
     Returns:
-        Client object.
+        Client object (Client).
 
     Raises:
         ValueError("Invalid client id"): If invalid client id.
 
     Examples:
-        >>> # Create a 4TU.ResearchData client (id = "4tu")
-        >>> client = fairly.client("4tu")
+        >>> # Create a Zenodo client (id = "zenodo")
+        >>> client = fairly.client("zenodo")
 
-        >>> # Create a Figshare client with a custom URL address
-        >>> client = fairly.client("figshare", url="https://data.4tu.nl/")
+        >>> # Create an Invenio client with a custom URL address
+        >>> client = fairly.client("invenio", url="https://my.repository.org/")
     """
     clients = get_clients()
 
@@ -294,19 +307,35 @@ def client(id: str, **kwargs) -> Client:
         kwargs["repository_id"] = repository["id"]
         id = repository["client_id"]
 
-    if id not in clients:
-        raise ValueError("Invalid client id")
+    if id in clients:
+        return clients[id](**kwargs)
 
-    return clients[id](**kwargs)
+    elif re.fullmatch(Client.REGEXP_URL, id):
+        for cls in clients.values():
+            try:
+                client = cls.get_client(id)
+
+            except:
+                pass
+
+            config = cls.get_config(**kwargs)
+
+            for key, val in config.items():
+                if key not in client.config:
+                    client.config[key] = val
+
+            return client
+
+    raise ValueError("Invalid client id")
 
 
 def dataset(id: str) -> Dataset:
     """Creates dataset object from a dataset identifier.
 
     The following types of dataset identifiers are supported:
-        - DOI : Digital object identifier of a remote dataset.
-        - URL : URL address of a remote dataset.
-        - Path : Path of a local dataset.
+        - DOI: Digital object identifier of a remote dataset.
+        - URL: URL address of a remote dataset.
+        - Path: Path of a local dataset.
 
     Repository of the dataset is automatically detected by checking the URL
     addresses and the DOI prefixes of the recognized repositories.
@@ -315,7 +344,7 @@ def dataset(id: str) -> Dataset:
         id (str): Dataset identifier.
 
     Returns:
-        Dataset object.
+        Dataset object (Dataset).
 
     Raises:
         ValueError("Unknown dataset identifier"): If unknown dataset identifier.
@@ -350,7 +379,7 @@ def dataset(id: str) -> Dataset:
             return result.get_dataset(url=val)
 
     elif key == "doi":
-        url = resolveDOI(val)
+        url = resolve_doi(val)
         return dataset(url)
 
     else:
@@ -364,16 +393,16 @@ def init_dataset(path: str, template: str = "default", create: bool = True) -> L
 
     Args:
         path (str): Local path of the dataset.
-        template: Template of the dataset (default = 'default').
-        create: Set True to create the dataset directory if not exists (default = True)
+        template (str): Template of the dataset (default = 'default').
+        create (bool): Set True to create the dataset directory if not exists (default = True)
 
     Returns:
-        Local dataset object
+        Local dataset object (LocalDataset).
 
     Raises:
         ValueError("Invalid path"): If path is invalid.
         NotADirectoryError: If path is not a directory path.
-        ValueError("Operation not permitted"): If path is an existing dataset path.
+        PermissionError("Operation not permitted"): If path is an existing dataset path.
         ValueError("Invalid template name"): If template name is invalid.
     """
     if not os.path.exists(path):
@@ -386,7 +415,7 @@ def init_dataset(path: str, template: str = "default", create: bool = True) -> L
 
     manifest_path = os.path.join(path, "manifest.yaml")
     if os.path.exists(manifest_path):
-        raise ValueError("Operation not permitted")
+        raise PermissionError("Operation not permitted")
 
     if template:
         template_path = os.path.join(__path__[0], "data", "templates", f"{template}.yaml")
@@ -437,33 +466,32 @@ def notify(file: File, current_size: int, total_size: int = None, current_total_
 
 
 def store(id: str, path: str=None, notify: Callable=None, extract: bool=False) -> LocalDataset:
-    """Stores remote dataset locally
+    """Stores remote dataset locally.
 
     Args:
         id (str): Dataset identifier.
         path (str): Local path to store the dataset (optional).
-        notify (Callable): Notification callback function.
-        extract (bool): Set True to extract dataset archives (default = False)
+        notify (Callable): Notification callback function (optional).
+        extract (bool): Set True to extract dataset archives (default = False).
 
     Returns:
-        Local dataset object
+        Local dataset object (LocalDataset).
     """
     return dataset(id).store(path, notify=notify, extract=extract)
 
 
-def resolveDOI(doi: str) -> str:
+def resolve_doi(doi: str) -> str:
     """Returns URL address to a DOI.
 
     Args:
-        doi (str): Digital object identifier
+        doi (str): Digital object identifier.
 
     Returns:
-        URL address of the DOI.
+        URL address of the DOI (str).
 
     Raises:
         ValueError("Invalid DOI"): If DOI is invalid.
     """
-
     match = re.fullmatch(r"(doi:|https?://doi\.org/)?(10\..+)", doi, flags=re.IGNORECASE)
     if not match:
         raise ValueError("Invalid DOI")
@@ -479,6 +507,7 @@ def resolveDOI(doi: str) -> str:
     url = response.headers.get("Location", response.url)
     if not url:
         raise ValueError("Invalid DOI")
+
     logging.info("Resolved URL address is %s.", url)
 
     return url
@@ -487,15 +516,15 @@ def resolveDOI(doi: str) -> str:
 def set_max_workers(num: int=None, force: bool=False) -> int:
     """Sets number of maximum workers for file operations.
 
-    Maximum number of workers is limited to `MAX_WORKERS`, unless `force` 
+    Maximum number of workers is limited to `MAX_WORKERS`, unless `force`
     flag is set.
 
     Args:
         num (int): Maximum number of workers for file operations.
-        force (bool): Set True to increase the number beyond `MAX_WORKERS` (default False).
+        force (bool): Set True to increase the number beyond `MAX_WORKERS` (default = False).
 
     Returns:
-        Maximum number of workers for file operations.
+        Maximum number of workers for file operations (int).
 
     Raises:
         ValueError("Invalid maximum number of workers"): If the number is more than the number of available cores.
@@ -534,10 +563,10 @@ def max_workers() -> int:
 
 
 def debug(state: bool=True) -> None:
+    """Sets debug state.
+
+    Args:
+        state (bool): Set True to enable debugging (default = True)
+    """
     level = logging.DEBUG if state else logging.INFO
     logging.basicConfig(level=level)
-
-
-if __name__ == "__main__":
-    # TODO: CLI implementation
-    raise NotImplementedError

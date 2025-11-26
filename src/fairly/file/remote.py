@@ -20,6 +20,11 @@ class RemoteFile(File):
         _url (str): URL address of the remote file.
         _id (str): Identifier of the remote file.
         _headers (Dict): HTTP headers of the remote file.
+        _path (str): Path of the remote file.
+        _name (str): Name of the remote file.
+        _size (int): Size of the remote file in bytes.
+        _type (str): File type of the remote file.
+        _md5 (str): MD5 checksum of the remote file.
     """
 
     def __init__(self, url: str, id: str=None, path: str=None, size: int=None, type: str=None, md5: str=None):

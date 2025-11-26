@@ -1,6 +1,18 @@
+"""Client class module."""
 from __future__ import annotations
 from typing import Any, Dict, List, Tuple, Callable
 from abc import ABC, abstractmethod
+
+import hashlib
+import http.client
+import json
+import logging
+import os
+import re
+import requests
+import time
+import uuid
+from dataclasses import dataclass
 
 import fairly
 from ..dataset.remote import RemoteDataset
@@ -8,31 +20,34 @@ from ..file.local import LocalFile
 from ..file.remote import RemoteFile
 from ..metadata import Metadata
 
-import os
-import os.path
-import re
-import json
-import requests
-import hashlib
-import http.client
-import uuid
-import logging
-import time
+
+@dataclass
+class ClientInfo:
+    name: str
+    description: str
+    url: str
+
+    def __post_init__(self):
+        self.description = " ".join(
+            line.strip() for line in self.description.splitlines() if line.strip()
+        )
 
 
 class Client(ABC):
     """Client class.
 
     Attributes:
-        config (Dict): Configuration options
-        _session (Session): HTTP session object
-        _datasets (Dict): Public dataset cache
-        _account_datasets (List): Account dataset cache
+        config (Dict): Configuration options.
+        _client_id (str): Client identifier.
+        _repository_id (str): Repository identifier.
+        _session (Session): HTTP session object.
+        _datasets (Dict): Public dataset cache.
+        _account_datasets (List): Account dataset cache.
 
     Class Attributes:
         REGEXP_URL: Regular expression to validate URL address.
-        REQUEST_FORMAT: Request data format
-        CHUNK_SIZE: Chunk size in bytes to transfer data (default = 262144)
+        REQUEST_FORMAT (str): Request data format (default = `json`).
+        CHUNK_SIZE (int): Chunk size in bytes to transfer data (default = 262144).
     """
 
     REGEXP_URL = re.compile(r"(http(s)?):\/\/(www\.)?[a-z\d@:%._\+~#=-]{2,256}\.[a-z]{2,6}\b([-a-z\d@:%_\+.~#?&//=]*)", re.IGNORECASE)
@@ -43,11 +58,14 @@ class Client(ABC):
 
 
     def __init__(self, repository_id: str=None, **kwargs):
-        """Initialized client object.
+        """Initializes client object.
 
         Args:
-            repository_id (str): Repository id.
-            **kwargs (Dict): Client-specific arguments.
+            repository_id (str): Repository id (optional).
+            **kwargs (Dict): Client-specific configuration arguments.
+
+        Raises:
+            ValueError("Repository client id mismatch")
         """
         # Get client id
         self._client_id = self.__module__.split(".")[-1]
@@ -94,11 +112,18 @@ class Client(ABC):
 
 
     @classmethod
+    @abstractmethod
+    def get_client_info(cls) -> ClientInfo:
+        """Returns client information."""
+        raise NotImplementedError
+
+
+    @classmethod
     def get_config_parameters(cls) -> Dict:
         """Returns configuration parameters.
 
         Returns:
-            Dictionary of configuration parameters {name: value}.
+            Dictionary of configuration parameters {name: description}.
         """
         return {
             "name": "Repository name.",
@@ -112,12 +137,17 @@ class Client(ABC):
         """Returns client configuration.
 
         Args:
-            **kwargs: Client-specific configuration arguments.
+            **kwargs (Dict): Client-specific configuration arguments.
 
         Returns:
             Dictionary of configuration arguments {name: value}.
+
+        Raises:
+            ValueError("Invalid URL address")
+            ValueError("Invalid API URL address")
         """
         config = {}
+
         for key, val in kwargs.items():
             if key == "name":
                 config["name"] = val
@@ -131,6 +161,7 @@ class Client(ABC):
                 config["api_url"] = val
             else:
                 pass
+
         return config
 
 
@@ -176,7 +207,11 @@ class Client(ABC):
         elif id in data:
             del data[id]
 
-        with open(path, "w") as file:
+        dirs = os.path.dirname(path)
+        if dirs:
+            os.makedirs(dirs, exist_ok=True)
+
+        with open(path, 'w') as file:
             json.dump(data, file, indent=2)
 
 
@@ -188,7 +223,7 @@ class Client(ABC):
             id : Identifier.
 
         Returns:
-          Tuple of identifier type and value.
+            Tuple of identifier type and value.
         """
         match = re.fullmatch(r"(doi:|https?:\/\/doi.org\/)(.+)", id)
 
@@ -223,7 +258,7 @@ class Client(ABC):
 
         Args:
             id: Dataset identifier (optional).
-            **kwargs: Other identifier arguments.
+            **kwargs (Dict): Other identifier arguments.
 
         Returns:
             Standard dataset identifier (Dict).
@@ -295,7 +330,7 @@ class Client(ABC):
             metadata (Metadata): Standard metadata.
 
         Returns:
-            Standard identifier of the dataset (Dict).
+            Standard dataset identifier (Dict).
         """
         raise NotImplementedError
 
@@ -307,7 +342,7 @@ class Client(ABC):
             metadata: Metadata of the dataset (optional).
 
         Returns:
-            Remote dataset (RemoveDataset).
+            Remote dataset (RemoteDataset).
 
         Raises:
             ValueError("Invalid metadata")
@@ -360,18 +395,27 @@ class Client(ABC):
         self,
         endpoint: str,
         method: str="GET",
-        headers: dict=None,
+        headers: Dict=None,
         data=None,
         format: str=None,
         serialize: bool=True
     ) -> Tuple(Any, requests.Response):
         """Sends a HTTP request and returns the result.
 
+        Args:
+            endpoint (str): Endpoint URL address.
+            method (str): Request method (default = `GET`)
+            headers (Dict): Request headers (optional)
+            data: Request data (optional)
+            format (str): Request data format (default = `Client.REQUEST_FORMAT`)
+            serialize (bool): Set True to serialize the request data (default = False)
+
         Returns:
             Tuple of returned content and response.
 
         Raises:
             ValueError("No API URL address")
+            HTTPError
         """
         # Patch HTTPConnection block size to improve connection speed
         # ref: https://stackoverflow.com/questions/72977722/python-requests-post-very-slow
@@ -429,7 +473,7 @@ class Client(ABC):
         """Retrieves list of account datasets.
 
         Returns:
-            List of datasets related to the account (List[RemoteDataset]).
+            List of datasets related to the account ([RemoteDataset]).
         """
         raise NotImplementedError
 
@@ -441,7 +485,7 @@ class Client(ABC):
             refresh (bool): Set True to refresh the cache (default = False).
 
         Returns:
-            List of datasets related to the account (List[RemoteDataset]).
+            List of datasets related to the account ([RemoteDataset]).
         """
         if self._account_datasets is None or refresh:
             datasets = self._get_account_datasets()
@@ -494,7 +538,7 @@ class Client(ABC):
         versions as reported by the client.
 
         Args:
-            id (Dict): Standard dataset id.
+            id (Dict): Standard dataset identifier.
 
         Returns:
             Ordered dictionary of dataset identifiers of the available versions {version: id}.
@@ -508,10 +552,10 @@ class Client(ABC):
         Args:
             id: Dataset identifier.
             refresh (bool): Set True to refresh the cache (default = False).
-            **kwargs: Dataset identifier arguments.
+            **kwargs (Dict): Dataset identifier arguments.
 
         Returns:
-            List of datasets of all available versions (List[RemoteDataset]).
+            List of datasets of all available versions ([RemoteDataset]).
         """
         # Get standard id
         id = self.get_dataset_id(id, **kwargs)
@@ -533,7 +577,7 @@ class Client(ABC):
         """Returns standard metadata attributes.
 
         Args:
-            id (Dict): Standard dataset id.
+            id (Dict): Standard dataset identifier.
 
         Returns:
             Dictionary of standard metadata attributes {name: value}.
@@ -545,7 +589,7 @@ class Client(ABC):
         """Returns standard metadata of the specified dataset.
 
         Args:
-            id (Dict): Standard dataset id.
+            id (Dict): Standard dataset identifier.
 
         Returns:
             Standard metadata (Metadata).
@@ -562,7 +606,7 @@ class Client(ABC):
         """Saves metadata of the specified dataset.
 
         Args:
-            id (Dict): Standard dataset id.
+            id (Dict): Standard dataset identifier.
             metadata (Metadata): Metadata to be saved.
         """
         raise NotImplementedError
@@ -756,7 +800,7 @@ class Client(ABC):
 
     @abstractmethod
     def _delete_dataset(self, id: Dict) -> None:
-        """Deletes dataset from the repository.
+        """Deletes dataset specified by the standard identifier from the repository.
 
         Args:
             id (Dict): Standard dataset identifier.
@@ -769,7 +813,7 @@ class Client(ABC):
 
         Args:
             id: Dataset identifier.
-            **kwargs: Other dataset identifier arguments.
+            **kwargs (Dict): Other dataset identifier arguments.
         """
         # Get standard id
         id = self.get_dataset_id(id, **kwargs)
@@ -813,7 +857,7 @@ class Client(ABC):
             - "unknown": Dataset is in an unknown state.
 
         Args:
-            id (Dict): Standard dataset id.
+            id (Dict): Standard dataset identifier.
 
         Returns:
             Details dictionary of the dataset {name: value}.
@@ -823,8 +867,8 @@ class Client(ABC):
 
     @classmethod
     @abstractmethod
-    def supports_folder(cls) -> bool:
-        """Checks if folders are supported.
+    def supports_folders(cls) -> bool:
+        """Returns if folders are supported.
 
         Returns:
             True if folders are supported, False otherwise.

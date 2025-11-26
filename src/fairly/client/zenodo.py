@@ -1,6 +1,7 @@
+"""ZenodoClient class module."""
 from typing import Dict, List, Callable
 
-from . import Client
+from . import Client, ClientInfo
 from ..metadata import Metadata
 from ..person import Person, PersonList
 from ..dataset.remote import RemoteDataset
@@ -19,10 +20,20 @@ from functools import cached_property
 CLASS_NAME = "ZenodoClient"
 
 class ZenodoClient(Client):
+    """Zenoco client class.
 
-    """
     Attributes:
-        _details (Dict): Record details cache
+        _details (Dict): Record details cache.
+
+    Class Attributes:
+        PAGE_SIZE (int): Page size (default = 100).
+        KEEP_ALIVE (int): Keep alive interval (s) (default = 10).
+        record_types (Dict): Record types {id: name}.
+        publication_types (Dict): Publication types {id: name}.
+        image_types (Dict): Image type {id: name}.
+        access_rights (Dict): Access right types {id: name}.
+        grant_dois {Dict}: Grant DOIs {doi: name}.
+        relations (Dict): Relation types {id: name}.
     """
 
     PAGE_SIZE = 100
@@ -135,9 +146,28 @@ class ZenodoClient(Client):
 
 
     def __init__(self, repository_id: str=None, **kwargs):
+        """Initializes Zenodo client object.
+
+        Args:
+            repository_id (str): Repository id.
+            **kwargs (Dict): Client-specific configuration arguments.
+        """
         super().__init__(repository_id, **kwargs)
 
         self._details = {}
+
+
+    @classmethod
+    def get_client_info(cls) -> ClientInfo:
+        """Returns client information."""
+        return ClientInfo(
+            name="Invenio (DEPRECATED)",
+            description="""
+                Invenio is a repository platform for institutional repositories,
+                research data management, and digital assets management.
+            """,
+            url="https://inveniosoftware.org/",
+        )
 
 
     @classmethod
@@ -145,8 +175,7 @@ class ZenodoClient(Client):
         """Returns configuration parameters.
 
         Returns:
-            Dictionary of configuration parameters.
-            Keys are the parameter names, values are the descriptions.
+            Dictionary of configuration parameters {name: description}.
         """
         return {**super().get_config_parameters(), **{
             "token": "Access token.",
@@ -155,6 +184,14 @@ class ZenodoClient(Client):
 
     @classmethod
     def get_config(cls, **kwargs) -> Dict:
+        """Returns client configuration.
+
+        Args:
+            **kwargs (Dict): Client-specific configuration arguments.
+
+        Returns:
+            Dictionary of configuration arguments {name: value}.
+        """
         config = super().get_config(**kwargs)
 
         for key, val in kwargs.items():
@@ -167,6 +204,11 @@ class ZenodoClient(Client):
 
 
     def _create_session(self) -> requests.Session:
+        """Creates a session.
+
+        Returns:
+            Session (requests.Session).
+        """
         session = super()._create_session()
 
         # Set authentication token
@@ -177,19 +219,19 @@ class ZenodoClient(Client):
 
 
     def _get_dataset_id(self, **kwargs) -> Dict:
-        """Returns standard dataset identifier.
+        """Returns standard dataset identifier from the arguments.
 
         Args:
-            **kwargs: Dataset identifier arguments
+            **kwargs (Dict): Dataset identifier arguments.
 
         Returns:
-            Standard dataset identifier
+            Standard dataset identifier (Dict).
 
         Raises:
-          ValueError("Invalid id")
-          ValueError("Invalid URL address")
-          ValueError("No identifier")
-
+            ValueError("Invalid id")
+            ValueError("Invalid URL address")
+            ValueError("Invalid DOI")
+            ValueError("No identifier")
         """
         if "id" in kwargs:
             id = str(kwargs["id"])
@@ -224,7 +266,7 @@ class ZenodoClient(Client):
             id (Dict): Standard dataset identifier.
 
         Returns:
-            Hash of the dataset identifier.
+            Hash of the dataset identifier (str).
         """
         return id["id"]
 
@@ -233,7 +275,7 @@ class ZenodoClient(Client):
         """Stores dataset details in the cache.
 
         Args:
-            id (Dict): Standard dataset id.
+            id (Dict): Standard dataset identifier.
             details (Dict): Dataset details. Set None to clear the cached details.
         """
         hash = self._get_dataset_hash(id)
@@ -250,7 +292,7 @@ class ZenodoClient(Client):
         """Returns cached dataset details.
 
         Args:
-            id (Dict): Standard dataset id.
+            id (Dict): Standard dataset identifier.
 
         Returns:
             Dataset details dictionary if cache is valid, None otherwise.
@@ -270,13 +312,13 @@ class ZenodoClient(Client):
 
 
     def _create_dataset(self, metadata: Metadata) -> Dict:
-        """Creates a dataset with the specified standard metadata
+        """Creates a dataset with the specified standard metadata.
 
         Args:
             metadata (Metadata): Standard metadata
 
         Returns:
-            Standard identifier of the dataset
+            Standard dataset identifier (Dict).
 
         Raises:
             ValueError("No access token")
@@ -308,19 +350,16 @@ class ZenodoClient(Client):
 
 
     def _get_entities(self, endpoint: str, page_size: int=None, key: str=None, process: Callable=None):
-        """Retrieves all entities available at the specified endpoint
+        """Retrieves all entities available at the specified endpoint.
 
         Args:
-            endpoint (str): Path of the endpoint
-
+            endpoint (str): Path of the endpoint.
             page_size (int): Page size for each retrieval step. Default page
                 size is used if set to None.
-
             process (Callable): Callback function to process each entity.
                 Retrieved entity is provided as the argument and returned value
                 is stored as the entity. Retrieval is terminated if returned
                 value is False.
-
         """
         # Set argument separator
         sep = "&" if "?" in endpoint else "?"
@@ -377,6 +416,11 @@ class ZenodoClient(Client):
 
 
     def _get_account_datasets(self) -> List[RemoteDataset]:
+        """Retrieves list of account datasets.
+
+        Returns:
+            List of datasets related to the account ([RemoteDataset]).
+        """
         if "token" not in self.config:
             return []
 
@@ -408,13 +452,13 @@ class ZenodoClient(Client):
 
 
     def _get_dataset_details(self, id: Dict) -> Dict:
-        """Retrieves dataset details
+        """Retrieves dataset details.
 
         Args:
-            id (Dict): Standard dataset id
+            id (Dict): Standard dataset identifier.
 
         Returns:
-            Dictionary of dataset details
+            Dictionary of dataset details.
 
         Raises:
             ValueError("Invalid dataset id")
@@ -447,12 +491,12 @@ class ZenodoClient(Client):
 
     @cached_property
     def licenses(self) -> Dict:
-        """Retrieves the list of available licenses
+        """Retrieves the list of available licenses.
 
         License dictionary:
-            - id (str): Unique id
-            - name (str): Name of the license
-            - url (str): URL address of the license (optional)
+            - id (str): Unique id.
+            - name (str): Name of the license.
+            - url (str): URL address of the license (optional).
 
         For the complete list of data fields check the JSON schema available at:
         http://zenodo.org/schemas/licenses/license-v1.0.0.json
@@ -469,20 +513,20 @@ class ZenodoClient(Client):
 
 
     def get_communities(self) -> List[Dict]:
-        """Retrieves the list of available communities
+        """Retrieves the list of available communities.
 
-        WARNING: This is a slow function due to downloads
+        WARNING: This is a slow function due to downloads.
 
         Community dictionary:
-            - id (str): Unique id
-            - name (str): Name of the community
-            - url (str): URL address of the community page at Zenodo
-            - logo_url (str): URL address of the community logo
-            - created (str): Creation date of the community
-            - last_record_accepted (str): Date of the last record accepted
-            - description (str): Short description of the community
-            - about (str): Long description of the community
-            - curation_policy (str): Curation policy of the community
+            - id (str): Unique id.
+            - name (str): Name of the community.
+            - url (str): URL address of the community page at Zenodo.
+            - logo_url (str): URL address of the community logo.
+            - created (str): Creation date of the community.
+            - last_record_accepted (str): Date of the last record accepted.
+            - description (str): Short description of the community.
+            - about (str): Long description of the community.
+            - curation_policy (str): Curation policy of the community.
 
         Returns:
             List of community dictionaries.
@@ -501,17 +545,17 @@ class ZenodoClient(Client):
 
 
     def get_funders(self) -> List[Dict]:
-        """Retrieves the list of available funders
+        """Retrieves the list of available funders.
 
-        WARNING: This is a slow function due to downloads
+        WARNING: This is a slow function due to downloads.
 
         Funder dictionary:
-            - id (str): Unique id (= DOI)
-            - name (str): Name of the funder
-            - type (str): Type of the funder
-            - subtype (str): Subtype of the funder
-            - country (str): Country code of the funder
-            - acronyms (list): Acronyms of the funder
+            - id (str): Unique id (= DOI).
+            - name (str): Name of the funder.
+            - type (str): Type of the funder.
+            - subtype (str): Subtype of the funder.
+            - country (str): Country code of the funder.
+            - acronyms (list): Acronyms of the funder.
 
         For the complete list of data fields check the JSON schema available at:
         http://zenodo.org/schemas/funders/funder-v1.0.0.json
@@ -531,14 +575,13 @@ class ZenodoClient(Client):
 
 
     def _get_versions(self, id: Dict) -> OrderedDict:
-        """Returns standard dataset identifiers of the dataset versions
+        """Returns standard dataset identifiers of the dataset versions.
 
         Args:
-            id (Dict): Dataset id
+            id (Dict): Standard dataset identifier.
 
         Returns:
-            Ordered dictionary of dataset identifiers of the available versions.
-            Keys are the versions, values are the dataset identifiers.
+            Ordered dictionary of dataset identifiers of the available versions {version: id}.
         """
         details = self._get_dataset_details(id)
 
@@ -568,6 +611,14 @@ class ZenodoClient(Client):
 
 
     def _get_metadata(self, id: Dict) -> Dict:
+        """Returns standard metadata attributes.
+
+        Args:
+            id (Dict): Standard dataset identifier.
+
+        Returns:
+            Dictionary of standard metadata attributes {name: value}.
+        """
         # Get dataset details
         details = self._get_dataset_details(id)
 
@@ -717,6 +768,14 @@ class ZenodoClient(Client):
 
 
     def _serialize_persons(self, persons: List[Person]) -> List[Dict]:
+        """Serializes list of persons.
+
+        Args:
+            persons (List[Person]): List of persons.
+
+        Returns:
+            List of serialized persons ([Dict]).
+        """
         out = []
 
         for person in persons:
@@ -744,13 +803,13 @@ class ZenodoClient(Client):
 
 
     def _serialize_metadata(self, metadata: Metadata) -> Dict:
-        """Serializes dataset metadata for client use
+        """Serializes dataset metadata for client use.
 
         Args:
-            metadata (Metadata): Dataset metadata
+            metadata (Metadata): Dataset metadata.
 
         Returns:
-            Client-specific dictionary of the metadata
+            Client-specific dictionary of the metadata {name: value}.
         """
         out = {}
 
@@ -850,11 +909,11 @@ class ZenodoClient(Client):
 
 
     def save_metadata(self, id: Dict, metadata: Metadata) -> None:
-        """Saves metadata of the specified dataset
+        """Saves metadata of the specified dataset.
 
         Args:
-            id (Dict): Standard dataset id
-            metadata (Metadata): Metadata to be saved
+            id (Dict): Standard dataset identifier.
+            metadata (Metadata): Metadata to be saved.
 
         Raises:
             ValueError("No access token")
@@ -880,6 +939,14 @@ class ZenodoClient(Client):
 
 
     def validate_metadata(self, metadata: Metadata) -> Dict:
+        """Validates metadata.
+
+        Args:
+            metadata (Metadata): Metadata to be validated.
+
+        Returns:
+            Dictionary of invalid metadata {name: error message}.
+        """
         result = {}
 
         if not metadata.get("title"):
@@ -908,6 +975,14 @@ class ZenodoClient(Client):
 
 
     def get_files(self, id: Dict) -> List[RemoteFile]:
+        """Retrieves list of files of the specified dataset.
+
+        Args:
+            id (Dict): Standard dataset identifier.
+
+        Returns:
+            List of dataset files ([RemoteFile]).
+        """
         details = self._get_dataset_details(id)
 
         if "files" not in details:
@@ -947,6 +1022,16 @@ class ZenodoClient(Client):
 
 
     def _upload_file(self, id: Dict, file: LocalFile, notify: Callable=None) -> RemoteFile:
+        """Uploads a local file to the specified dataset at the repository.
+
+        Args:
+            id (Dict): Standard dataset identifier.
+            file (LocalFile): File to be uploaded.
+            notify (Callable): Notification callback method.
+
+        Returns:
+            Remote file object of the uploaded file (RemoteFile).
+        """
         # REMARK: requests_toolbelt MultipartEncoder is used to stream data
         # ref: https://stackoverflow.com/questions/22915295/python-requests-post-and-big-content
         # ref: https://stackoverflow.com/questions/12385179/how-to-send-a-multipart-form-data-with-requests-in-python
@@ -990,6 +1075,15 @@ class ZenodoClient(Client):
 
 
     def _delete_file(self, id: Dict, file: RemoteFile) -> None:
+        """Deletes specified file of the dataset.
+
+        Args:
+            id (Dict): Standard dataset identifier.
+            file (RemoteFile): File to be deleted.
+
+        Raises:
+            ValueError("No file id")
+        """
         if not file.id:
             raise ValueError("No file id")
 
@@ -1001,13 +1095,13 @@ class ZenodoClient(Client):
 
 
     def _delete_dataset(self, id: Dict) -> None:
-        """Deletes dataset specified by the standard identifier from the repository
+        """Deletes dataset specified by the standard identifier from the repository.
 
         Args:
-            id (Dict): Standard dataset identifier
+            id (Dict): Standard dataset identifier.
 
         Raises:
-            ValueError("Operation not permitted")
+            PermissionError("Operation not permitted")
             ValueError("Invalid dataset id")
         """
         # REMARK: Only unpublished depositions can be deleted
@@ -1016,7 +1110,7 @@ class ZenodoClient(Client):
 
         except HTTPError as err:
             if err.response.status_code == 403:
-                raise ValueError("Operation not permitted")
+                raise PermissionError("Operation not permitted")
             elif err.response.status_code == 404:
                 raise ValueError("Invalid dataset id")
             raise
@@ -1047,7 +1141,7 @@ class ZenodoClient(Client):
             - "unknown": Dataset is in an unknown state.
 
         Args:
-            id (Dict): Standard dataset id
+            id (Dict): Standard dataset identifier.
 
         Returns:
             Details dictionary of the dataset.
@@ -1095,5 +1189,10 @@ class ZenodoClient(Client):
 
 
     @classmethod
-    def supports_folder(cls) -> bool:
+    def supports_folders(cls) -> bool:
+        """Returns if folders are supported.
+
+        Returns:
+            True if folders are supported, False otherwise.
+        """
         return False
