@@ -276,6 +276,38 @@ def get_repository(uid: str) -> Optional[Dict]:
     return None
 
 
+def remove_repository(id: str) -> bool:
+    """Removes repository from the configuration file.
+
+    If the repository is defined by the package, only custom-defined attributes
+    are removed.
+
+    Args:
+        id (str): Repository id.
+    """
+    path = os.path.expanduser("~/.fairly/config.json")
+
+    try:
+        with open(path, "r") as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        return False
+
+    if not data or id not in data:
+        return False
+
+    del data[id]
+
+    dirs = os.path.dirname(path)
+    if dirs:
+        os.makedirs(dirs, exist_ok=True)
+
+    with open(path, 'w') as file:
+        json.dump(data, file, indent=2)
+
+    return True
+
+
 def client(id: str, **kwargs) -> Client:
     """Creates client object from a client or repository identifier.
 

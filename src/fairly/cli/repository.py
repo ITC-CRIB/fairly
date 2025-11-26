@@ -153,4 +153,10 @@ def remove(id):
     Raises:
         NotImplementedError
     """
-    raise NotImplementedError
+    result = fairly.remove_repository(id)
+
+    if result:
+        click.echo(f"Repository `{id}` is removed.")
+
+    else:
+        raise click.UsageError(f"Repository `{id}` not found in the configuration file.")
