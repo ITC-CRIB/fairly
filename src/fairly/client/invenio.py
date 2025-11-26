@@ -1,7 +1,8 @@
+"""InvenioClient class module."""
 from typing import Dict, List, Callable
 
 import fairly
-from . import Client
+from . import Client, ClientInfo
 from ..metadata import Metadata
 from ..person import Person, PersonList
 from ..dataset.remote import RemoteDataset
@@ -22,10 +23,11 @@ CLASS_NAME = "InvenioClient"
 
 
 class InvenioClient(Client):
-    """
+    """Invenio client class.
+
     Class Attributes:
-        PAGE_SIZE (int): Default page size.
-        KEEP_ALIVE (int): Keep alive seconds.
+        PAGE_SIZE (int): Default page size (default = 100).
+        KEEP_ALIVE (int): Keep alive seconds (default = 10).
 
     Attributes:
         _details (Dict): Record details cache.
@@ -37,9 +39,28 @@ class InvenioClient(Client):
 
 
     def __init__(self, repository_id: str=None, **kwargs):
+        """Initializes Invenio client object.
+
+        Args:
+            repository_id (str): Repository id (optional).
+            **kwargs (Dict): Client-specific configuration arguments.
+        """
         super().__init__(repository_id, **kwargs)
 
         self._details = {}
+
+
+    @classmethod
+    def get_client_info(cls) -> ClientInfo:
+        """Returns client information."""
+        return ClientInfo(
+            name="Invenio",
+            description="""
+                Invenio is a repository platform for institutional repositories,
+                research data management, and digital assets management.
+            """,
+            url="https://inveniosoftware.org/",
+        )
 
 
     @classmethod
@@ -47,8 +68,7 @@ class InvenioClient(Client):
         """Returns configuration parameters.
 
         Returns:
-            Dictionary of configuration parameters.
-            Keys are the parameter names, values are the descriptions.
+            Dictionary of configuration parameters {name: description}.
         """
         return {**super().get_config_parameters(), **{
             "token": "Access token.",
@@ -57,6 +77,14 @@ class InvenioClient(Client):
 
     @classmethod
     def get_config(cls, **kwargs) -> Dict:
+        """Returns client configuration.
+
+        Args:
+            **kwargs (Dict): Client-specific configuration arguments.
+
+        Returns:
+            Dictionary of configuration arguments {name: value}.
+        """
         config = super().get_config(**kwargs)
 
         for key, val in kwargs.items():
@@ -69,7 +97,7 @@ class InvenioClient(Client):
 
 
     @classmethod
-    def get_client(cls, url: str) -> Client:
+    def get_client(cls, url: str) -> "InvenioClient":
         """Creates a repository client from the specified URL address.
 
         Args:
@@ -105,6 +133,11 @@ class InvenioClient(Client):
 
 
     def _create_session(self) -> requests.Session:
+        """Creates a session.
+
+        Returns:
+            Session (requests.Session).
+        """
         session = super()._create_session()
 
         # Set authentication token
@@ -115,13 +148,13 @@ class InvenioClient(Client):
 
 
     def _get_dataset_id(self, **kwargs) -> Dict:
-        """Returns standard dataset identifier.
+        """Returns standard dataset identifier from the arguments.
 
         Args:
-            **kwargs: Dataset identifier arguments.
+            **kwargs (Dict): Dataset identifier arguments.
 
         Returns:
-            Standard dataset identifier.
+            Standard dataset identifier (Dict).
 
         Raises:
           ValueError("Invalid URL address")
@@ -164,7 +197,7 @@ class InvenioClient(Client):
             id (Dict): Standard dataset identifier.
 
         Returns:
-            Hash of the dataset identifier.
+            Hash of the dataset identifier (str).
         """
         return id["id"]
 
@@ -173,7 +206,7 @@ class InvenioClient(Client):
         """Stores dataset details in the cache.
 
         Args:
-            id (Dict): Standard dataset id.
+            id (Dict): Standard dataset identifier.
             details (Dict): Dataset details. Set None to clear the cached details.
         """
         hash = self._get_dataset_hash(id)
@@ -192,7 +225,7 @@ class InvenioClient(Client):
         """Returns cached dataset details.
 
         Args:
-            id (Dict): Standard dataset id.
+            id (Dict): Standard dataset identifier.
 
         Returns:
             Dataset details dictionary if cache is valid, None otherwise.
@@ -218,7 +251,7 @@ class InvenioClient(Client):
             metadata (Metadata): Standard metadata.
 
         Returns:
-            Standard identifier of the dataset.
+            Standard dataset identifier (Dict).
 
         Raises:
             ValueError("No access token")
@@ -261,6 +294,8 @@ class InvenioClient(Client):
                 is stored as the entity. Retrieval is terminated if returned
                 value is False.
 
+        Returns:
+            Entities.
         """
         # Set argument separator
         sep = "&" if "?" in endpoint else "?"
@@ -323,6 +358,11 @@ class InvenioClient(Client):
 
 
     def _get_account_datasets(self) -> List[RemoteDataset]:
+        """Retrieves list of account datasets.
+
+        Returns:
+            List of datasets related to the account ([RemoteDataset]).
+        """
         if "token" not in self.config:
             return []
 
@@ -345,7 +385,7 @@ class InvenioClient(Client):
         """Retrieves dataset details.
 
         Args:
-            id (Dict): Standard dataset id.
+            id (Dict): Standard dataset identifier.
 
         Returns:
             Dictionary of dataset details.
@@ -383,11 +423,10 @@ class InvenioClient(Client):
         """Returns standard dataset identifiers of the dataset versions.
 
         Args:
-            id (Dict): Standard dataset id.
+            id (Dict): Standard dataset identifier.
 
         Returns:
-            Ordered dictionary of dataset identifiers of the available versions.
-            Keys are the versions, values are the dataset identifiers.
+            Ordered dictionary of dataset identifiers of the available versions {version: id}.
         """
         versions = OrderedDict()
 
@@ -404,13 +443,13 @@ class InvenioClient(Client):
 
 
     def _get_metadata(self, id: Dict) -> Dict:
-        """Extracts metadata from dataset details.
+        """Returns standard metadata attributes.
 
         Args:
-            id (Dict): Standard dataset id.
+            id (Dict): Standard dataset identifier.
 
         Returns:
-            Dictionary of standard metadata attributes.
+            Dictionary of standard metadata attributes {name: value}.
         """
         # Get dataset details
         details = self._get_dataset_details(id)
@@ -454,13 +493,13 @@ class InvenioClient(Client):
 
 
     def _serialize_metadata(self, metadata: Metadata) -> Dict:
-        """Serializes dataset metadata for client use
+        """Serializes dataset metadata for client use.
 
         Args:
-            metadata (Metadata): Dataset metadata
+            metadata (Metadata): Dataset metadata.
 
         Returns:
-            Client-specific dictionary of the metadata
+            Client-specific dictionary of the metadata {name: value}.
         """
         out = {}
 
@@ -510,11 +549,11 @@ class InvenioClient(Client):
 
 
     def save_metadata(self, id: Dict, metadata: Metadata) -> None:
-        """Saves metadata of the specified dataset
+        """Saves metadata of the specified dataset.
 
         Args:
-            id (Dict): Standard dataset id
-            metadata (Metadata): Metadata to be saved
+            id (Dict): Standard dataset identifier.
+            metadata (Metadata): Metadata to be saved.
 
         Raises:
             ValueError("No access token")
@@ -543,14 +582,22 @@ class InvenioClient(Client):
 
 
     def validate_metadata(self, metadata: Metadata) -> Dict:
+        """Validates metadata.
+
+        Args:
+            metadata (Metadata): Metadata to be validated.
+
+        Returns:
+            Dictionary of invalid metadata {name: error message}.
+        """
         result = {}
 
         # if not metadata.get("type"):
         #     result["type"] = "Type is required."
-        #
+
         # if not metadata.get("title"):
         #     result["title"] = "Title is required."
-        #
+
         # if not metadata.get("authors"):
         #     result["authors"] = "At least one author is required."
 
@@ -564,10 +611,10 @@ class InvenioClient(Client):
             id (Dict): Standard dataset identifier.
 
         Returns:
-            List of dataset files (RemoteFile).
+            List of dataset files ([RemoteFile]).
 
         Raises:
-            ValueError("Operation not permitted"): If files are restricted.
+            PermissionError("Operation not permitted"): If files are restricted.
             ValueError("Invalid dataset id"): If invalid dataset identifier.
         """
         endpoints = [f"records/{id['id']}/files"]
@@ -612,6 +659,16 @@ class InvenioClient(Client):
 
 
     def _upload_file(self, id: Dict, file: LocalFile, notify: Callable=None) -> RemoteFile:
+        """Uploads a local file to the specified dataset at the repository.
+
+        Args:
+            id (Dict): Standard dataset identifier.
+            file (LocalFile): File to be uploaded.
+            notify (Callable): Notification callback method.
+
+        Returns:
+            Remote file object of the uploaded file (RemoteFile).
+        """
         result, response = self._request(
             f"records/{id['id']}/draft/files",
             "POST",
@@ -664,13 +721,13 @@ class InvenioClient(Client):
 
 
     def _delete_file(self, id: Dict, file: RemoteFile) -> None:
-        """Deletes specified file of the dataset from the repository.
+        """Deletes specified file of the dataset.
 
         REMARK: Only draft files can be deleted.
 
         Args:
             id (Dict): Standard dataset identifier.
-            file (RemoteFile): File
+            file (RemoteFile): File to be deleted.
 
         Raises:
             ValueError("No file id"): If file has no id.
@@ -696,15 +753,13 @@ class InvenioClient(Client):
 
 
     def _delete_dataset(self, id: Dict) -> None:
-        """Deletes specific dataset from the repository.
-
-        REMARK: Only draft records can be deleted.
+        """Deletes dataset specified by the standard identifier from the repository.
 
         Args:
             id (Dict): Standard dataset identifier.
 
         Raises:
-            ValueError("Operation not permitted")
+            PermissionError("Operation not permitted")
             ValueError("Invalid dataset id")
         """
         logging.info("Deleting dataset %s.", id)
@@ -717,7 +772,7 @@ class InvenioClient(Client):
             if err.response.status_code == 504:
                 pass
             elif err.response.status_code == 403:
-                raise ValueError("Operation not permitted")
+                raise PermissionError("Operation not permitted")
             elif err.response.status_code == 404:
                 raise ValueError("Invalid dataset id")
             else:
@@ -749,7 +804,7 @@ class InvenioClient(Client):
             - "unknown": Dataset is in an unknown state.
 
         Args:
-            id (Dict): Standard dataset id.
+            id (Dict): Standard dataset identifier.
 
         Returns:
             Details dictionary of the dataset.
@@ -812,5 +867,10 @@ class InvenioClient(Client):
 
 
     @classmethod
-    def supports_folder(cls) -> bool:
+    def supports_folders(cls) -> bool:
+        """Returns if folders are supported.
+
+        Returns:
+            True if folders are supported, False otherwise.
+        """
         return False
