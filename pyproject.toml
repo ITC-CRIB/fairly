@@ -10,22 +10,22 @@ readme = "README.rst"
 license = { file="LICENSE" }
 requires-python = ">=3.8"
 authors = [
-  { name="Serkan Girgin", email="s.girgin@utwente.nl" },
-  { name="Manuel Garcia Alvarez", email="m.g.garciaalvarez@tudelft.nl" },
-  { name="Jose Urra Llanusa", email="j.c.urrallanusa@tudelft.nl" }, 
-  ]
+    { name="Serkan Girgin", email="s.girgin@utwente.nl" },
+    { name="Manuel Garcia Alvarez", email="m.g.garciaalvarez@tudelft.nl" },
+    { name="Jose Urra Llanusa", email="j.c.urrallanusa@tudelft.nl" },
+]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent", ]
+    "Operating System :: OS Independent",
+]
 dependencies = [
     "python-dateutil",
     "requests",
-		"requests_toolbelt>=1.0.0",
+    "requests_toolbelt>=1.0.0",
     "ruamel.yaml>=0.17.26",
-    "typer>=0.9.0",
-    "rich"
-    ]
+    "click",
+]
 keywords = ["fairly", "open science", "research data", "data management"]
 
 [project.optional-dependencies]
@@ -34,8 +34,8 @@ dev = [
     "pytest-cov",
     "python-dotenv",
     "build",
-    "hatch"
-    ]
+    "hatch",
+]
 
 [project.urls]
 "Homepage" = "https://github.com/ITC-CRIB/fairly"
@@ -44,4 +44,4 @@ dev = [
 "Funding" = "https://nwo.nl/en/researchprogrammes/open-science/open-science-fund"
 
 [project.scripts]
-fairly = "fairly.cli:app"
+fairly = "fairly.cli:cli"

@@ -1,41 +1,39 @@
-import pytest
 import os
+import pytest
+import re
 from tests.conftest import *
+from click.testing import CliRunner
 
 import fairly
+from fairly.cli import cli
 
-import re
 
-from fairly.cli import app
-
-from typer.testing import CliRunner
-
-runner = CliRunner()
-
-def test_cli_help():
-    '''Test if CLI is reachable from the system terminal.'''
+def test_help():
+    """Test if CLI is reachable from the system terminal."""
     exit_status = os.system("fairly --help")
     assert exit_status == 0
 
+
 def test_show_config():
-    result = runner.invoke(app, ["config", "show"])
+    runner = CliRunner()
+    result = runner.invoke(cli, ["config", "show"])
     assert result.exit_code == 0
 
 
 @pytest.mark.parametrize("id", remote_dataset_ids())
 def test_dataset_clone(id, tmpdir):
-    '''Test dataset cloning by using dataset URL address, DOI or ID.'''
-
-    result = runner.invoke(app, ["dataset", "clone", id, str(tmpdir)])
+    """Test dataset cloning by using dataset URL address, DOI or ID."""
+    runner = CliRunner()
+    result = runner.invoke(cli, ["dataset", "clone", id, str(tmpdir)])
     assert result.exit_code == 0, result.stdout
 
 
 @pytest.mark.parametrize("template", fairly.metadata_templates())
 def test_dataset_create(template, tmpdir):
-    '''Test dataset creation by using metadata templates.'''
-
+    """Test dataset creation by using metadata templates."""
+    runner = CliRunner()
     # Create a dummy dataset
-    result = runner.invoke(app, ["dataset", "create", "--template", template, str(tmpdir)])
+    result = runner.invoke(cli, ["dataset", "create", "--template", template, str(tmpdir)])
     assert result.exit_code == 0, result.stdout
 
     # Access the dummy dataset
@@ -44,20 +42,20 @@ def test_dataset_create(template, tmpdir):
 
     # Should raise an exception if dataset already exists
     with pytest.raises(Exception):
-        assert isinstance(runner.invoke(app, ["dataset", "create", tmpdir]), Exception)
+        assert isinstance(runner.invoke(cli, ["dataset", "create", tmpdir]), Exception)
 
 
 @pytest.mark.parametrize("repository_id", fairly.get_repositories())
 def test_dataset_upload_delete(repository_id, tmpdir):
-    '''Test dataset upload to the recognized repositories.'''
-
+    """Test dataset upload to the recognized repositories."""
+    runner = CliRunner()
     repository = fairly.get_repository(repository_id)
     if not repository.get("token"):
         pytest.skip("No access token")
 
     create_dummy_dataset(tmpdir)
 
-    result = runner.invoke(app, ["dataset", "upload", str(tmpdir), repository_id])
+    result = runner.invoke(cli, ["dataset", "upload", str(tmpdir), repository_id])
     assert result.exit_code == 0, result.stdout
 
     match = re.search(r"uploaded at (.+)", result.stdout)
@@ -65,5 +63,5 @@ def test_dataset_upload_delete(repository_id, tmpdir):
 
     id = match[1]
 
-    result = runner.invoke(app, ["dataset", "delete", "--repo", repository_id, id])
+    result = runner.invoke(cli, ["dataset", "delete", "--repository", repository_id, id])
     assert result.exit_code == 0, result.stdout

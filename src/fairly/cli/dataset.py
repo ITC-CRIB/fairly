@@ -1,54 +1,90 @@
-import typer
-
-from rich.progress import Progress, SpinnerColumn, TextColumn
+"""CLI Dataset module."""
+import click
 
 import fairly
+from . import common
 
 
-app = typer.Typer(pretty_exceptions_show_locals=False)
+@click.group(help="Dataset commands.")
+def dataset():
+    """Command group for dataset-related commands."""
+    pass
 
-@app.command()
-def create(
-    path: str = typer.Argument(help="Path where the dataset will be created"),
-    template: str = typer.Option("default", help="Metadata template to be used for the dataset"),
-) -> None:
-    '''Create a local dataset under path with default template\n
 
-    fairly dataset create <path>\n
+@dataset.command()
+@click.option(
+    "--path",
+    help="Path where the dataset will be initialized.",
+)
+@click.option(
+    "--template",
+    help="Metadata template to be used for the dataset.",
+    default="default"
+)
+def init(path, template):
+    """Initializes a local dataset with a metadata template.
 
-    Create a local dataset under path with the specified template\n
-    <template> = 'zeondo, 4tu, default'\n
+    `fairly dataset create <path> --template <template>`
 
-    fairly dataset create <path> --template <template>
-    '''
+    Args:
+        path (str): Path to initialize the local dataset.
+        template (str): Metadata template (default = `default`)
+    """
     fairly.init_dataset(path, template=template)
 
 
-@app.command()
-def clone(
-    id: str = typer.Argument(help="Dataset identifier (URL, DOI, or unique ID)"),
-    path: str = typer.Argument("", help="Path where the dataset will be stored"),
-    repo: str = typer.Option("", help="Repository option argument"),
-    token: str = typer.Option("", help="Access token option argument"),
-    notify: bool = typer.Option(False, help="Enable process notification"),
-    extract: bool = typer.Option(False, help="Extract archive files"),
-) -> None:
-    '''
-    Clones a dataset by using its URL address, DOI or unique ID.
+@dataset.command(
+    help="Clones a dataset by using its URL address, DOI or unique ID.",
+)
+@click.option(
+    "--id",
+    help="Dataset identifier (URL, DOI, or unique ID).",
+)
+@click.option(
+    "--path",
+    help="Path where the dataset will be stored.",
+)
+@click.option(
+    "--repository",
+    help="Repository identifier.",
+)
+@click.option(
+    "--token",
+    help="Access token.",
+)
+@click.option(
+    "--notify",
+    is_flag=True,
+    default=False,
+    help="Enable progress notification.",
+)
+@click.option(
+    "--extract",
+    is_flag=True,
+    default=False,
+    help="Extract archive files.",
+)
+def clone(id, path, repository, token, notify, extract):
+    """Clones a dataset by using its URL address, DOI or unique ID.
 
-    Examples: \n
-        >>> fairly dataset clone <url|doi|uid> \n \n
-        >>> fairly dataset clone https://zenodo.org/records/7759648 \n
-        >>> fairly dataset clone 10.5281/zenodo.7759648 \n
-        >>> fairly dataset clone <repository> <id> \n
-        >>> fairly dataset clone --repo zenodo 7759648 \n
-    '''
+    Args:
+        id (str): Dataset identifier.
+        path (str): Path to create the local dataset.
+        repository (str): Repository identifier (optional).
+        token (str): Access token (optional).
+        notify (bool): Set True to enable progress notification (default = False)
+        extract (bool): Set True to extract archive files (default = False)
 
-    if repo:
+    Examples:
+        >>> fairly dataset clone https://zenodo.org/records/7759648
+        >>> fairly dataset clone 10.5281/zenodo.7759648
+        >>> fairly dataset clone --repository zenodo 7759648 --notify
+    """
+    if repository:
         if token:
-            client = fairly.client(repo, token=token)
+            client = fairly.client(repository, token=token)
         else:
-            client = fairly.client(repo)
+            client = fairly.client(repository)
         dataset = client.get_dataset(id)
 
     else:
@@ -60,79 +96,124 @@ def clone(
         for sep in ["/", "\\"]:
             path = path.replace(sep, "_")
 
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        transient = True,
-    ) as progress:
-        progress.add_task("Cloning dataset", total=None)
+    click.echo(f"Cloning dataset {id}...")
 
-        dataset.store(path, notify=fairly.notify if notify else None, extract=extract)
-        print(f"Dataset {id} is successfully cloned to {path}")
+    dataset.store(path, notify=fairly.notify if notify else None, extract=extract)
+
+    click.echo(f"Dataset {id} is successfully cloned to {path}.")
 
 
-    return None
+@dataset.command()
+@click.option(
+    "--path",
+    help="Local dataset path.",
+)
+@click.option(
+    "--repository",
+    help="Repository identifier.",
+)
+@click.option(
+    "--token",
+    help="Access token.",
+)
+@click.option(
+    "--notify",
+    is_flag=True,
+    help="Enable progress notification.",
+)
+def upload(path, repository, token, notify):
+    """Uploads a local dataset to a data repository.
 
-@app.command()
-def upload(
-    path: str = typer.Argument(help="Path where the dataset is located"),
-    repo: str = typer.Argument(help="Repository to upload the dataset"),
-    token: str = typer.Option(None, help="Access token option argument"),
-    notify: bool = typer.Option(False, help="Enable process notification"),
-):
-    '''
-    Uploads a local dataset to a data repository.
-    '''
+    Args:
+        path (str): Local dataset path.
+        repository (str): Repository identifier.
+        token (str): Access token (optional).
+        notify (bool): Set True to enable progress notification (default = False).
+    """
     dataset = fairly.dataset(path)
 
-    # TODO: Support repository selection from the metadata template of the dataset
+    # TODO: Support repository selection from the metadata of the dataset.
 
     if token:
-        client = fairly.client(repo, token=token)
+        client = fairly.client(repository, token=token)
     else:
-        client = fairly.client(repo)
+        client = fairly.client(repository)
 
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        transient = True,
-    ) as progress:
-        progress.add_task(description=f"Uploading dataset {path}", total=None)
-        remote_dataset = dataset.upload(client, notify=notify)
+    click.echo(f"Uploading dataset {path}...")
 
-    print(f"Dataset {path} is successfully uploaded at {remote_dataset.url or remote_dataset.plain_id}")
+    remote_dataset = dataset.upload(client, notify=fairly.notify if notify else None)
+
+    click.echo(f"Dataset {path} is successfully uploaded at {remote_dataset.url}.")
 
 
-@app.command()
-def delete(
-    id: str = typer.Argument(help="Dataset identifier (URL address, DOI, or unique ID)"),
-    repo: str = typer.Option("", help="Repository option argument"),
-    token: str = typer.Option("", help="Access token option argument"),
-):
-    '''
-    Deletes a dataset by using its URL address, DOI or unique ID.
-    '''
-    if repo:
+@dataset.command()
+@click.option(
+    "--id",
+    help="Dataset identifier (URL, DOI, or unique ID).",
+)
+@click.option(
+    "--repository",
+    help="Repository identifier.",
+)
+@click.option(
+    "--token",
+    help="Access token.",
+)
+def delete(id, repository, token):
+    """Deletes a dataset by using its URL address, DOI or unique ID.
+
+    Args:
+        id (str): Dataset identifier.
+        repository (str): Repository identifier (optional).
+        token (str): Access token (optional).
+    """
+    if repository:
         if token:
-            client = fairly.client(repo, token=token)
+            client = fairly.client(repository, token=token)
         else:
-            client = fairly.client(repo)
+            client = fairly.client(repository)
         dataset = client.get_dataset(id)
 
     else:
         dataset = fairly.dataset(id)
         client = dataset.client
 
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        transient = True,
-    ) as progress:
-        progress.add_task(description=f"Deleting dataset {id}", total=None)
-        client.delete_dataset(dataset.id)
+    click.echo(f"Deleting dataset {id}...")
 
-    print(f"Dataset {id} is successfully deleted.")
+    client.delete_dataset(dataset.id)
+
+    click.echo(f"Dataset {id} is successfully deleted.")
 
 
-if __name__ == "__main__":
-    app()
+@dataset.command
+@click.option(
+    "--repository",
+    help="Repository identifier.",
+)
+def list(repository):
+    """List all user datasets in a repository.
+
+    Args:
+        repository (str): Repository identifier.
+    """
+    # Test the connection to the repository by listing account datasets
+    try:
+        client = fairly.client(repository)
+        datasets = client.get_account_datasets()
+        if not datasets:
+            click.echo("There are no user datasets.")
+        else:
+            for dataset in datasets:
+                metadata = dataset.metadata
+                item = {}
+                for key in metadata:
+                    if key in ["publication_date", "title", "doi"]:
+                        item[key] = metadata[key]
+
+                out = common.serialize(item, 'yaml')
+                click.echo(out)
+                click.echo()
+
+    except Exception as e:
+        click.echo(e, err=True)
+        click.echo("Please specify a valid repository identifier.")
