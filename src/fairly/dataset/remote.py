@@ -1,31 +1,28 @@
+"""RemoteDataset class module."""
 from __future__ import annotations
 from typing import Any, List, Dict, Callable
 
-import fairly
-
-from . import Dataset
-from ..metadata import Metadata
-from ..file.local import LocalFile
-from ..file.remote import RemoteFile
-# FIXME: Importing Client or LocalDataset results in circular dependency
-# from ..client import Client
-
 import os
-import os.path
 import datetime
 import concurrent.futures
-from functools import cached_property
 import logging
+from functools import cached_property
+
+import fairly
+from . import Dataset
+from ..metadata import Metadata
+from ..file import safe_filename
+from ..file.local import LocalFile
+from ..file.remote import RemoteFile
 
 
 class RemoteDataset(Dataset):
-    """
+    """RemoteDataset class.
 
     Attributes:
         _client (Client): Client object
         _id (str): Dataset identifier
         _details (Dict): Dataset details
-
     """
 
     def __init__(self, client, id=None, auto_refresh: bool=True, **kwargs):
@@ -139,11 +136,10 @@ class RemoteDataset(Dataset):
 
         # Set path based on DOI if required
         if not path:
-            path = self.doi
+            path = self.doi or self.title
             if not path:
                 raise ValueError("Empty path")
-            for sep in ["/", "\\"]:
-                path = path.replace(sep, "_")
+            path = safe_filename(path)
 
         # Create path
         os.makedirs(path, exist_ok=True)

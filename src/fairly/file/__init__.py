@@ -10,6 +10,14 @@ Implementations:
 from abc import ABC, abstractmethod
 
 import os.path
+import re
+
+
+REGEXP_INVALID_CHARACTERS = re.compile(r'[<>:\'"/\\|?*\s]+', re.IGNORECASE)
+
+
+def safe_filename(name: str, replace: str='_') -> str:
+    return re.sub(REGEXP_INVALID_CHARACTERS, replace, name).strip(replace)
 
 
 class File(ABC):
@@ -23,7 +31,6 @@ class File(ABC):
         _md5 (str): MD5 checksum of the file.
         _extension (str): Extension of the file.
     """
-
     @abstractmethod
     def __init__(self):
         """Initializes File object."""
