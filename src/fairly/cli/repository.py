@@ -45,11 +45,12 @@ def list(format):
 @repository.command(
     help="Add a repository to the configuration file.",
 )
-@click.argument(
-    'client_id',
-    type=click.Choice(fairly.get_clients().keys(), case_sensitive=False),
-)
 @click.argument('id')
+@click.option(
+    "--client_id",
+    type=click.Choice(fairly.get_clients().keys(), case_sensitive=False),
+    help="Client ID.",
+)
 @common.custom_options(Client.get_config_parameters())
 @click.option(
     '--param',
@@ -75,14 +76,14 @@ def add(client_id, id, param, **kwargs):
 
     for item in param:
         if '=' in item:
-            key, val = item.split('=', 1)
+            key, val = map(str.strip, item.split('=', 1))
             kwargs[key] = val
         else:
             raise click.BadParameter(f"Invalid parameter {item}.")
 
     client = fairly.client(client_id, repository_id = id, **kwargs)
 
-    raise NotImplementedError
+    client.save_config()
 
 
 @repository.command(
