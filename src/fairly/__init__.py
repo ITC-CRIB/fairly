@@ -132,8 +132,6 @@ def get_clients() -> Dict:
     return clients
 
 
-# REMARK: @cache decorator can be used for Python 3.9+
-@lru_cache(maxsize=None)
 def get_repositories() -> Dict:
     """Returns recognized repositories.
 
