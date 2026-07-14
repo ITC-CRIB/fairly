@@ -1,4 +1,4 @@
-import os
+import subprocess
 import pytest
 import re
 from tests.conftest import *
@@ -10,7 +10,7 @@ from fairly.cli import cli
 
 def test_help():
     """Test if CLI is reachable from the system terminal."""
-    exit_status = os.system("fairly --help")
+    exit_status = subprocess.call(["fairly", "--help"])
     assert exit_status == 0
 
 
