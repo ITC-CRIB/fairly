@@ -4,6 +4,7 @@ import click
 from .client import client
 from .dataset import dataset
 from .repository import repository
+from fairly._version import __version__
 
 
 ART = r"""
@@ -20,6 +21,7 @@ ______ ___  ___________ _
 @click.group(invoke_without_command=True, 
     help="fairly command-line tool.",
 )
+@click.version_option(__version__, "-v", "--version", message="%(prog)s version %(version)s")
 @click.pass_context
 def cli(context):
     """Command group for main commands."""
