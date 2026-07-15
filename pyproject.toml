@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fairly"
-version = "1.0.1"
+dynamic = ["version"]
 description = "A package to create, publish, and download research datasets"
 readme = "README.rst"
 license = { file="LICENSE" }
@@ -36,6 +36,9 @@ dev = [
     "build",
     "hatch",
 ]
+
+[tool.hatch.version]
+path = "src/fairly/_version.py"
 
 [project.urls]
 "Homepage" = "https://github.com/ITC-CRIB/fairly"
