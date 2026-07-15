@@ -209,8 +209,8 @@ Citation
 
 Please cite this software using as follows:
 
-*Girgin, S., Garcia Alvarez, M., & Urra Llanusa, J., fairly: a package
-to create, publish and clone research datasets [Computer software]*
+*Girgin, S., Garcia Alvarez, M., & Urra Llanusa, J., Fairly: a package
+to create, publish and clone research datasets (Version 2.0.0) [Computer software]*
 
 Acknowledgements
 ----------------
