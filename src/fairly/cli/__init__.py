@@ -6,12 +6,26 @@ from .dataset import dataset
 from .repository import repository
 
 
-@click.group(
+ART = r"""
+______ ___  ___________ _       
+|  ___/ _ \|_   _| ___ \ |      
+| |_ / /_\ \ | | | |_/ / |_   _ 
+|  _||  _  | | | |    /| | | | |
+| |  | | | |_| |_| |\ \| | |_| |
+\_|  \_| |_/\___/\_| \_|_|\__, |
+                           __/ |
+                          |___/ 
+"""
+
+@click.group(invoke_without_command=True, 
     help="fairly command-line tool.",
 )
-def cli():
+@click.pass_context
+def cli(context):
     """Command group for main commands."""
-    pass
+    if context.invoked_subcommand is None:
+        click.echo(ART)
+        click.echo(context.get_help())
 
 
 # Register subcommands
