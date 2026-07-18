@@ -18,13 +18,17 @@ def dataset():
 )
 @click.option(
     "--template",
-    help="Metadata template to be used for the dataset. Templates maybe repository-specific and can be listed using `fairly template list`. The default template is compatible with all repositories.",
+    help="Metadata template to be used for the dataset. The default template is compatible with all supported repositories.",
     default="default"
 )
 def init(path, template):
     """Initializes a local dataset with a metadata template.
 
-    `fairly dataset create <path> --template <template>`
+    \b
+    Examples:
+        >>> fairly dataset init ./my_dataset
+        >>> fairly dataset init ./my_dataset --template zenodo
+
     \f
     Args:
         path (str): Path to initialize the local dataset.
@@ -66,7 +70,7 @@ def init(path, template):
 )
 def clone(id, path, repository, token, notify, extract):
     """Clones a dataset by using its URL address, DOI or unique ID.
-    
+
     \b
     Examples:
         >>> fairly dataset clone https://zenodo.org/records/7759648
