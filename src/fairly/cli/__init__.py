@@ -6,6 +6,7 @@ from .dataset import dataset
 from .repository import repository
 from fairly._version import __version__
 
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 ART = r"""
 ______ ___  ___________ _       
@@ -18,7 +19,8 @@ ______ ___  ___________ _
                           |___/ 
 """
 
-@click.group(invoke_without_command=True, 
+@click.group(context_settings=CONTEXT_SETTINGS,
+    invoke_without_command=True,
     help="fairly command-line tool.",
 )
 @click.version_option(__version__, "-v", "--version", message="%(prog)s version %(version)s")
