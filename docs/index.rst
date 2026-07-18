@@ -21,6 +21,12 @@ Fairly Toolset Documentation
    tutorials/python-api
 
 .. toctree::
+   :maxdepth: 1
+   :caption: Reference
+
+   reference/cli
+
+.. toctree::
    :maxdepth:  1
    :caption: Fairly API
    
