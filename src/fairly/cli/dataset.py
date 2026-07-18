@@ -18,23 +18,23 @@ def dataset():
 )
 @click.option(
     "--template",
-    help="Metadata template to be used for the dataset.",
+    help="Metadata template to be used for the dataset. Templates maybe repository-specific and can be listed using `fairly template list`. The default template is compatible with all repositories.",
     default="default"
 )
 def init(path, template):
     """Initializes a local dataset with a metadata template.
 
     `fairly dataset create <path> --template <template>`
-
+    \f
     Args:
         path (str): Path to initialize the local dataset.
         template (str): Metadata template (default = `default`)
     """
+    # \f makes sure the text after that doesn't leak into the terminal. 
     fairly.init_dataset(path, template=template)
 
 
 @dataset.command(
-    help="Clones a dataset by using its URL address, DOI or unique ID.",
 )
 @click.option(
     "--id",
@@ -62,11 +62,17 @@ def init(path, template):
     "--extract",
     is_flag=True,
     default=False,
-    help="Extract archive files.",
+    help="Extract archive files",
 )
 def clone(id, path, repository, token, notify, extract):
     """Clones a dataset by using its URL address, DOI or unique ID.
-
+    
+    \b
+    Examples:
+        >>> fairly dataset clone https://zenodo.org/records/7759648
+        >>> fairly dataset clone 10.5281/zenodo.7759648
+        >>> fairly dataset clone --repository zenodo 7759648 --notify
+    \f
     Args:
         id (str): Dataset identifier.
         path (str): Path to create the local dataset.
@@ -74,11 +80,6 @@ def clone(id, path, repository, token, notify, extract):
         token (str): Access token (optional).
         notify (bool): Set True to enable progress notification (default = False)
         extract (bool): Set True to extract archive files (default = False)
-
-    Examples:
-        >>> fairly dataset clone https://zenodo.org/records/7759648
-        >>> fairly dataset clone 10.5281/zenodo.7759648
-        >>> fairly dataset clone --repository zenodo 7759648 --notify
     """
     if repository:
         if token:
@@ -123,7 +124,7 @@ def clone(id, path, repository, token, notify, extract):
 )
 def upload(path, repository, token, notify):
     """Uploads a local dataset to a data repository.
-
+    \f
     Args:
         path (str): Local dataset path.
         repository (str): Repository identifier.
@@ -161,7 +162,7 @@ def upload(path, repository, token, notify):
 )
 def delete(id, repository, token):
     """Deletes a dataset by using its URL address, DOI or unique ID.
-
+    \f
     Args:
         id (str): Dataset identifier.
         repository (str): Repository identifier (optional).
@@ -192,7 +193,7 @@ def delete(id, repository, token):
 )
 def list(repository):
     """List all user datasets in a repository.
-
+    \f
     Args:
         repository (str): Repository identifier.
     """
