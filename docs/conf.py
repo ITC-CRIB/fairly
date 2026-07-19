@@ -7,9 +7,9 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'Fairly Toolset'
-copyright = '2023, Serkan Girgin, Manuel Garcia Alvarez, Jose Urra Llanusa'
+copyright = '2026, Serkan Girgin, Manuel Garcia Alvarez, Jose Urra Llanusa'
 author = 'Serkan Girgin, Manuel Garcia Alvarez, Jose Urra Llanusa'
-release = '1.0.0'
+release = '2.0.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
