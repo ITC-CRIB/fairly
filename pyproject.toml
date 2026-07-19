@@ -35,6 +35,9 @@ dev = [
     "python-dotenv",
     "build",
     "hatch",
+    "sphinx-copybutton",
+    "nbsphinx",
+    "sphinx-rtd-theme"
 ]
 
 [tool.hatch.version]
