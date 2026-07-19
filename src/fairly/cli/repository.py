@@ -84,6 +84,7 @@ def add(client_id, id, param, **kwargs):
     client = fairly.client(client_id, repository_id = id, **kwargs)
 
     client.save_config()
+    click.echo(f"Repository `{id}` added to the configuration file.")
 
 
 @repository.command(
