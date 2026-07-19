@@ -159,6 +159,8 @@ as an argument, the client and its configuration as options:
        --name "My Data Repository" \
        --url https://repository.example.com \
        --api_url https://repository.example.com/api
+   
+   Repository `myrepo` added to the configuration file.
 
 Options:
 
@@ -169,15 +171,8 @@ Options:
 - :code:`-p, --param KEY=VALUE`: Any other client-specific configuration
   parameter. Can be repeated.
 
-The command prints nothing on success. Use :code:`fairly repository config` to
-inspect the result.
+Use :code:`fairly repository config` to inspect repository configurations.
 
-.. TODO: Example output pending. `repository add` currently saves the entry
-   without its `client_id` (save_config() only persists the client config
-   parameters), after which every configuration read (`repository list`,
-   `repository config`, `repository token`) fails with
-   `AttributeError: No client id <id>`. Capture the `repository config` example
-   below against a custom repository once this is fixed.
 
 fairly repository config
 ''''''''''''''''''''''''
@@ -323,13 +318,8 @@ so you can review it before publishing it in the repository's web interface.
 
    $ fairly dataset upload --path . --repository zenodo
    Uploading dataset ....
-   Dataset . is successfully uploaded at https://zenodo.org/deposit/1234567.
+   Dataset . is successfully uploaded at https://zenodo.org/uploads/1234567.
 
-.. Placeholder output above (URL shape not verified): run
-   `fairly dataset upload --path . --repository zenodo` on a small test dataset
-   (e.g. one created with `fairly dataset init` plus a dummy file) and replace
-   the example with the captured output. Delete the resulting draft afterwards
-   with `fairly dataset delete`.
 
 Options:
 
@@ -362,8 +352,6 @@ in YAML format:
    doi: 10.5281/zenodo.7654321
    publication_date: '2024-11-02'
 
-.. Output shape verified against a real account; titles, DOIs, and dates above
-   are anonymized examples.
 
 Unpublished drafts appear with their title only. If the account has no
 datasets, the command prints :code:`There are no user datasets.`. An invalid
@@ -392,13 +380,10 @@ identifier.
    Deleting dataset https://zenodo.org/deposit/1234567...
    Dataset https://zenodo.org/deposit/1234567 is successfully deleted.
 
-.. Placeholder output above (identifier shape not verified): capture by
-   deleting the draft created for the `fairly dataset upload` example, e.g.
-   `fairly dataset delete --id <draft-url> --repository zenodo`.
 
 Options:
 
-- :code:`--id`: Dataset identifier (URL, DOI, or unique ID).
+- :code:`--id`: Dataset identifier (URL, or unique ID).
 - :code:`--repository`: Repository identifier.
 - :code:`--token`: Access token; if omitted, the token stored in the
   configuration is used.
