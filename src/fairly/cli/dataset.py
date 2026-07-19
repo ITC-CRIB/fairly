@@ -36,6 +36,7 @@ def init(path, template):
     """
     # \f makes sure the text after that doesn't leak into the terminal. 
     fairly.init_dataset(path, template=template)
+    click.echo(f"Dataset successfully initialized at {path}")
 
 
 @dataset.command(
