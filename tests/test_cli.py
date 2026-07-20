@@ -48,13 +48,14 @@ def test_dataset_upload_delete(repository_id, tmpdir):
 
     create_dummy_dataset(tmpdir)
 
-    result = runner.invoke(cli, ["dataset", "upload", "--path", str(tmpdir), "--id", repository_id])
+    result = runner.invoke(cli, ["dataset", "upload", "--path", str(tmpdir), "--repository", repository_id])
     assert result.exit_code == 0, result.stdout
 
     match = re.search(r"uploaded at (.+)", result.stdout)
     assert match
 
     id = match[1]
+    id = id[:-1] # Remove trailing '.'
 
     result = runner.invoke(cli, ["dataset", "delete", "--repository", repository_id, "--id", id])
     assert result.exit_code == 0, result.stdout
