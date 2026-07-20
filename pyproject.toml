@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "A package to create, publish, and download research datasets"
 readme = "README.rst"
 license = { file="LICENSE" }
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 authors = [
     { name="Serkan Girgin", email="s.girgin@utwente.nl" },
     { name="Manuel Garcia Alvarez", email="m.g.garciaalvarez@tudelft.nl" },
