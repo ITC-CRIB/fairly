@@ -55,7 +55,7 @@ def test_dataset_upload_delete(repository_id, tmpdir):
     assert match
 
     id = match[1]
-    id = id[:-1] # Remove trailing '.'
+    id = id[:-1] # Remove tailing '.'
 
     result = runner.invoke(cli, ["dataset", "delete", "--repository", repository_id, "--id", id])
     assert result.exit_code == 0, result.stdout
