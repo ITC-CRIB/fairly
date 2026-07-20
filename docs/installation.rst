@@ -3,7 +3,7 @@
 Installation
 ================
 
-The *Fairly Toolset* provides functionality for the core tasks of preparing, uploading and downloading datasets from research data repositories. The toolset currently provides integration with data repositories based on `Invenio <https://inveniosoftware.org/>`_ and `Figshare <https://figshare.com/>`_.
+The *Fairly Toolset* provides functionality for the core tasks of preparing, uploading and downloading datasets from research data repositories. The toolset currently provides integration with data repositories like: Zenodo, 4TU.ResearchData, and Figshare.
 
 **What's Included:**
 
@@ -13,10 +13,8 @@ The *Fairly Toolset* provides functionality for the core tasks of preparing, upl
 
 **Requirements:**
 
-* Python 3.8 or higher
-* pip 20.0 or higher
-* ruamel.yaml 0.17.26 or higher 
-* JupyterLab 3.x
+* Python 3.10 or higher
+* JupyterLab 4.x or higher
 
 Installing the Toolset
 ------------------------
@@ -94,6 +92,4 @@ Installing *fairly* from source requires `setuptools` version 49.0 or later and 
 
    pip install .
 
-.. important::
-   Currently, the toolset only supports data repositories based on `Invenio <https://inveniosoftware.org/>`_ and `Figshare <https://figshare.com/>`_. For examples on how to use the toolset, read the `Tutorials <index.rst>`_
 
