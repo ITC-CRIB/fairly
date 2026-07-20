@@ -107,8 +107,11 @@ Installing from source
 Usage
 -----
 
+Python API
+''''''''''''
+
 Basic example to create a local research dataset and deposit it to a
-repository:
+repository using the Python API:
 
 .. code:: python
 
@@ -172,6 +175,34 @@ Basic example to access a remote dataset and store it locally:
 
    # Store dataset to a local directory (i.e. clone dataset)
    local_dataset = dataset.store('/path/dataset')
+
+
+Command Line
+''''''''''''''
+
+.. code:: shell
+   
+   fairly --help
+
+
+You should see the following:
+
+   .. code:: shell
+
+      Usage: fairly [OPTIONS] [COMMAND] [ARGS]...
+
+      fairly command-line tool.
+
+      Options:
+      -v, --version  Show the version and exit.
+      -h, --help     Show this message and exit.
+
+      Commands:
+      client      Client commands.
+      dataset     Dataset commands.
+      repository  Repository commands.
+
+
 
 Currently, the package supports the following research data management
 platforms:
