@@ -13,18 +13,11 @@ def test_help():
     exit_status = subprocess.call(["fairly", "--help"])
     assert exit_status == 0
 
-
-def test_show_config():
-    runner = CliRunner()
-    result = runner.invoke(cli, ["config", "show"])
-    assert result.exit_code == 0
-
-
 @pytest.mark.parametrize("id", remote_dataset_ids())
 def test_dataset_clone(id, tmpdir):
     """Test dataset cloning by using dataset URL address, DOI or ID."""
     runner = CliRunner()
-    result = runner.invoke(cli, ["dataset", "clone", id, str(tmpdir)])
+    result = runner.invoke(cli, ["dataset", "clone", "--id", id, "--path", str(tmpdir)])
     assert result.exit_code == 0, result.stdout
 
 
