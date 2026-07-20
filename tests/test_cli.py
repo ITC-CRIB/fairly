@@ -22,11 +22,11 @@ def test_dataset_clone(id, tmpdir):
 
 
 @pytest.mark.parametrize("template", fairly.metadata_templates())
-def test_dataset_create(template, tmpdir):
+def test_dataset_init(template, tmpdir):
     """Test dataset creation by using metadata templates."""
     runner = CliRunner()
     # Create a dummy dataset
-    result = runner.invoke(cli, ["dataset", "create", "--template", template, str(tmpdir)])
+    result = runner.invoke(cli, ["dataset", "init", "--template", template, "--path", str(tmpdir)])
     assert result.exit_code == 0, result.stdout
 
     # Access the dummy dataset
@@ -48,7 +48,7 @@ def test_dataset_upload_delete(repository_id, tmpdir):
 
     create_dummy_dataset(tmpdir)
 
-    result = runner.invoke(cli, ["dataset", "upload", str(tmpdir), repository_id])
+    result = runner.invoke(cli, ["dataset", "upload", "--path", str(tmpdir), "--id", repository_id])
     assert result.exit_code == 0, result.stdout
 
     match = re.search(r"uploaded at (.+)", result.stdout)
@@ -56,5 +56,5 @@ def test_dataset_upload_delete(repository_id, tmpdir):
 
     id = match[1]
 
-    result = runner.invoke(cli, ["dataset", "delete", "--repository", repository_id, id])
+    result = runner.invoke(cli, ["dataset", "delete", "--repository", repository_id, "--id", id])
     assert result.exit_code == 0, result.stdout
