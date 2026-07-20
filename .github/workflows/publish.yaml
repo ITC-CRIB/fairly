@@ -10,8 +10,9 @@
 name: Publish
 
 on:
+  workflow_dispatch:
   release:
-    types: [published]
+      types: [published]
 
 jobs:
   deploy:
