@@ -26,8 +26,8 @@ def init(path, template):
 
     \b
     Examples:
-        >>> fairly dataset init ./my_dataset
-        >>> fairly dataset init ./my_dataset --template zenodo
+        >>> fairly dataset init --path ./my_dataset
+        >>> fairly dataset init --path ./my_dataset --template zenodo
 
     \f
     Args:
