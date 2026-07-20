@@ -1,4 +1,4 @@
-import os
+import subprocess
 import pytest
 import re
 from tests.conftest import *
@@ -10,30 +10,23 @@ from fairly.cli import cli
 
 def test_help():
     """Test if CLI is reachable from the system terminal."""
-    exit_status = os.system("fairly --help")
+    exit_status = subprocess.call(["fairly", "--help"])
     assert exit_status == 0
-
-
-def test_show_config():
-    runner = CliRunner()
-    result = runner.invoke(cli, ["config", "show"])
-    assert result.exit_code == 0
-
 
 @pytest.mark.parametrize("id", remote_dataset_ids())
 def test_dataset_clone(id, tmpdir):
     """Test dataset cloning by using dataset URL address, DOI or ID."""
     runner = CliRunner()
-    result = runner.invoke(cli, ["dataset", "clone", id, str(tmpdir)])
+    result = runner.invoke(cli, ["dataset", "clone", "--id", id, "--path", str(tmpdir)])
     assert result.exit_code == 0, result.stdout
 
 
 @pytest.mark.parametrize("template", fairly.metadata_templates())
-def test_dataset_create(template, tmpdir):
+def test_dataset_init(template, tmpdir):
     """Test dataset creation by using metadata templates."""
     runner = CliRunner()
     # Create a dummy dataset
-    result = runner.invoke(cli, ["dataset", "create", "--template", template, str(tmpdir)])
+    result = runner.invoke(cli, ["dataset", "init", "--template", template, "--path", str(tmpdir)])
     assert result.exit_code == 0, result.stdout
 
     # Access the dummy dataset
@@ -55,13 +48,14 @@ def test_dataset_upload_delete(repository_id, tmpdir):
 
     create_dummy_dataset(tmpdir)
 
-    result = runner.invoke(cli, ["dataset", "upload", str(tmpdir), repository_id])
+    result = runner.invoke(cli, ["dataset", "upload", "--path", str(tmpdir), "--repository", repository_id])
     assert result.exit_code == 0, result.stdout
 
     match = re.search(r"uploaded at (.+)", result.stdout)
     assert match
 
     id = match[1]
+    id = id[:-1] # Remove tailing '.'
 
-    result = runner.invoke(cli, ["dataset", "delete", "--repository", repository_id, id])
+    result = runner.invoke(cli, ["dataset", "delete", "--repository", repository_id, "--id", id])
     assert result.exit_code == 0, result.stdout

@@ -22,7 +22,7 @@ def list(format):
     """List repositories defined in the configuration files.
 
     `fairly repository list --format <format>`
-
+    \f
     Args:
         format (str): Output format.
     """
@@ -62,7 +62,7 @@ def add(client_id, id, param, **kwargs):
     """Add a repository to the configuration file.
 
     fairly repository add <client_id> <id> --name <name> --api-url <url> --token <token>
-
+    \f
     Args:
         client_id (str): Client identifier.
         id (str): Repository identifier.
@@ -84,6 +84,7 @@ def add(client_id, id, param, **kwargs):
     client = fairly.client(client_id, repository_id = id, **kwargs)
 
     client.save_config()
+    click.echo(f"Repository `{id}` added to the configuration file.")
 
 
 @repository.command(
@@ -95,7 +96,7 @@ def config(id, format):
     """Show configuration of a repository.
 
     `fairly repository config <id> --format <format>`
-
+    \f
     Args:
         id (str): Repository identifier.
         format (str): Output format.
@@ -123,7 +124,7 @@ def token(id, token):
     """Set access token of a repository in the configuration file.
 
     `fairly repository token <id> <token>`
-
+    \f
     Args:
         id (str): Repository identifier.
         token (str): Repository access token.
@@ -147,7 +148,7 @@ def remove(id):
     """Remove a repository from the configuration file.
 
     `fairly repository remove <id>`
-
+    \f
     Args:
         id (str): Repository identifier.
 

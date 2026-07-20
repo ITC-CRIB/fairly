@@ -50,13 +50,16 @@ Connecting to an account is a simple as passing a token when creating a 4TU.Rese
 Storing Tokens
 ================
 
-To store your tokens, create a JSON file like the one below and store it at `~/.fairly/config.json`. You can store tokens for other repositories by adding them to this file as `"<repository-id>": {"token": "<the-token>"}`
+Token can be stored on a user configuration files at `~/.fairly/config.json`. You can add/modify tokens to repositories as follows. Stored tokens will be used by the Python API, CLI and JupyterLab extension, unless a different topen is passed when performing a task.
 
-.. code-block:: json
+To store a token using the CLI, use:
 
-   {
-      "4tu": {
-         "token": "<4tu-token>"
-      }
-   }
+.. code-block:: shell
 
+   fairly repository token <reposiotry-id> <your-token>
+
+To check which repositories and token are configured, use:
+
+.. code-block:: shell
+
+   fairly repository list

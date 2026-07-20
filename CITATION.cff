@@ -5,6 +5,7 @@ cff-version: 1.2.0
 title: Fairly
 message: Please cite this software using these metadata.
 type: software
+version: 2.0.0
 authors:
   - given-names: Serkan
     family-names: Girgin

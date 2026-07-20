@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fairly"
-version = "1.0.1"
+dynamic = ["version"]
 description = "A package to create, publish, and download research datasets"
 readme = "README.rst"
 license = { file="LICENSE" }
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 authors = [
     { name="Serkan Girgin", email="s.girgin@utwente.nl" },
     { name="Manuel Garcia Alvarez", email="m.g.garciaalvarez@tudelft.nl" },
@@ -35,7 +35,13 @@ dev = [
     "python-dotenv",
     "build",
     "hatch",
+    "sphinx-copybutton",
+    "nbsphinx",
+    "sphinx-rtd-theme"
 ]
+
+[tool.hatch.version]
+path = "src/fairly/_version.py"
 
 [project.urls]
 "Homepage" = "https://github.com/ITC-CRIB/fairly"
