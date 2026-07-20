@@ -50,11 +50,11 @@ This are other datasets that you can try:
 * https://zenodo.org/records/8273524
   
  
-Using the JupyterLab interface, create a new directory called :code:`workshop`. *Notice that the content of your main directory would be different.*
+Using the JupyterLab interface, create a new directory called :code:`tutorial`. *Notice that the content of your main directory would be different.*
 
 .. image:: ../img/create-directory.png
 
-1. Inside the workshop directory, create a new directory called :code:`clone`
+1. Inside the tutorial directory, create a new directory called :code:`clone`
 2. Right click on the left panel to open the context menu
 3. Click on :guilabel:`Clone Dataset`
 4. Copy and paste the URL for the example dataset on the dialog window
@@ -78,8 +78,8 @@ Part 2: Create a Fairly Dataset
 
 Here, we show you how can you create and prepare your own dataset using the JupyterLab extension of *fairly*.
 
-   1. Create a new directory called :code:`mydataset` inside the *workshop directory*.
-   2. Inside :code:`workshop/mydataset/`. Open the context menu and click on :guilabel:`Create Fairly Dataset`
+   1. Create a new directory called :code:`mydataset` inside the *tutorial directory*.
+   2. Inside :code:`tutorial/mydataset/`. Open the context menu and click on :guilabel:`Create Fairly Dataset`
    3. Select :guilabel:`Zenodo` as template from the drop-down list. *Notice that there are templates for other data repositories*. 
    4. Click :guilabel:`Create`. A :code:`manifest.yaml` file will be add to the *dummy-data* directory. This file contains a list of fields that you can edit to add metadata to your dataset. 
 
@@ -123,7 +123,7 @@ However, if you are not sure which repository you will use to publish a dataset,
      authors:
      - fullname: Surname, FirstName
        affiliation: Your institution
-     description: A dataset from the Fairly Toolset workshop
+     description: A dataset from the Fairly Toolset tutorial
      access_type: open
      license: CC0-1.0
      doi: ''
@@ -169,9 +169,9 @@ Create Personal Token
 A personal token is a way in which data repositories identify a user. We need to register a personal token for creating datasets in the repository and uploading files to an specific account.
 
 1. Sign in to Zenodo. 
-2. On the top-right corner click on drop-down arrow, then :guilabel:`Applicaitons`.
+2. On the top-right corner click on drop-down arrow, then :guilabel:`Applications`.
 3. On the section :guilabel:`Personal access tokens`, click the :guilabel:`New token` button.
-4. Enter a name for your token, for example: :code:`workshop`
+4. Enter a name for your token, for example: :code:`tutorial`
 5. For scopes, check all three boxes, and click :guilabel:`Create`
 6. Copy the token (list of characters in red) to somewhere secure. **You will only see the token once.**
 7. Under :guilabel:`Scopes`, check all three boxes once more. Then click :guilabel:`Save`
@@ -191,7 +191,7 @@ To register a personal token to the Fairly Toolset, do the following in JupyterL
 4. Click :guilabel:`Add Token`
 
 .. important:: 
-   * You can register tokens for other repositories supporte by *fairly* in the same way. Tokens added in this way are global, and will be used by by the JupyterLab extension, the Python package and the CLI.
+   * You can register tokens for other repositories supported by *fairly* in the same way. Tokens added in this way are global, and will be used by by the JupyterLab extension, the Python package and the CLI.
    * Tokens are stored in a file called :code:`config.json` in your user home directory. This file is created automatically by *fairly* when you register a token. For Windows the file is located in :code:`C:\\Users\\<You-user-name>\\.fairly\\config.json`, and for Linux/MacOS in :code:`~/.fairly/config.json`. 
    * To **update a token**, simply register a new token with the same name. The old token will be replaced by the new one. To **remove a token**, simply repeate the process, but type a random character in the token field.
 
@@ -205,7 +205,7 @@ Upload Dataset
 ''''''''''''''''
 
 1. On the left panel, do right-click, and then click :guilabel:`Upload Dataset`
-2. Select Zenodo from the dowp-down list, and click :guilabel:`Continue`
+2. Select Zenodo from the drop-down list, and click :guilabel:`Continue`
 3. Confirm that you want to upload the dataset to Zenodo by ticking the checkbox.
 4. Click :guilabel:`OK`. A notification on the bottom-right corner will let you know that the upload is in progress and when it is complete.
 5. Go to your Zenodo account and click on :guilabel:`Upload`. The `my dataset` dataset should be there. 
