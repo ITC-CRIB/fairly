@@ -74,9 +74,9 @@ def clone(id, path, repository, token, notify, extract):
 
     \b
     Examples:
-        >>> fairly dataset clone https://zenodo.org/records/7759648
-        >>> fairly dataset clone 10.5281/zenodo.7759648
-        >>> fairly dataset clone --repository zenodo 7759648 --notify
+        >>> fairly dataset clone --id https://zenodo.org/records/7759648
+        >>> fairly dataset clone --id 10.5281/zenodo.7759648
+        >>> fairly dataset clone --repository zenodo --id 7759648 --notify
     \f
     Args:
         id (str): Dataset identifier.
