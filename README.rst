@@ -108,7 +108,7 @@ Usage
 -----
 
 Python API
-''''''''''''
+~~~~~~~~~~
 
 Basic example to create a local research dataset and deposit it to a
 repository using the Python API:
@@ -178,7 +178,7 @@ Basic example to access a remote dataset and store it locally:
 
 
 Command Line
-''''''''''''''
+~~~~~~~~~~~~
 
 .. code:: shell
    
