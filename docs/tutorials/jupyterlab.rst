@@ -90,7 +90,7 @@ Here, we show you how can you create and prepare your own dataset using the Jupy
 Include Files in your Dataset
 ''''''''''''''''''''''''''''''''
 
-Add some files to the :code:`mydataset` directory. You can add files of your own, but be careful not to include anything that you want to keep confidential. Also consider the size of the files you will add, the larger the size the longer the upload will take. Also remember that for the current Zenodo API each file should be :code:`100MB` or smaller; this will change in the future.
+Add some files to the :code:`mydataset` directory. You can add files of your own, but be careful not to include anything that you want to keep confidential. Also consider the size of the files you will add, the larger the size the longer the upload will take. Keep in mind that for the  Zenodo API my impose `size limits <https://support.zenodo.org/help/en-gb/1-upload-deposit/80-what-are-the-size-limitations-of-zenodo>`_ on files and datasets. 
 
 If you do not want to use your own files, you can download and use the `dummy-data <https://drive.google.com/drive/folders/160N6MCmiKV3g-74idCgyyul9UdoPRO8T?usp=share_link>`_ 
 
@@ -159,7 +159,7 @@ However, if you are not sure which repository you will use to publish a dataset,
 Part 3: Upload Dataset to Repository
 -------------------------------------
 
-This part explains how to upload a dataset to an existing account in Zenodo. If you do not have an account yet, you can `sign up in this webpage. <https://zenodo.org/signup/>`_
+This part explains how to upload a dataset to an existing account in Zenodo. If you do not have an account yet, you can `sign up via this webpage. <https://zenodo.org/signup/>`_
 
 .. _create-token:
 
