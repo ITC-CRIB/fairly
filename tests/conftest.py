@@ -1,12 +1,41 @@
-import pytest
-
-from ruamel.yaml import YAML
-import dotenv
 import os.path
+
+import dotenv
+import keyring
+import pytest
+from keyring.backend import KeyringBackend
+from keyring.errors import PasswordDeleteError
+from ruamel.yaml import YAML
 
 # Load environment variables
 dotenv.load_dotenv()
 
+
+class InMemoryKeyring(KeyringBackend):
+    """Simple keyring backend for tests, independent of keyring extras."""
+
+    priority = 1
+
+    def __init__(self):
+        self._store = {}
+
+    def get_password(self, service, username):
+        return self._store.get((service, username))
+
+    def set_password(self, service, username, password):
+        self._store[(service, username)] = password
+
+    def delete_password(self, service, username):
+        key = (service, username)
+        if key not in self._store:
+            raise PasswordDeleteError("No such credential")
+        del self._store[key]
+
+@pytest.fixture(autouse=True)
+def set_keyring():
+    """Set keyring for testing."""
+
+    keyring.set_keyring(InMemoryKeyring())
 
 def create_dummy_dataset(path):
     """Create a dummy dataset for testing.
