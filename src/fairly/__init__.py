@@ -19,6 +19,8 @@ from .client import Client
 from .dataset import Dataset
 from .dataset.local import LocalDataset
 from .file import File
+from .keychain import KeyringUnavailableError, delete_token
+
 
 
 MAX_WORKERS = 4
@@ -284,7 +286,6 @@ def remove_repository(id: str) -> bool:
         id (str): Repository id.
     """
     path = os.path.expanduser("~/.fairly/config.json")
-
     try:
         with open(path, "r") as file:
             data = json.load(file)
@@ -295,6 +296,7 @@ def remove_repository(id: str) -> bool:
         return False
 
     del data[id]
+    delete_token(id)
 
     dirs = os.path.dirname(path)
     if dirs:

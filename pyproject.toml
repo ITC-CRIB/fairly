@@ -22,6 +22,7 @@ classifiers = [
 dependencies = [
     "python-dateutil",
     "requests",
+    "keyring",
     "requests_toolbelt>=1.0.0",
     "ruamel.yaml>=0.17.26",
     "click",

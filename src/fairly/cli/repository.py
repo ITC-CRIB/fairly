@@ -31,6 +31,8 @@ def list(format):
     if format == 'text':
         for id, info in sorted(repositories.items()):
             click.echo(f"* {id}")
+            token = fairly.keychain.resolve_token(id)
+            info['token'] = f"{token[:6]}..."  if token else "(not set)"
             for key, val in info.items():
                 if key == 'id':
                     continue
@@ -102,6 +104,9 @@ def config(id, format):
         format (str): Output format.
     """
     repository = fairly.get_repository(id)
+    token = fairly.keychain.resolve_token(id)
+    # tokens must never be printed in full
+    repository['token'] = f"{token[:6]}..."  if token else "(not set)"
 
     if not repository:
         raise click.UsageError("Invalid repository id.")
@@ -137,7 +142,7 @@ def token(id, token):
 
     client.save_config()
 
-    click.echo(f"Access token of the `{id}` repository is set as `{token}`.")
+    click.echo(f"Access token of the `{id}` repository is set.")
 
 
 @repository.command(

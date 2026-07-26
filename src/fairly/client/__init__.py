@@ -87,11 +87,21 @@ class Client(ABC):
 
         self._repository_id = repository_id
 
+        # Legacy plaintext tokens are no loger trusted. 
+        config.pop("token", None)  # Make sure to remove any token from the config file
+
         # Append named arguments
         config.update(kwargs)
 
         # Set configuration
         self.config = type(self).get_config(**config)
+
+        # Resolve token from FAIRLY_<ID>_TOKEN environment variable or keychain
+        if not self.config.get("token"):
+            id = self._repository_id or self._client_id
+            token = fairly.keychain.resolve_token(id)
+            if token:
+                self.config["token"] = token
 
         # Initialize attributes
         self._session = None
@@ -193,6 +203,8 @@ class Client(ABC):
 
         config = {}
         for key in self.get_config_parameters():
+            if key == "token": 
+                continue # Do not save tokenn in config file.
             val = self.config.get(key)
             if val and (key not in common or common[key] != val):
                 if os.environ.get("FAIRLY_{}_{}".format(id.upper(), key.upper())) == val:
