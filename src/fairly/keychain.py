@@ -34,6 +34,9 @@ def delete_token(id: str) -> None:
     try:
         keyring.delete_password(SERVICE_NAME, id)
     except keyring.errors.PasswordDeleteError:
+        # Deleting a missing token should be a no-op.
+        return
+    except keyring.errors.KeyringError:
         raise KeyringUnavailableError(
             "Keyring is unavailable, thus tokens cannot be deleted"
         )
