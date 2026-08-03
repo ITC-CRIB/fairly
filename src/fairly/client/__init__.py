@@ -213,7 +213,6 @@ class Client(ABC):
                     elif not save_environment:
                         continue
                 config[key] = val
-
         if config:
             data[id] = config
         elif id in data:
@@ -226,6 +225,9 @@ class Client(ABC):
         with open(path, 'w') as file:
             json.dump(data, file, indent=2)
 
+        # Save token in keychain
+        if self.config.get("token"):
+            fairly.keychain.set_token(id, self.config["token"])
 
     @classmethod
     def parse_id(cls, id: str) -> Tuple(str, str):
