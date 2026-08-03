@@ -1,17 +1,68 @@
-import subprocess
-import pytest
 import re
-from tests.conftest import *
+import subprocess
+
+import keyring
+import pytest
 from click.testing import CliRunner
 
 import fairly
 from fairly.cli import cli
+from tests.conftest import *
 
 
 def test_help():
     """Test if CLI is reachable from the system terminal."""
     exit_status = subprocess.call(["fairly", "--help"])
     assert exit_status == 0
+
+def test_cli_config_masks_token(monkeypatch):
+    """Test `repository config` command shows a 6-character masked token, never the full token."""
+
+    monkeypatch.delenv("FAIRLY_FIGSHARE_TOKEN", raising=False)
+    token = "abcdef1234567890SECRETTAIL"
+    keyring.set_password("fairly", "figshare", token)
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["repository", "config", "figshare"])
+    assert result.exit_code == 0, result.stdout
+
+    assert "abcdef..." in result.stdout
+    assert token not in result.stdout
+    assert "SECRETTAIL" not in result.stdout
+
+
+def test_cli_config_shows_not_set(monkeypatch):
+    """Test `repository config` command shows '(not set)' when no token is found."""
+
+    monkeypatch.delenv("FAIRLY_ZENODO_TOKEN", raising=False)
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["repository", "config", "zenodo"])
+    assert result.exit_code == 0, result.stdout
+    assert "(not set)" in result.stdout
+
+
+def test_cli_config_ignores_stale_plaintext_token(monkeypatch):
+    """Tests that `repository config` command ignores a stale plaintext token in config.json and shows '(not set)' instead."""
+
+    monkeypatch.delenv("FAIRLY_FIGSHARE_TOKEN", raising=False)
+
+    stale = {
+        "id": "figshare",
+        "client_id": "figshare",
+        "name": "Figshare",
+        "url": "https://figshare.com/",
+        "api_url": "https://api.figshare.com/v2/",
+        "token": "stale-plaintext-token",
+    }
+    monkeypatch.setattr(fairly, "get_repository", lambda uid: dict(stale))
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["repository", "config", "figshare"])
+    assert result.exit_code == 0, result.stdout
+    assert "(not set)" in result.stdout
+    assert "stale-plaintext-token" not in result.stdout
+
 
 @pytest.mark.parametrize("id", remote_dataset_ids())
 def test_dataset_clone(id, tmpdir):
