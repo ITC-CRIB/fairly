@@ -64,6 +64,29 @@ def test_cli_config_ignores_stale_plaintext_token(monkeypatch):
     assert "stale-plaintext-token" not in result.stdout
 
 
+def test_cli_list_json_masks_token(monkeypatch):
+    """`repository list --format json` must mask tokens, not leak them."""
+
+    monkeypatch.delenv("FAIRLY_FIGSHARE_TOKEN", raising=False)
+    monkeypatch.setattr(
+        fairly,
+        "get_repositories",
+        lambda: {
+            "figshare": {
+                "id": "figshare",
+                "name": "Figshare",
+                "token": "stale-plaintext-token",
+            }
+        },
+    )
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["repository", "list", "--format", "json"])
+    assert result.exit_code == 0, result.stdout
+    assert "stale-plaintext-token" not in result.stdout
+    assert "(not set)" in result.stdout
+
+
 @pytest.mark.parametrize("id", remote_dataset_ids())
 def test_dataset_clone(id, tmpdir):
     """Test dataset cloning by using dataset URL address, DOI or ID."""
