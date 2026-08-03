@@ -1,5 +1,4 @@
-from typing import Optional
-
+import os
 import keyring
 
 SERVICE_NAME = "fairly"
@@ -17,7 +16,7 @@ def set_token(id: str, token: str) -> None:
             "Keyring is unavailable. Set the FAIRLY_ID_TOKEN environment variable instead."
         )
 
-def get_token(id: str) -> Optional[str]:
+def get_token(id: str) -> str | None:
     """Get the token from the keyring."""
 
     try:
@@ -41,11 +40,10 @@ def delete_token(id: str) -> None:
             "Keyring is unavailable, thus tokens cannot be deleted"
         )
 
-def resolve_token(id: str) -> Optional[list]:
-    """Resolve the token from the keyring or environment variable."""
-    token = get_token(id)
-    if token is None:
-        import os
+def resolve_token(id: str) -> str | None:
+    """Resolve the token from the keyring or environment variable.
+    
+    The FAIRLY_<ID>_TOKEN enviroment variable takes precedence ofther the OS keychain.
 
-        token = os.environ.get("FAIRLY_ID_TOKEN")
-    return token
+    """
+    return os.environ.get(f"FAIRLY_{id.upper()}_TOKEN") or get_token(id)
