@@ -29,8 +29,10 @@ jobs:
           pytest -m "not integration" --cov=fairly tests/
 
   integration:
+    # Runs only on PRs to main
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    if: github.base_ref == 'main'
     # Hits live repository APIs with real credentials; allowed to fail so
     # third-party token expiry / outages don't block PRs.
     continue-on-error: true
