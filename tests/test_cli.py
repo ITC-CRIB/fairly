@@ -87,6 +87,7 @@ def test_cli_list_json_masks_token(monkeypatch):
     assert "(not set)" in result.stdout
 
 
+@pytest.mark.integration
 @pytest.mark.parametrize("id", remote_dataset_ids())
 def test_dataset_clone(id, tmpdir):
     """Test dataset cloning by using dataset URL address, DOI or ID."""
@@ -112,6 +113,7 @@ def test_dataset_init(template, tmpdir):
         assert isinstance(runner.invoke(cli, ["dataset", "create", tmpdir]), Exception)
 
 
+@pytest.mark.integration
 @pytest.mark.parametrize("repository_id", fairly.get_repositories())
 def test_dataset_upload_delete(repository_id, tmpdir):
     """Test dataset upload to the recognized repositories."""

@@ -86,7 +86,7 @@ def test_env_var_token_priority(tmp_path, monkeypatch):
 
 
 @pytest.mark.parametrize("client_id", list(fairly.get_clients()))
-def test_ingnore_legacy_plaintext_token(client_id, monkeypatch):
+def test_ignore_legacy_plaintext_token(client_id, monkeypatch):
     """Test that a legacy plaintext token in config.json is never trusted/used."""
 
     monkeypatch.delenv(f"FAIRLY_{client_id.upper()}_TOKEN", raising=False)
@@ -112,6 +112,7 @@ def test_create_client(client_id, client_class):
     assert client.client_id == client_id
 
 
+@pytest.mark.integration
 @pytest.mark.parametrize("repository_id", fairly.get_repositories())
 def test_dataset_upload_delete(repository_id, tmpdir):
     '''Test dataset upload to the recognized repositories.'''
@@ -133,6 +134,7 @@ def test_dataset_upload_delete(repository_id, tmpdir):
     remote_dataset.client.delete_dataset(remote_dataset.id)
 
 
+@pytest.mark.integration
 @pytest.mark.parametrize("id", remote_dataset_ids())
 def test_dataset_clone(id, tmpdir):
     '''Test the dataset cloning by using dataset URL address, DOI or ID.'''
@@ -158,6 +160,7 @@ def test_dataset_create(template, tmpdir):
         assert isinstance(fairly.init_dataset(str(tmpdir)), Exception)
 
 
+@pytest.mark.integration
 @pytest.mark.parametrize("repository_id", fairly.get_repositories())
 def test_get_account_datasets(repository_id):
 
