@@ -33,9 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: github.base_ref == 'main'
-    # Hits live repository APIs with real credentials; allowed to fail so
-    # third-party token expiry / outages don't block PRs.
-    continue-on-error: true
+    # Hits live repository APIs with real credentials
     env:
       FAIRLY_FIGSHARE_TOKEN: ${{ secrets.FIGSHARE_TOKEN }}
       FAIRLY_ZENODO_TOKEN: ${{ secrets.ZENODO_TOKEN }}
