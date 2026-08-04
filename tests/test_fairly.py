@@ -40,7 +40,9 @@ def test_get_clients():
 def test_save_config_stores_token_in_keychain(tmp_path, monkeypatch):
     """save_config must put the token in the keychain, never in config.json"""
 
+    # HOME (POSIX) and USERPROFILE (Windows) both feed os.path.expanduser("~")
     monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
 
     token = "secret-token-value"
     client = fairly.client("figshare", token=token)
@@ -63,6 +65,7 @@ def test_init_resolves_token_from_keychain(client_id, tmp_path, monkeypatch):
     """Test Client.__init__ falls back to keychain when no kwargs/env var is provided."""
 
     monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
     monkeypatch.delenv(f"FAIRLY_{client_id.upper()}_TOKEN", raising=False)
 
     keyring.set_password("fairly", client_id, "keychain-token-value")
@@ -75,6 +78,7 @@ def test_env_var_token_priority(tmp_path, monkeypatch):
     """Test FAIRLY_<ID>_TOKEN takes precedence over keychain."""
 
     monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
     monkeypatch.setenv("FAIRLY_FIGSHARE_TOKEN", "env-var-token-value")
 
     keyring.set_password("fairly", "figshare", "keychain-token-value")
