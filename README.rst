@@ -81,6 +81,9 @@ from **PYPI** or **Conda-Forge**.
    # using anaconda or miniconda
    conda install conda-forge::fairly
 
+.. important::
+   
+   *Keyring* is a hard dependency; Linux users need a running Secret Service provider (GNOME Keyring/KWallet) for interactive token storage; headless/CI/server users without a keyring backend should set `:code:FAIRLY_<ID>_TOKEN` instead.
 
 Installing from source
 ~~~~~~~~~~~~~~~~~~~~~~

@@ -22,6 +22,7 @@ classifiers = [
 dependencies = [
     "python-dateutil",
     "requests",
+    "keyring",
     "requests_toolbelt>=1.0.0",
     "ruamel.yaml>=0.17.26",
     "click",
@@ -38,6 +39,11 @@ dev = [
     "sphinx-copybutton",
     "nbsphinx",
     "sphinx-rtd-theme"
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: tests that hit live external repository APIs (require network access and valid credentials)",
 ]
 
 [tool.hatch.version]

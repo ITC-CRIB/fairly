@@ -192,7 +192,7 @@ To register a personal token to the Fairly Toolset, do the following in JupyterL
 
 .. important:: 
    * You can register tokens for other repositories supported by *fairly* in the same way. Tokens added in this way are global, and will be used by by the JupyterLab extension, the Python package and the CLI.
-   * Tokens are stored in a file called :code:`config.json` in your user home directory. This file is created automatically by *fairly* when you register a token. For Windows the file is located in :code:`C:\\Users\\<You-user-name>\\.fairly\\config.json`, and for Linux/MacOS in :code:`~/.fairly/config.json`. 
+   * Tokens are stored in the OS credential store *(Keychain/Credential Locker/Secret Service)* via keyring, with `:code:config.json` holding only non-secret metadata. 
    * To **update a token**, simply register a new token with the same name. The old token will be replaced by the new one. To **remove a token**, simply repeate the process, but type a random character in the token field.
 
 .. warning::
