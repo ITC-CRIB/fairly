@@ -10,11 +10,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    env:
-      FAIRLY_FIGSHARE_TOKEN: ${{ secrets.FIGSHARE_TOKEN }}
-      FAIRLY_ZENODO_TOKEN: ${{ secrets.ZENODO_TOKEN }}
-      FAIRLY_4TU_TOKEN: ${{ secrets.FOURTU_TOKEN }}
-
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
@@ -31,4 +26,29 @@ jobs:
           pip install -e .[dev]
       - name: Test with pytest
         run: |
-          pytest --cov=fairly tests/
+          pytest -m "not integration" --cov=fairly tests/
+
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Hits live repository APIs with real credentials; allowed to fail so
+    # third-party token expiry / outages don't block PRs.
+    continue-on-error: true
+    env:
+      FAIRLY_FIGSHARE_TOKEN: ${{ secrets.FIGSHARE_TOKEN }}
+      FAIRLY_ZENODO_TOKEN: ${{ secrets.ZENODO_TOKEN }}
+      FAIRLY_4TU_TOKEN: ${{ secrets.FOURTU_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+      - name: Integration tests (live APIs)
+        run: |
+          pytest -m integration tests/
