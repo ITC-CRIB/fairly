@@ -41,6 +41,11 @@ dev = [
     "sphinx-rtd-theme"
 ]
 
+[tool.pytest.ini_options]
+markers = [
+    "integration: tests that hit live external repository APIs (require network access and valid credentials)",
+]
+
 [tool.hatch.version]
 path = "src/fairly/_version.py"
 
